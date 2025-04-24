@@ -10,16 +10,30 @@ jobs:
   build:
     runs-on: ubuntu-latest
     container:
-      image: python:3.6-slim-buster  # Официальный образ с Python 3.6
+      image: python:3.6-slim-buster
     
     steps:
     - uses: actions/checkout@v4
 
-    - name: Install dependencies
+    - name: Set up environment
+      run: |
+        # Устанавливаем совместимую версию pip
+        python -m pip install --upgrade "pip<21.3"
+        # Создаем правильные права для кэша
+        mkdir -p /home/python/.cache/pip
+        chown -R python:python /home/python/.cache
+
+    - name: Install compatible dependencies
       working-directory: ./LIFTEH_project
       run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
+        # Создаем временный requirements.txt с совместимыми версиями
+        echo "asgiref==3.2.10" > temp_requirements.txt
+        echo "Django==2.2.24" >> temp_requirements.txt
+        [ -f requirements.txt ] && grep -vE "^(asgiref|Django)" requirements.txt >> temp_requirements.txt || true
+        
+        # Устанавливаем зависимости
+        python -m pip install --user -r temp_requirements.txt
+        export PATH="$HOME/.local/bin:$PATH"
 
     - name: Run tests
       working-directory: ./LIFTEH_project
