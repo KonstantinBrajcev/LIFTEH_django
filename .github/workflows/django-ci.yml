@@ -10,7 +10,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     container:
-      image: python:3.6.8-slim
+      image: python:3.6.8-buster
     
     strategy:
       matrix:
