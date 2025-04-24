@@ -8,23 +8,20 @@ on:
 
 jobs:
   test:
-    runs-on: ubuntu-latest
-    container:
-      image: ubuntu:18.04  # Более старая версия Ubuntu с совместимыми библиотеками
-      
+    runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v4
-    
-    - name: Install Python 3.6
-      run: |
-        apt-get update
-        apt-get install -y python3.6 python3-pip
-        python3.6 -m pip install --upgrade pip
-    
-    - name: Install dependencies
-      run: |
-        python3.6 -m pip install -r requirements.txt
-    
-    - name: Run tests
-      run: |
-        python3.6 manage.py test
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python 3.6
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.6.8'
+          
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          
+      - name: Run tests
+        run: |
+          python manage.py test
