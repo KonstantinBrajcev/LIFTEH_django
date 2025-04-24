@@ -8,7 +8,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest  # Обязательное поле для любого job
+    runs-on: ubuntu-22.04
     
     container:
       image: python:3.6-slim-buster
