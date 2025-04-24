@@ -10,7 +10,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     container:
-      image: cloudlinux/cl8-python:3.6
+      image: python:3.6.8-slim
     
     strategy:
       matrix:
