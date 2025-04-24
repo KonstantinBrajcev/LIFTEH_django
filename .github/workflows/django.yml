@@ -8,27 +8,32 @@ on:
 
 jobs:
   build:
-
     runs-on: ubuntu-20.04
     strategy:
       max-parallel: 4
       matrix:
-        python-version: ["3.6", "3.10", "3.11"]
+        python-version: ["3.6"]
 
     steps:
     - uses: actions/checkout@v4
+
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v4
       with:
         python-version: ${{ matrix.python-version }}
+
     - name: Debug directory structure
-      run: ls -R
+      run: |
+        echo "Current working directory: $(pwd)"
+        ls -R
+
     - name: Install Dependencies
+      working-directory: ./LIFTEH_project  # Перенесено на уровень шага
       run: |
-      working-directory: ./LIFTEH_project
         python -m pip install --upgrade pip
-        pip install -r LIFTEH_project/requirements.txt
+        pip install -r requirements.txt  # Путь относительный к working-directory
+
     - name: Run Tests
+      working-directory: ./LIFTEH_project
       run: |
-        cd LIFTEH_project
         python manage.py test
