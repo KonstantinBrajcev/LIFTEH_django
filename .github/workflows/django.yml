@@ -8,30 +8,30 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-22.04  # Новая LTS-версия
-    
+    runs-on: ubuntu-20.04  # Требуется для Python 3.6
+    container:
+      image: python:3.6-slim-buster  # Используем официальный образ
+
     steps:
     - uses: actions/checkout@v4
 
-    # Устанавливаем Python 3.6 через deadsnakes PPA
-    - name: Set up Python 3.6
+    - name: Set up environment
       run: |
-        sudo apt-get update
-        sudo apt-get install -y software-properties-common
-        sudo add-apt-repository -y ppa:deadsnakes/ppa
-        sudo apt-get install -y python3.6 python3.6-dev
-        curl -sS https://bootstrap.pypa.io/pip/3.6/get-pip.py | python3.6
-
-    - name: Verify Python version
-      run: python3.6 --version
+        python -m pip install --upgrade "pip<21.3"  # Совместимая версия pip
+        mkdir -p /home/python/.cache/pip
+        chown -R python:python /home/python/.cache
 
     - name: Install dependencies
       working-directory: ./LIFTEH_project
       run: |
-        python3.6 -m pip install --upgrade pip
-        python3.6 -m pip install -r requirements.txt
+        # Устанавливаем совместимые версии пакетов
+        echo "asgiref==3.2.10" >> requirements.txt
+        echo "Django==2.2.24" >> requirements.txt
+        
+        pip install --user -r requirements.txt
+        export PATH="$HOME/.local/bin:$PATH"
 
     - name: Run tests
       working-directory: ./LIFTEH_project
       run: |
-        python3.6 manage.py test
+        python manage.py test
