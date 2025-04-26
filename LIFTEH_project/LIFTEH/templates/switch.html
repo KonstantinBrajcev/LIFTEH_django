@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Управление устройством</title>
+    <style>
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 34px;
+        }
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        input:checked + .slider {
+            background-color: #2196F3;
+        }
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+    </style>
+
+    <script>
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+        const csrftoken = getCookie('csrftoken');
+    </script>
+
+</head>
+<body>
+    <h1>Управление устройством</h1>
+    
+    <label class="switch">
+        <input type="checkbox" id="powerSwitch" {% if power %}checked{% endif %}>
+        <span class="slider"></span>
+    </label>
+    <p>Текущее состояние: <span id="statusText">{% if power %}Включено{% else %}Выключено{% endif %}</span></p>
+
+    <script>
+        const switchElement = document.getElementById('powerSwitch');
+        const statusText = document.getElementById('statusText');
+        
+        // Обработчик изменения состояния переключателя
+        switchElement.addEventListener('change', function() {
+            fetch('/switch/', {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+            })
+            .then(response => response.json())
+            .then(data => {
+                statusText.textContent = data.power ? 'Включено' : 'Выключено';
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                // Возвращаем переключатель в предыдущее состояние при ошибке
+                switchElement.checked = !switchElement.checked;
+            });
+        });
+
+        // Опционально: автоматическое обновление состояния каждые 5 секунд
+        setInterval(() => {
+            fetch('/switch/', {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (switchElement.checked !== data.power) {
+                    switchElement.checked = data.power;
+                    statusText.textContent = data.power ? 'Включено' : 'Выключено';
+                }
+            });
+        }, 5000);
+    </script>
+</body>
+</html>
