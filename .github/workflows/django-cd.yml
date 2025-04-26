@@ -38,7 +38,7 @@ jobs:
             
             echo "Создаем venv если его нет"
             if [ ! -d "venv" ]; then
-            python -m venv venv
+              python -m venv venv
             fi
             source venv/bin/activate
             
@@ -49,7 +49,14 @@ jobs:
 
             echo "Перезапуск Gunicorn"
             pkill -f gunicorn || true
-            nohup venv/bin/gunicorn \
+            
+            echo "Запуск Gunicorn в сессии screen"
+            screen -dmS gunicorn_LIFTEH_project venv/bin/gunicorn \
               --bind 0.0.0.0:8000 \
-              --workers 1 \
-              LIFTEH_project.wsgi:application &> gunicorn.log &
+              --workers 2 \
+              --timeout 120 \
+              --log-level debug \
+              --error-logfile - \
+              LIFTEH_project.wsgi:application
+            
+            echo "Gunicorn запущен в сессии screen."
