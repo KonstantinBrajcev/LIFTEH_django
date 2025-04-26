@@ -10,10 +10,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       
-      - name: Set up Python 3.9
+      - name: Set up Python 3.6.8
         uses: actions/setup-python@v5
         with:
-          python-version: '3.9'
+          python-version: '3.6.8'
       
       - name: Install dependencies
         working-directory: ./LIFTEH_project
@@ -24,36 +24,35 @@ jobs:
       - name: Deploy to server via SSH
         uses: appleboy/ssh-action@v1
         with:
-            host: ${{ secrets.SSH_HOST }}  # Обязательно
-            username: ${{ secrets.SSH_USERNAME }}  # Обязательно
-            key: ${{ secrets.SSH_PRIVATE_KEY }}  # Или password
-            script: |
-              set -e
-              echo "Переход в директорию проекта"
-              cd ${{ secrets.PROJECT_PATH }}
-                  
-              echo "Обновление кода"
-              git fetch origin main
-              git reset --hard origin/main
-                  
-              echo "Создаем venv если его нет"
-              if [ ! -d "venv" ]; then
-                python3.6 -m venv venv
-              fi
-              source venv/bin/activate
-                  
-              echo "Установка зависимостей"
-              pip install --upgrade pip
-              cd LIFTEH_project
-              pip install -r requirements-server.txt
-                  
-              echo "Миграции и статика"
-              python manage.py migrate --noinput
-              python manage.py collectstatic --noinput
-                  
-              echo "Перезапуск Gunicorn"
-              pkill -f gunicorn || true
-              nohup venv/bin/gunicorn \
-                --bind 0.0.0.0:8000 \
-                --workers 1 \
-                LIFTEH_project.wsgi:application &> gunicorn.log &
+          host: ${{ secrets.SSH_HOST }}  # Обязательно
+          username: ${{ secrets.SSH_USERNAME }}  # Обязательно
+          key: ${{ secrets.SSH_PRIVATE_KEY }}  # Или password
+          script: |
+            set -e
+            echo "Переход в директорию проекта"
+            cd ${{ secrets.PROJECT_PATH }}
+
+            echo "Обновление кода"
+            git fetch origin main
+            git reset --hard origin/main
+
+            echo "Создаем venv если его нет"
+            if [ ! -d "venv" ]; then
+              python -m venv venv  # Используйте python вместо python3.6 для совместимости
+            fi
+            source venv/bin/activate
+
+            echo "Установка зависимостей"
+            pip install --upgrade pip
+            pip install -r requirements-server.txt
+
+            echo "Миграции и статика"
+            python manage.py migrate --noinput
+            python manage.py collectstatic --noinput
+
+            echo "Перезапуск Gunicorn"
+            pkill -f gunicorn || true
+            nohup venv/bin/gunicorn \
+              --bind 0.0.0.0:8000 \
+              --workers 1 \
+              LIFTEH_project.wsgi:application &> gunicorn.log &
