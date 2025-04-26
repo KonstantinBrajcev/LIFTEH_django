@@ -24,34 +24,32 @@ jobs:
       - name: Deploy to server via SSH
         uses: appleboy/ssh-action@v1
         with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USERNAME }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            set -e  # Выход при ошибке
-            
-            cd ${{ secrets.PROJECT_PATH }}
-            
-            # Обновление кода
-            git fetch origin main
-            git reset --hard origin/main
-            
-            # Переходим в директорию проекта
-            cd LIFTEH_project
-            
-            # Установка зависимостей
-            python3.6 -m pip install --upgrade pip
-            python3.6 -m pip install -r requirements.txt
-            
-            # Миграции и статика
-            python3.6 manage.py migrate --noinput
-            python3.6 manage.py collectstatic --noinput
-            
-            # Перезапуск Gunicorn
-            pkill -f gunicorn || true
-            nohup python3.6 -m gunicorn \
-              --bind 0.0.0.0:8000 \
-              --workers 1 \
-              LIFTEH_project.wsgi:application &> gunicorn.log &
-            
-            echo "Deployment completed successfully"
+              set -e
+              cd ${{ secrets.PROJECT_PATH }}
+              
+              # Обновление кода
+              git fetch origin main
+              git reset --hard origin/main
+              
+              # Создаем venv если его нет
+              if [ ! -d "venv" ]; then
+                python3.6 -m venv venv
+              fi
+              source venv/bin/activate
+              
+              # Установка зависимостей
+              pip install --upgrade pip
+              cd LIFTEH_project
+              pip install -r requirements.txt
+              
+              # Миграции и статика
+              python manage.py migrate --noinput
+              python manage.py collectstatic --noinput
+              
+              # Перезапуск Gunicorn
+              pkill -f gunicorn || true
+              nohup venv/bin/gunicorn \
+                --bind 0.0.0.0:8000 \
+                --workers 1 \
+                LIFTEH_project.wsgi:application &> gunicorn.log &
