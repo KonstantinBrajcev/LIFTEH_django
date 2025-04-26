@@ -31,13 +31,13 @@ jobs:
         run: |
           python manage.py collectstatic --noinput
 
-          - name: Deploy to server via SSH
-          uses: appleboy/ssh-action@v1
-          with:
-            host: ${{ secrets.SSH_HOST }}
-            username: ${{ secrets.SSH_USERNAME }}
-            key: ${{ secrets.SSH_PRIVATE_KEY }}
-            script: |
+      - name: Deploy to server via SSH
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
               cd ${{ secrets.PROJECT_PATH }}
               git fetch origin main
               git reset --hard origin/main
