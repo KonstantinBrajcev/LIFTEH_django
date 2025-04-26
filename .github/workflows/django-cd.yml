@@ -31,21 +31,38 @@ jobs:
         run: |
           python manage.py collectstatic --noinput
 
-      - name: Deploy to server via SSH
-        uses: appleboy/ssh-action@v1
-        with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USERNAME }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          script: |
-            cd ${{ secrets.PROJECT_PATH }}
-            git fetch origin main
-            git reset --hard origin/main
-            source venv/bin/activate
-            pip install -r requirements.txt
-            python manage.py migrate --noinput
-            sudo systemctl restart gunicorn
-            sudo systemctl reload nginx
+          - name: Deploy to server via SSH
+          uses: appleboy/ssh-action@v1
+          with:
+            host: ${{ secrets.SSH_HOST }}
+            username: ${{ secrets.SSH_USERNAME }}
+            key: ${{ secrets.SSH_PRIVATE_KEY }}
+            script: |
+              cd ${{ secrets.PROJECT_PATH }}
+              git fetch origin main
+              git reset --hard origin/main
+              
+              # Создаем виртуальное окружение, если его нет
+              if [ ! -d "venv" ]; then
+                python3 -m venv venv
+              fi
+              source venv/bin/activate
+              
+              # Устанавливаем зависимости
+              pip install --upgrade pip
+              pip install -r requirements.txt
+              
+              # Применяем миграции
+              python manage.py migrate --noinput
+              
+              # Перезапускаем сервисы (если sudo доступен)
+              if command -v sudo &> /dev/null; then
+                sudo systemctl restart gunicorn
+                sudo systemctl reload nginx
+              else
+                systemctl --user restart gunicorn
+                systemctl --user reload nginx
+              fi
 
       - name: Rollback on failure
         if: failure()
