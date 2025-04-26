@@ -49,6 +49,9 @@ jobs:
         
               echo "Остановка текущего процесса Gunicorn"
               screen -S gunicorn_LIFTEH_project -p 0 -X quit || true
+
+              python manage.py makemigrations
+              python manage.py migrate
         
               echo "Запуск Gunicorn в новой сессии screen"
               screen -dmS gunicorn_LIFTEH_project venv/bin/gunicorn \
