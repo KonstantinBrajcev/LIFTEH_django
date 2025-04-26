@@ -1,26 +1,57 @@
-name: Django CI
+name: Django CD
 
-on: [push, pull_request]
+on:
+  push:
+    branches: [main]
 
 jobs:
-  test:
+  deploy:
     runs-on: ubuntu-24.04
-    
     steps:
-    - uses: actions/checkout@v4
-    
-    - name: Set up Python 3.9
-      uses: actions/setup-python@v5
-      with:
-        python-version: '3.9'
-    
-    - name: Install dependencies
-      working-directory: ./LIFTEH_project
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python 3.9
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.9'
+      
+      - name: Install dependencies
+        working-directory: ./LIFTEH_project
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
 
-    - name: Run tests
-      working-directory: ./LIFTEH_project
-      run: |
-        python manage.py test
+      - name: Deploy to server via SSH
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            set -e  # Выход при ошибке
+            
+            cd ${{ secrets.PROJECT_PATH }}
+            
+            # Обновление кода
+            git fetch origin main
+            git reset --hard origin/main
+            
+            # Переходим в директорию проекта
+            cd LIFTEH_project
+            
+            # Установка зависимостей
+            python3.6 -m pip install --upgrade pip
+            python3.6 -m pip install -r requirements.txt
+            
+            # Миграции и статика
+            python3.6 manage.py migrate --noinput
+            python3.6 manage.py collectstatic --noinput
+            
+            # Перезапуск Gunicorn
+            pkill -f gunicorn || true
+            nohup python3.6 -m gunicorn \
+              --bind 0.0.0.0:8000 \
+              --workers 1 \
+              LIFTEH_project.wsgi:application &> gunicorn.log &
+            
+            echo "Deployment completed successfully"
