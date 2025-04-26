@@ -1,0 +1,15 @@
+{% comment %} {% extends 'base.html' %} {% endcomment %}
+
+{% block content %}
+<div class="container">
+    <h2>Добавить диагностику</h2>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn btn-primary">Сохранить</button>
+        <a href="{% url 'to' %}#diagnostic">
+            <button type="button" class="btn btn-primary">Назад</button>
+        </a>
+    </form>
+</div>
+{% endblock %}

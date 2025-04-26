@@ -1,0 +1,109 @@
+<div class="row gx-5" style="margin-bottom: 10px; margin-top: 15px;">
+  {% comment %} <div class="col d-flex justify-content-center align-items-center">
+    <a href="{% url 'object_add' %}">
+      <button type="button" class="btn btn-primary" style='justify-content:center;'>Добавить объект</button>
+    </a>
+  </div> {% endcomment %}
+
+  <div class="col" style="justify-items: center;">
+    <form method="GET" action="{% url 'to' %}#service" >
+    <div class="input-group" style="display: flex; align-items: center; width: 200px;">
+      <label class="input-group-text" for="monthSelect" style="float: left;">Месяц</label>
+
+        <select class="form-select" id="monthSelect" name="month" onchange="this.form.submit()">
+          <option value="1" {% if request.GET.month == '1' %}selected{% endif %}>Январь</option>
+          <option value="2" {% if request.GET.month == '2' %}selected{% endif %}>Февраль</option>
+          <option value="3" {% if request.GET.month == '3' %}selected{% endif %}>Март</option>
+          <option value="4" {% if request.GET.month == '4' %}selected{% endif %}>Апрель</option>
+          <option value="5" {% if request.GET.month == '5' %}selected{% endif %}>Май</option>
+          <option value="6" {% if request.GET.month == '6' %}selected{% endif %}>Июнь</option>
+          <option value="7" {% if request.GET.month == '7' %}selected{% endif %}>Июль</option>
+          <option value="8" {% if request.GET.month == '8' %}selected{% endif %}>Август</option>
+          <option value="9" {% if request.GET.month == '9' %}selected{% endif %}>Сентябрь</option>
+          <option value="10" {% if request.GET.month == '10' %}selected{% endif %}>Октябрь</option>
+          <option value="11" {% if request.GET.month == '11' %}selected{% endif %}>Ноябрь</option>
+          <option value="12" {% if request.GET.month == '12' %}selected{% endif %}>Декабрь</option>
+        </select>
+
+      </div>
+    </form>
+  </div>
+
+  <div class="col" style="justify-items: center;">
+    <form method="get">
+      <div class="input-group" style="width: 250px;">
+        <label class="input-group-text" for="city">Город:</label>
+
+        <select class="form-select" name="city" id="city" onchange="this.form.submit()">
+          <option value="">Все города</option>
+          {% for city in cities %}
+          <option value="{{ city }}" {% if city == selected_city %}selected{% endif %}>{{ city }}</option>
+          {% endfor %}
+        </select>
+
+      </div>
+    </form>
+  </div>
+
+  <div class="col" style="justify-items: center;">
+    {% comment %} <a href="{% url 'to' %}" class="btn btn-secondary">Сбросить фильтры</a> {% endcomment %}
+    <form method="get">
+      <div class="input-group" style="width: 200px;">
+        <label class="input-group-text" for="colors">Цвета:</label>
+
+        {% comment %} <select class="form-select" name="colors" id="colors"> {% endcomment %}
+        <select class="form-select" name="colors" id="colors" onchange="this.form.submit()">
+          <option value="green" data-color="#00800063" {% if 'green' in selected_colors %}selected{% endif %}>Зеленый</option>
+          <option value="yellow" data-color="#ffff0063" {% if 'yellow' in selected_colors %}selected{% endif %}>Желтый</option>
+          <option value="red" data-color="#ff000063" {% if 'red' in selected_colors %}selected{% endif %}>Красный</option>
+          <option value="gray" data-color="#80808063" {% if 'gray' in selected_colors %}selected{% endif %}>Серый</option>
+        </select>
+        {% comment %} <button type="submit" class="btn btn-primary">Применить</button> {% endcomment %}
+
+      </div>
+    </form>
+  </div>
+
+</div>
+
+<script>
+  const currentMonth = new Date().getMonth() + 1; // getMonth() возвращает 0-11
+  const selectedMonth = "{{ request.GET.month|default:'' }}"; // Получаем значение из Django
+  if (!selectedMonth) {document.getElementById('monthSelect').value = currentMonth;}
+
+  // Инициализация мультиселекта цветов
+  document.addEventListener('DOMContentLoaded', function() {
+    const colorSelect = document.getElementById('colors');
+    if (colorSelect) {
+      // Bootstrap стили для мультиселекта
+      colorSelect.classList.add('form-select');
+    }
+  });
+</script>
+
+<style>
+  /* Стили для выпадающего списка */
+  select#colors option[value="green"] {
+    background-color: #00800063;
+    color: white;
+  }
+  select#colors option[value="yellow"] {
+    background-color: #ffff0063;
+    color: black;
+  }
+  select#colors option[value="red"] {
+    background-color: #ff000063;
+    color: white;
+  }
+  select#colors option[value="gray"] {
+    background-color: #80808063;
+    color: white;
+  }
+  
+  /* Стили для выбранных элементов */
+  select#colors option:checked {
+    font-weight: bold;
+    border-left: 3px solid black;
+    padding-left: 5px;
+  }
+</style>

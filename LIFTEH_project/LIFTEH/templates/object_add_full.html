@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container">
+  <h1>Добавить объект</h1>
+  <hr>
+  <form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <hr>
+    <button type="submit" class="btn btn-success">Сохранить</button>
+    <a href="{% url 'to' %}#service">
+      <button type="button" class="btn btn-primary">Назад</button>
+    </a>
+  </form>
+</div>
+{% endblock %}

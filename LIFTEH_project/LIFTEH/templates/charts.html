@@ -1,0 +1,223 @@
+{% comment %} {% extends "base.html" %} {% endcomment %}
+{% load static %}
+
+{% block content %}
+
+
+<div>
+  {% comment %} <h2 style="justify-self:center;">Аналитика по обслуживанию</h2> {% endcomment %}
+  
+    <div>
+        <!-- График №1 по месяцам -->
+        <div>
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h4>Сумма обслуживания по месяцам</h4>
+                </div>
+                <div class="card-body">
+                    <canvas id="monthChart" height="400"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <!-- График №2 по заказчикам -->
+        <div>
+          <div class="card mb-4">
+              <div class="card-header">
+                <h4>Сумма обслуживания по заказчикам</h4>
+              </div>
+              <div class="card-body">
+                <canvas id="customerChart" height="500"></canvas>
+              </div>
+          </div>
+        </div>
+
+        <!-- График №3: Среднее значение по заказчикам -->
+        <div>
+        <div class="card mb-4">
+          <div class="card-header">
+            <h4>Среднее значение по заказчикам</h4>
+          </div>
+          <div class="card-body">
+            <canvas id="avgChart" height="500"></canvas>
+          </div>
+          </div>
+        </div>
+
+
+        <div class="card mb-4">
+          <div class="card-header">
+            <h4>Итого за год</h4>
+          </div>
+          <div>
+            <h3 class="text-center">{{ total_sum_all }} руб.</h3>
+          </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // График №1 по месяцам
+  const monthCtx = document.getElementById('monthChart').getContext('2d');
+    new Chart(monthCtx, {
+        type: 'bar',
+        data: {
+            labels: {{ month_names|safe }},
+            datasets: [{
+              label: 'Сумма за месяц',
+              data: {{ month_sums|safe }},
+                backgroundColor: 'rgba(54, 162, 235, 0.7)',
+                borderColor: 'rgba(54, 162, 235, 1)',
+                borderWidth: 1
+            }]
+          },
+        options: {
+            animation: false,
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                      display: true,
+                        text: 'Сумма (руб)'
+                    }
+                }
+            },
+            plugins: {
+              annotation: {
+                  annotations: {
+                      avgLine: {
+                          type: 'line',
+                          yMin: {{ month_avg }},
+                          yMax: {{ month_avg }},
+                          borderColor: 'rgb(255, 99, 71)',
+                          borderWidth: 2,
+                          borderDash: [6, 6],
+                          label: {
+                              content: 'Среднее: {{ month_avg }}',
+                              enabled: true,
+                              position: 'right',
+                              backgroundColor: 'rgba(132, 132, 132, 0.8)',
+                              font: {
+                                  weight: 'bold'
+                              }
+                          }
+                      }
+                  }
+              }
+          }
+        }
+    });
+
+
+    // График №2 по заказчикам - НОВЫЙ ПОДХОД
+    new Chart(document.getElementById('customerChart').getContext('2d'), {
+      type: 'bar',
+      data: {
+          labels: {{ customers|safe }},
+          datasets: [{
+              label: 'Сумма за год',
+              data: {{ customer_totals|safe }},
+              backgroundColor: 'rgba(255, 99, 132, 0.7)',
+              borderColor: 'rgba(255, 99, 132, 1)',
+              borderWidth: 1
+            }]
+      },
+      options: {
+          animation: false,
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            x: {
+                  ticks: { autoSkip: false, maxRotation: 90 }
+                },
+              y: {
+                beginAtZero: true
+              }
+            }
+      }
+    });
+
+
+// График №3: Среднее значение по заказчикам с горизонтальной линией
+const avgCtx = document.getElementById('avgChart').getContext('2d');
+// Подготовка данных
+const avgData = {
+    labels: [{% for item in customers_avg %}"{{ item.customer|escapejs }}"{% if not forloop.last %},{% endif %}{% endfor %}],
+    datasets: [{
+        label: 'Среднее за ТО',
+        data: [{% for item in customers_avg %}{{ item.avg_value }}{% if not forloop.last %},{% endif %}{% endfor %}],
+        backgroundColor: 'rgba(153, 102, 255, 0.7)',
+        borderColor: 'rgba(153, 102, 255, 1)',
+        borderWidth: 1
+    }]
+  };
+
+  // Конфигурация графика
+const avgConfig = {
+  type: 'bar',
+  data: avgData,
+  options: {
+    animation: false,
+    responsive: true,
+    maintainAspectRatio: false,
+    scales: {
+            y: {
+                beginAtZero: true,
+                title: {
+                    display: true,
+                    text: 'Среднее за ТО'
+                }
+            },
+            x: {
+                ticks: {
+                  autoSkip: false,
+                  maxRotation: 90,
+                  minRotation: 45
+                }
+              }
+            },
+        plugins: {
+          annotation: {
+            annotations: {
+              avgLine: {
+                        type: 'line',
+                        yMin: {{ global_avg }},
+                        yMax: {{ global_avg }},
+                        borderColor: 'red',
+                        borderWidth: 2,
+                        borderDash: [6, 6],
+                        label: {
+                          content: 'Среднее: {{ global_avg }}',
+                            enabled: true,
+                            position: 'right',
+                            backgroundColor: 'rgba(132, 132, 132, 0.8)',
+                            font: {
+                                weight: 'bold'
+                              }
+                            }
+                    }
+                  }
+            }
+        }
+    }
+};
+
+// Создаем график
+new Chart(avgCtx, avgConfig);
+});
+
+</script>
+<!-- Подключаем Chart.js и плагин аннотаций -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@1.0.2"></script>
+
+<style>
+.card-body {
+    position: relative;
+    min-height: 400px;
+}
+</style>
+{% endblock %}
