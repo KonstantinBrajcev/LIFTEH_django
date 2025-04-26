@@ -1,0 +1,62 @@
+name: Django CD
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python 3.8
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.8'
+      
+      - name: Install dependencies
+        working-directory: ./LIFTEH_project
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-server.txt
+
+      - name: Deploy to server via SSH
+        uses: appleboy/ssh-action@v1
+        with:
+            host: ${{ secrets.SSH_HOST }}
+            username: ${{ secrets.SSH_USERNAME }}
+            key: ${{ secrets.SSH_PRIVATE_KEY }}
+            script: |
+              set -e
+              echo "Переход в директорию проекта"
+              cd ${{ secrets.PROJECT_PATH }}
+              
+              echo "Обновление кода"
+              git fetch origin main
+              git reset --hard origin/main
+              
+              echo "Создаем venv если его нет"
+              if [ ! -d "venv" ]; then
+                python -m venv venv
+              fi
+              source venv/bin/activate
+              
+              echo "Установка зависимостей"
+              pip install --upgrade pip
+              cd LIFTEH_project
+              pip install -r requirements-server.txt
+        
+              echo "Остановка текущего процесса Gunicorn"
+              screen -S gunicorn_LIFTEH_project -p 0 -X quit || true
+        
+              echo "Запуск Gunicorn в новой сессии screen"
+              screen -dmS gunicorn_LIFTEH_project venv/bin/gunicorn \
+                --bind 0.0.0.0:8001 \
+                --workers 2 \
+                --timeout 120 \
+                --log-level debug \
+                --error-logfile - \
+                LIFTEH_project.wsgi:application
+              echo "Gunicorn запущен в сессии screen."
+        
