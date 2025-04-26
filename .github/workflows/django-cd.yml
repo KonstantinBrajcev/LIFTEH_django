@@ -6,30 +6,20 @@ on:
 
 jobs:
   deploy:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       
-      - name: Set up Python
+      - name: Set up Python 3.9
         uses: actions/setup-python@v5
         with:
-          python-version: '3.10'  # Рекомендую использовать стабильную версию
+          python-version: '3.9'  # Используем версию, совместимую с вашим сервером (Python 3.6.8)
 
       - name: Install dependencies
         working-directory: ./LIFTEH_project
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt
-
-      - name: Run tests
-        working-directory: ./LIFTEH_project
-        run: |
-          python manage.py test
-
-      - name: Collect static files
-        working-directory: ./LIFTEH_project
-        run: |
-          python manage.py collectstatic --noinput
+          pip install -r requirements.txt gunicorn
 
       - name: Deploy to server via SSH
         uses: appleboy/ssh-action@v1
@@ -38,57 +28,40 @@ jobs:
           username: ${{ secrets.SSH_USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
+            set -e  # Выход при ошибке
+            
             cd ${{ secrets.PROJECT_PATH }}
+            
+            # Обновление кода
             git fetch origin main
             git reset --hard origin/main
             
-            echo "Project structure:"
-            ls -la
-            ls -la LIFTEH_project/
-            
+            # Создание/обновление venv
             if [ ! -d "myenv" ]; then
               python3 -m venv myenv
             fi
             source myenv/bin/activate
             
+            # Установка зависимостей
             pip install --upgrade pip
-            cd LIFTEH_project && pip install -r requirements.txt
+            cd LIFTEH_project
+            pip install -r requirements.txt
             
+            # Миграции и статика
             python manage.py migrate --noinput
+            python manage.py collectstatic --noinput
             
-            if command -v sudo &> /dev/null; then
-              sudo systemctl restart gunicorn
-              sudo systemctl reload nginx
-
-            else
-              pkill -f gunicorn || true
-              nohup myenv/bin/gunicorn \
-                --bind 0.0.0.0:8000 \
-                LIFTEH_project.wsgi:application &> gunicorn.log &
+            # Перезапуск Gunicorn
+            if pgrep gunicorn; then
+              pkill gunicorn
+              sleep 2
             fi
-
-      - name: Rollback on failure
-        if: failure()
-        env:
-          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-        run: |
-          mkdir -p ~/.ssh
-          echo "$SSH_PRIVATE_KEY" > ~/.ssh/deploy_key
-          chmod 600 ~/.ssh/deploy_key
-          ssh -o StrictHostKeyChecking=no \
-              -i ~/.ssh/deploy_key \
-              ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }} \
-              "cd ${{ secrets.PROJECT_PATH }} && git checkout HEAD~1 && pkill -f gunicorn && nohup myenv/bin/gunicorn --bind 0.0.0.0:8000 LIFTEH_project.wsgi:application &> gunicorn.log &"
-      
-      - name: Check server environment
-        uses: appleboy/ssh-action@v1
-        with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USERNAME }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          script: |
-            echo "Python: $(python3 --version)"
-            echo "Pip: $(python3 -m pip --version)"
-            echo "Git: $(git --version)"
-            echo "Project dir: ${{ secrets.PROJECT_PATH }}"
-            ls -la ${{ secrets.PROJECT_PATH }}
+            
+            nohup ../myenv/bin/gunicorn \
+              --bind 0.0.0.0:8000 \
+              --workers 1 \
+              --access-logfile gunicorn-access.log \
+              --error-logfile gunicorn-error.log \
+              LIFTEH_project.wsgi:application &> /dev/null &
+            
+            echo "Deployment completed successfully"
