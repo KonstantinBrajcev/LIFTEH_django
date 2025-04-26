@@ -31,24 +31,21 @@ jobs:
             set -e
             echo "Переход в директорию проекта"
             cd ${{ secrets.PROJECT_PATH }}
-
+            
             echo "Обновление кода"
             git fetch origin main
             git reset --hard origin/main
-
+            
             echo "Создаем venv если его нет"
             if [ ! -d "venv" ]; then
-              python -m venv venv
+            python -m venv venv
             fi
             source venv/bin/activate
-
+            
             echo "Установка зависимостей"
             pip install --upgrade pip
+            cd LIFTEH_project
             pip install -r requirements-server.txt
-
-            echo "Миграции и статика"
-            python manage.py migrate --noinput
-            python manage.py collectstatic --noinput
 
             echo "Перезапуск Gunicorn"
             pkill -f gunicorn || true
