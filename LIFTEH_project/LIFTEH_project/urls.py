@@ -2,9 +2,11 @@ from django.contrib import admin
 from django.urls import path
 from LIFTEH.views import LoginView, ToView, HomeView, ChartsView, TasksView, DiagnosticView
 from LIFTEH import views
+# from django.urls import include
 
 urlpatterns = [
     path('', HomeView.as_view(), name='home'),
+    #     path('', include('LIFTEH.urls')),
 
     path('object/add/', views.object_add, name='object_add'),
     #     path('object/add/', ObjectCreateView.as_view(), name='object_add'),
@@ -21,6 +23,7 @@ urlpatterns = [
     path('charts/', ChartsView.as_view(), name='charts'),
     path('tasks/', TasksView.as_view(), name='tasks'),
     path('diagnostic/', DiagnosticView.as_view(), name='diagnostic'),
+    #     path('diagnostic/add/', views.diagnostic_add, name='diagnostic_add'),
     path('diagnostic/add/', views.diagnostic_add, name='diagnostic_add'),
     path('diagnostic/edit/<int:pk>/',
          views.diagnostic_edit, name='diagnostic_edit'),
