@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 <a href="{% url 'object_avr_add' %}" class="btn btn-primary">Добавить</a>
 
 
@@ -37,3 +38,60 @@
   </tr>
   {% endfor %}
 </table>
+=======
+<div class="card mb-4">
+  <div class="card-header d-flex">
+    <div>
+      <h4>Дефектные акты</h4>
+    </div>
+    <div class="col d-flex justify-content-end align-items-center">
+      <a href="{% url 'object_avr_add' %}" class="btn btn-primary">Добавить акт</a>
+    </div>
+  </div>
+
+  {% comment %} <div class="row gx-5" style="margin-bottom: 10px; margin-top: 15px;">
+    <div class="col d-flex justify-content-center align-items-center">
+      <a href="{% url 'object_avr_add' %}" class="btn btn-primary">Добавить</a>
+    </div>
+  </div> {% endcomment %}
+
+  <div class="card-body" style="padding: 0px; min-height: 50px;">
+    <table class="table-hover" style="width: 100%;">
+    <thead class="table-light">
+      <tr style="background-color: #de4c15;">
+        {% comment %} <th style="text-align: center;">№</th> {% endcomment %}
+        <th style="text-align: center;">Заказчик</th>
+        <th style="text-align: center;">Адрес</th>
+        <th style="text-align: center;">Проблема</th>
+        <th style="text-align: center;">Введено</th>
+        <th style="text-align: center;">Действия</th>
+      </tr>
+    </thead>
+
+    {% for avr in avrs %}
+
+    <tr>
+      {% comment %} <td style="text-align: center;">{{ avr.id }}</td> {% endcomment %}
+      <td style="text-align: center;">{% if avr.object %}{{ avr.object.customer }}{% else %}-{% endif %}</td>
+      <td style="text-align: center;">{% if avr.object %}{{ avr.object.address }}{% else %}-{% endif %}</td>
+      <td style="text-align: center;">{{ avr.problem }}</td>
+      <td style="text-align: center;">{{ avr.insert_date|date:"d.m.Y" }}<br>{{ avr.user.username }}</td>
+      <td>
+        <div class="btn-group" style="gap: 2px;">
+          <a href="{% url 'avr_edit' pk=avr.id %}" class="btn btn-secondary">✏</a>
+          <button type="button" class="btn btn-danger" 
+            onclick="if(confirm('Удалить АВР?')) { 
+              document.getElementById('delete-avr-{{ avr.id }}').submit(); 
+            }">
+            <strong>X</strong>
+          </button>
+        </div>
+      </td>
+    </tr>
+
+    {% endfor %}
+
+    </table>
+  </div>
+</div>
+>>>>>>> bubuka

@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -20,3 +21,41 @@
     
 </body>
 </html>
+=======
+<h1>Редактирование объекта</h1>
+<hr>
+<form method="post" id="objectEditForm">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <hr>
+    <button type="submit" class="btn btn-success">Сохранить</button>
+    <button type="button" class="btn btn-primary" onclick="window.history.back()">Назад</button>
+</form>
+
+<script>
+document.getElementById('objectEditForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const form = e.target;
+    const formData = new FormData(form);
+
+    fetch(form.action, {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRFToken': form.querySelector('[name=csrfmiddlewaretoken]').value
+        }
+    })
+    .then(response => {
+        if (response.ok) {
+            window.location.reload(); // Перезагружаем страницу после успешного сохранения
+        } else {
+            return response.text().then(html => {
+                document.getElementById('modalFormContent').innerHTML = html;
+            });
+        }
+    })
+    .catch(error => console.error('Error:', error));
+});
+</script>
+>>>>>>> bubuka
