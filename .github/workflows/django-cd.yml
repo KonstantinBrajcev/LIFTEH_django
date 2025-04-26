@@ -24,6 +24,9 @@ jobs:
       - name: Deploy to server via SSH
         uses: appleboy/ssh-action@v1
         with:
+          host: ${{ secrets.SSH_HOST }}  # Обязательно
+          username: ${{ secrets.SSH_USERNAME }}  # Обязательно
+          key: ${{ secrets.SSH_PRIVATE_KEY }}  # Или password
           script: |
               set -e
               cd ${{ secrets.PROJECT_PATH }}
