@@ -24,6 +24,7 @@ jobs:
       # - name: Run migrations
       #   working-directory: ./LIFTEH_project
       - name: Make migrations
+        working-directory: ./LIFTEH_project
         run: python manage.py makemigrations --no-input
 
       - name: Deploy to server via SSH
