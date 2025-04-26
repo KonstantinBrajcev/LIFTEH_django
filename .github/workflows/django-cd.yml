@@ -52,7 +52,7 @@ jobs:
             
             echo "Запуск Gunicorn в сессии screen"
             screen -dmS gunicorn_LIFTEH_project venv/bin/gunicorn \
-              --bind 0.0.0.0:8000 \
+              --bind 0.0.0.0:8001 \
               --workers 2 \
               --timeout 120 \
               --log-level debug \
