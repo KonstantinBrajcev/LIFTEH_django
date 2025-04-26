@@ -24,39 +24,39 @@ jobs:
       - name: Deploy to server via SSH
         uses: appleboy/ssh-action@v1
         with:
-          host: ${{ secrets.SSH_HOST }}  # Обязательно
-          username: ${{ secrets.SSH_USERNAME }}  # Обязательно
-          key: ${{ secrets.SSH_PRIVATE_KEY }}  # Или password
-          script: |
-            set -e
-            echo "Переход в директорию проекта"
-            cd ${{ secrets.PROJECT_PATH }}
-            
-            echo "Обновление кода"
-            git fetch origin main
-            git reset --hard origin/main
-            
-            echo "Создаем venv если его нет"
-            if [ ! -d "venv" ]; then
-              python -m venv venv
-            fi
-            source venv/bin/activate
-            
-            echo "Установка зависимостей"
-            pip install --upgrade pip
-            cd LIFTEH_project
-            pip install -r requirements-server.txt
-
-            echo "Перезапуск Gunicorn"
-            pkill -f gunicorn || true
-            
-            echo "Запуск Gunicorn в сессии screen"
-            screen -dmS gunicorn_LIFTEH_project venv/bin/gunicorn \
-              --bind 0.0.0.0:8001 \
-              --workers 2 \
-              --timeout 120 \
-              --log-level debug \
-              --error-logfile - \
-              LIFTEH_project.wsgi:application
-            
-            echo "Gunicorn запущен в сессии screen."
+            host: ${{ secrets.SSH_HOST }}
+            username: ${{ secrets.SSH_USERNAME }}
+            key: ${{ secrets.SSH_PRIVATE_KEY }}
+            script: |
+              set -e
+              echo "Переход в директорию проекта"
+              cd ${{ secrets.PROJECT_PATH }}
+              
+              echo "Обновление кода"
+              git fetch origin main
+              git reset --hard origin/main
+              
+              echo "Создаем venv если его нет"
+              if [ ! -d "venv" ]; then
+                python -m venv venv
+              fi
+              source venv/bin/activate
+              
+              echo "Установка зависимостей"
+              pip install --upgrade pip
+              cd LIFTEH_project
+              pip install -r requirements-server.txt
+        
+              echo "Остановка текущего процесса Gunicorn"
+              screen -S gunicorn_LIFTEH_project -p 0 -X quit || true
+        
+              echo "Запуск Gunicorn в новой сессии screen"
+              screen -dmS gunicorn_LIFTEH_project venv/bin/gunicorn \
+                --bind 0.0.0.0:8001 \
+                --workers 2 \
+                --timeout 120 \
+                --log-level debug \
+                --error-logfile - \
+                LIFTEH_project.wsgi:application
+              echo "Gunicorn запущен в сессии screen."
+        
