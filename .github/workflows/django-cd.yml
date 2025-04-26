@@ -10,10 +10,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       
-      - name: Set up Python 3.13
+      - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.13.2'
+          python-version: '3.10'  # Рекомендую использовать стабильную версию
 
       - name: Install dependencies
         working-directory: ./LIFTEH_project
@@ -21,7 +21,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Run tests  # Добавили тесты перед деплоем!
+      - name: Run tests
         working-directory: ./LIFTEH_project
         run: |
           python manage.py test
@@ -38,31 +38,34 @@ jobs:
           username: ${{ secrets.SSH_USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-              cd ${{ secrets.PROJECT_PATH }}
-              git fetch origin main
-              git reset --hard origin/main
-              
-              # Создаем виртуальное окружение, если его нет
-              if [ ! -d "venv" ]; then
-                python3 -m venv venv
-              fi
-              source venv/bin/activate
-              
-              # Устанавливаем зависимости
-              pip install --upgrade pip
-              pip install -r requirements.txt
-              
-              # Применяем миграции
-              python manage.py migrate --noinput
-              
-              # Перезапускаем сервисы (если sudo доступен)
-              if command -v sudo &> /dev/null; then
-                sudo systemctl restart gunicorn
-                sudo systemctl reload nginx
-              else
-                systemctl --user restart gunicorn
-                systemctl --user reload nginx
-              fi
+            cd ${{ secrets.PROJECT_PATH }}
+            git fetch origin main
+            git reset --hard origin/main
+            
+            echo "Project structure:"
+            ls -la
+            ls -la LIFTEH_project/
+            
+            if [ ! -d "myenv" ]; then
+              python3 -m venv myenv
+            fi
+            source myenv/bin/activate
+            
+            pip install --upgrade pip
+            cd LIFTEH_project && pip install -r requirements.txt
+            
+            python manage.py migrate --noinput
+            
+            if command -v sudo &> /dev/null; then
+              sudo systemctl restart gunicorn
+              sudo systemctl reload nginx
+
+            else
+              pkill -f gunicorn || true
+              nohup myenv/bin/gunicorn \
+                --bind 0.0.0.0:8000 \
+                LIFTEH_project.wsgi:application &> gunicorn.log &
+            fi
 
       - name: Rollback on failure
         if: failure()
@@ -75,4 +78,17 @@ jobs:
           ssh -o StrictHostKeyChecking=no \
               -i ~/.ssh/deploy_key \
               ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }} \
-              "cd ${{ secrets.PROJECT_PATH }} && git checkout HEAD~1 && sudo systemctl restart gunicorn"
+              "cd ${{ secrets.PROJECT_PATH }} && git checkout HEAD~1 && pkill -f gunicorn && nohup myenv/bin/gunicorn --bind 0.0.0.0:8000 LIFTEH_project.wsgi:application &> gunicorn.log &"
+      
+      - name: Check server environment
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            echo "Python: $(python3 --version)"
+            echo "Pip: $(python3 -m pip --version)"
+            echo "Git: $(git --version)"
+            echo "Project dir: ${{ secrets.PROJECT_PATH }}"
+            ls -la ${{ secrets.PROJECT_PATH }}
