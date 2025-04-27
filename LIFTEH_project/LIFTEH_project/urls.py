@@ -17,13 +17,11 @@ urlpatterns = [
 
     path('avr/edit/<int:pk>/', views.avr_edit, name='avr_edit'),
     path('avr/add/<int:pk>/', views.avr_add, name='avr_add'),
-    path('avr/add/<int:pk>/', views.avr_add, name='avr_add'),
     path('avr/delete/<int:pk>/', views.avr_delete, name='avr_delete'),
 
     path('charts/', ChartsView.as_view(), name='charts'),
     path('tasks/', TasksView.as_view(), name='tasks'),
     path('diagnostic/', DiagnosticView.as_view(), name='diagnostic'),
-    #     path('diagnostic/add/', views.diagnostic_add, name='diagnostic_add'),
     path('diagnostic/add/', views.diagnostic_add, name='diagnostic_add'),
     path('diagnostic/edit/<int:pk>/',
          views.diagnostic_edit, name='diagnostic_edit'),
