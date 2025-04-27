@@ -22,6 +22,7 @@ jobs:
           pip install -r requirements-server.txt
 
       - name: Collect static files
+        working-directory: ./LIFTEH_project
         run: |
           python manage.py collectstatic --noinput
 
