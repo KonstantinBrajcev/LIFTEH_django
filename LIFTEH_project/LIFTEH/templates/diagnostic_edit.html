@@ -6,8 +6,9 @@
     <form method="post">
         {% csrf_token %}
         {{ form.as_p }}
-        <button type="submit" class="btn btn-primary">Сохранить</button>
-        <a href="{% url 'to' %}#diagnostic" class="btn btn-secondary">Отмена</a>
+        <button type="submit" class="btn btn-success">Сохранить</button>
+        {% comment %} <a href="{% url 'to' %}#diagnostic" class="btn btn-secondary">Отмена</a> {% endcomment %}
+        <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Отмена</button>
     </form>
 </div>
 {% endblock %}

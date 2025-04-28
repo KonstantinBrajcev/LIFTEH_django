@@ -5,7 +5,7 @@
     {{ form.as_p }}
     <hr>
     <button type="submit" class="btn btn-success">Сохранить</button>
-    <button type="button" class="btn btn-primary" onclick="window.history.back()">Назад</button>
+    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Отмена</button>
 </form>
 
 <script>
@@ -24,7 +24,7 @@ document.getElementById('objectEditForm').addEventListener('submit', function(e)
     })
     .then(response => {
         if (response.ok) {
-            window.location.reload(); // Перезагружаем страницу после успешного сохранения
+            window.location.reload();
         } else {
             return response.text().then(html => {
                 document.getElementById('modalFormContent').innerHTML = html;

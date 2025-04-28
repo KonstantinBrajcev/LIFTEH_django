@@ -116,11 +116,11 @@
           <p id="deleteConfirmText">Вы уверены, что хотите удалить эту запись?</p>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
           <form id="deleteForm" method="POST">
             {% csrf_token %}
             <button type="submit" class="btn btn-danger">Удалить</button>
           </form>
+          <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Отмена</button>
         </div>
       </div>
     </div>

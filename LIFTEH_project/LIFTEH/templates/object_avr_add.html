@@ -1,17 +1,8 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Добавить Объект и АВР</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/css/bootstrap.min.css">
-</head>
-<body style="margin: 15px;">
-    <h1>Добавить Объект и АВР</h1>
-    <hr>
+<h1>Добавить Объект и АВР</h1>
+<hr>
 
-    <script>
-      function addWorkRow() {
+<script>
+    function addWorkRow() {
           const container = document.getElementById('work-rows');
           const newRow = document.createElement('div');
           newRow.className = 'work-row';
@@ -24,7 +15,7 @@
                 <label class="input-group-text" for="workname">Наименование работ:</label>
                 <input class="form-control" type="text" name="workname" maxlength="100">
             </div>
-            
+
             <div class="input-group" style="width: 180px;">
                 <label class="input-group-text" for="unit">Ед. изм.:</label>
                 <select class="form-select" name="unit">
@@ -41,9 +32,9 @@
                 <input class="form-control" type="number" name="quantity" min="1" value="1" style="width: 50px;">
             </div>
           `;
-          container.appendChild(newRow);
-      }
-  </script>
+    container.appendChild(newRow);
+}
+</script>
 
     <form method="post">
         {% csrf_token %}
@@ -56,7 +47,7 @@
                 <label class="input-group-text" for="workname">Наименование работ:</label>
                 <input class="form-control" type="text" name="workname" maxlength="100" required>
             </div>
-            
+
             <div class="input-group" style="width: 180px;">
                 <label class="input-group-text" for="unit">Ед. изм.:</label>
                 <select class="form-select" name="unit" required>
@@ -76,16 +67,11 @@
     </div>
 
     <div>
-        
-        <button type="button" class="btn btn-warning" console.log("Добавлена строка работы"); onclick="addWorkRow()">+ Добавить работу</button>
+        <button type="button" class="btn btn-warning" console.log("Добавлена строка работы"); 
+        onclick="addWorkRow()">+ Добавить работу</button>
     </div>
 
     <hr>
-      <button type="submit">Сохранить</button>
-      <a href="{% url 'to' %}">
-        <button type="button">Назад</button>
-      </a>
-    </form>
-    
-</body>
-</html>
+      <button type="submit" class="btn btn-success">Сохранить</button>
+      <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Отмена</button>
+</form>

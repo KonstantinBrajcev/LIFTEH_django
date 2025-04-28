@@ -223,7 +223,6 @@ class ChartsView(TemplateView):
             total_sum_all += float(month_total)
 
         # Рассчитываем среднее значение по всем данным графика №2
-        # Рассчитываем среднее значение по всем данным графика
         avg_values = [item['avg_value']
                       for item in customers_avg if item['avg_value'] > 0]
         context['global_avg'] = round(
@@ -240,6 +239,7 @@ class ChartsView(TemplateView):
         })
         # context['canvas_width'] = len(context['customers']) * 30
         return context
+
 # ----------- ЗАДАЧИ -----------
 
 
@@ -320,39 +320,96 @@ class DiagnosticView(TemplateView):
         ).select_related('object')
         return context
 
+# ---- ДИАГНОСТИКА -----------
+# def diagnostic_add(request):
+#     if request.method == 'POST':
+#         form = DiagnosticForm(request.POST)
+#         if form.is_valid():
+#             # Создаем объект диагностики, но не сохраняем в БД
+#             diagnostic = form.save(commit=False)
+#             diagnostic.insert_date = timezone.now()
+#             diagnostic.save()
+#             return redirect(reverse('to') + '#diagnostic')
+#     else:
+#         form = DiagnosticForm()
+
+#     return render(request, 'diagnostic_add.html', {'form': form})
+
+
+# def diagnostic_edit(request, pk):
+#     # Получаем объект диагностики или возвращаем 404 если не найден
+#     diagnostic = get_object_or_404(Diagnostic, pk=pk)
+
+#     if request.method == 'POST':
+#         # Создаем форму с данными из POST-запроса и привязываем к существующему объекту
+#         form = DiagnosticForm(request.POST, instance=diagnostic)
+#         if form.is_valid():
+#             # Сохраняем изменения
+#             form.save()
+#             # Перенаправляем на страницу списка диагностик
+#             return redirect(reverse('to') + '#diagnostic')
+#     else:
+#         # Создаем форму с данными из существующего объекта
+#         form = DiagnosticForm(instance=diagnostic)
+
+#     # Рендерим шаблон с формой
+#     return render(request, 'diagnostic_edit.html', {
+#         'form': form,
+#         'diagnostic': diagnostic
+#     })
+
+
+# def diagnostic_delete(request, pk):
+#     # Получаем объект диагностики или возвращаем 404 если не найден
+#     diagnostic = get_object_or_404(Diagnostic, pk=pk)
+
+#     if request.method == 'POST':
+#         # Удаляем объект
+#         diagnostic.delete()
+#         # Добавляем сообщение об успешном удалении
+#         messages.success(request, 'Диагностика успешно удалена')
+#         # Перенаправляем на страницу списка диагностик
+#         return redirect(reverse('to') + '#diagnostic')
+
+#     # Если запрос не POST, перенаправляем на список диагностик
+#     return redirect(reverse('to') + '#diagnostic')
 
 def diagnostic_add(request):
     if request.method == 'POST':
         form = DiagnosticForm(request.POST)
         if form.is_valid():
-            # Создаем объект диагностики, но не сохраняем в БД
             diagnostic = form.save(commit=False)
             diagnostic.insert_date = timezone.now()
             diagnostic.save()
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({'success': True})
             return redirect(reverse('to') + '#diagnostic')
     else:
         form = DiagnosticForm()
 
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return render(request, 'diagnostic_add.html', {'form': form})
     return render(request, 'diagnostic_add.html', {'form': form})
 
 
 def diagnostic_edit(request, pk):
-    # Получаем объект диагностики или возвращаем 404 если не найден
     diagnostic = get_object_or_404(Diagnostic, pk=pk)
-
     if request.method == 'POST':
-        # Создаем форму с данными из POST-запроса и привязываем к существующему объекту
         form = DiagnosticForm(request.POST, instance=diagnostic)
         if form.is_valid():
-            # Сохраняем изменения
             form.save()
-            # Перенаправляем на страницу списка диагностик
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({'success': True})
             return redirect(reverse('to') + '#diagnostic')
+        else:
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return render(request, 'diagnostic_edit.html', {
+                    'form': form,
+                    'diagnostic': diagnostic
+                }, status=400)
     else:
-        # Создаем форму с данными из существующего объекта
         form = DiagnosticForm(instance=diagnostic)
 
-    # Рендерим шаблон с формой
     return render(request, 'diagnostic_edit.html', {
         'form': form,
         'diagnostic': diagnostic
@@ -360,19 +417,16 @@ def diagnostic_edit(request, pk):
 
 
 def diagnostic_delete(request, pk):
-    # Получаем объект диагностики или возвращаем 404 если не найден
     diagnostic = get_object_or_404(Diagnostic, pk=pk)
-
     if request.method == 'POST':
-        # Удаляем объект
         diagnostic.delete()
-        # Добавляем сообщение об успешном удалении
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'success': True})
         messages.success(request, 'Диагностика успешно удалена')
-        # Перенаправляем на страницу списка диагностик
         return redirect(reverse('to') + '#diagnostic')
-
-    # Если запрос не POST, перенаправляем на список диагностик
     return redirect(reverse('to') + '#diagnostic')
+
+
 # ------ РАБОТА С ОБЪЕКТАМИ ------
 
 
@@ -428,7 +482,7 @@ def avr_add(request, pk):
 
         if form.is_valid():
             avr = form.save(commit=False)
-            avr.user = request.user  # Устанавливаем текущего пользователя
+            avr.user = request.user  # Устанавливаем пользователя
             avr.object = obj
             avr.save()
 
@@ -445,28 +499,48 @@ def avr_add(request, pk):
                         unit=unit,
                         quantity=quantity
                     )
-
             return redirect(reverse('to') + '#acts')
         else:
             print(form.errors)  # Выводим ошибки формы в консоль
     else:
         form = AvrForm()
-
     return render(request, 'avr_add.html', {'form': form, 'object': obj, 'current_datetime': current_datetime})
 
+
+# def avr_edit(request, pk):
+#     avr = get_object_or_404(Avr, pk=pk)
+#     current_datetime = timezone.now()
+#     if request.method == 'POST':
+#         avr.insert_date = request.POST['insert_date']
+#         avr.problem = request.POST['problem']
+#         # avr.work_id = request.POST['work_id']
+#         work_id = request.POST['work_id']
+#         avr.work_id = work_id if work_id else None
+#         avr.save()
+#         return redirect(reverse('to') + '#acts')  # Замените 'to' на ваш URL
+#     return render(request, 'avr_edit.html', {'avr': avr, 'current_datetime': current_datetime})
 
 def avr_edit(request, pk):
     avr = get_object_or_404(Avr, pk=pk)
     current_datetime = timezone.now()
+
     if request.method == 'POST':
-        avr.insert_date = request.POST['insert_date']
-        avr.problem = request.POST['problem']
-        # avr.work_id = request.POST['work_id']
-        work_id = request.POST['work_id']
-        avr.work_id = work_id if work_id else None
-        avr.save()
-        return redirect(reverse('to') + '#acts')  # Замените 'to' на ваш URL
-    return render(request, 'avr_edit.html', {'avr': avr, 'current_datetime': current_datetime})
+        form = AvrForm(request.POST, instance=avr)
+        if form.is_valid():
+            form.save()
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({'success': True})
+            return redirect(reverse('to') + '#acts')
+        else:
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return render(request, 'avr_edit.html', {
+                    'avr': avr,
+                    'current_datetime': current_datetime
+                }, status=400)
+    return render(request, 'avr_edit.html', {
+        'avr': avr,
+        'current_datetime': current_datetime
+    })
 
 
 def avr_delete(request, pk):
@@ -488,7 +562,6 @@ def object_avr_add(request):
 
             # Сохранение АВР
             avr = Avr(
-                # insert_date=form.cleaned_data['insert_date'],
                 insert_date=timezone.now(),
                 problem=form.cleaned_data['problem'],
                 object=obj,
@@ -509,11 +582,9 @@ def object_avr_add(request):
                         unit=unit,
                         quantity=quantity
                     )
-
             return redirect(reverse('to') + '#acts')
     else:
         form = ObjectAvrForm()
-
     return render(request, 'object_avr_add.html', {'form': form})
 
 

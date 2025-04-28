@@ -4,15 +4,12 @@
       <h4>Дефектные акты</h4>
     </div>
     <div class="col d-flex justify-content-end align-items-center">
-      <a href="{% url 'object_avr_add' %}" class="btn btn-primary">Добавить акт</a>
+      <button type="button" class="btn btn-primary" 
+        onclick="loadModalForm('{% url 'object_avr_add' %}', 'Добавить акт')">
+          Добавить акт
+      </button>
     </div>
   </div>
-
-  {% comment %} <div class="row gx-5" style="margin-bottom: 10px; margin-top: 15px;">
-    <div class="col d-flex justify-content-center align-items-center">
-      <a href="{% url 'object_avr_add' %}" class="btn btn-primary">Добавить</a>
-    </div>
-  </div> {% endcomment %}
 
   <div class="card-body" style="padding: 0px; min-height: 50px;">
     <table class="table-hover" style="width: 100%;">
@@ -37,13 +34,14 @@
       <td style="text-align: center;">{{ avr.insert_date|date:"d.m.Y" }}<br>{{ avr.user.username }}</td>
       <td>
         <div class="btn-group" style="gap: 2px;">
-          <a href="{% url 'avr_edit' pk=avr.id %}" class="btn btn-secondary">✏</a>
-          <button type="button" class="btn btn-danger" 
-            onclick="if(confirm('Удалить АВР?')) { 
-              document.getElementById('delete-avr-{{ avr.id }}').submit(); 
-            }">
+          <button onclick="loadModalForm('{% url 'avr_edit' pk=avr.id %}', 'Редактирование АВР')" 
+            class="btn btn-secondary">✏</button>
+
+          <button onclick="confirmDelete('{% url 'avr_delete' pk=avr.id %}', '{{ avr.id }}')" 
+            class="btn btn-danger">
             <strong>X</strong>
           </button>
+
         </div>
       </td>
     </tr>
