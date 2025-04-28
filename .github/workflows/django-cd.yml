@@ -33,7 +33,7 @@ jobs:
             key: ${{ secrets.SSH_PRIVATE_KEY }}
             timeout: 30s
             script: |
-              set -e
+              set -ex
               cd ${{ secrets.PROJECT_PATH }}
 
               git fetch origin main
@@ -55,27 +55,29 @@ jobs:
               
               if [ -n "$SCREEN_SESSION" ]; then
                 echo "1. Остановка Gunicorn в сессии $SCREEN_SESSION"
-                screen -S $SCREEN_SESSION -X stuff $'\003'
+                screen -S $SCREEN_SESSION -X stuff $'\003' || true
                 sleep 5
                 
-                echo "2. Проверка, что Gunicorn остановился"
-                if pgrep -f "gunicorn.*LIFTEH_project.wsgi:application"; then
-                  pkill -f "gunicorn.*LIFTEH_project.wsgi:application"
-                  sleep 2
-                fi
+                echo "2. Принудительная остановка Gunicorn, если он еще работает"
+                pkill -f "gunicorn.*LIFTEH_project.wsgi:application" || true
+                sleep 2
                 
-                echo "3. Переход в правильную директорию перед запуском"
+                echo "3. Очистка screen-сессии"
+                screen -S $SCREEN_SESSION -X stuff "reset\n" || true
+                
+                echo "4. Переход в правильную директорию перед запуском"
                 screen -S $SCREEN_SESSION -X stuff "cd ${{ secrets.PROJECT_PATH }}/LIFTEH_project\n"
                 
-                echo "4. Запуск Gunicorn с полным путем к venv"
-                screen -S $SCREEN_SESSION -X stuff "${{ secrets.PROJECT_PATH }}/venv/bin/gunicorn --bind 0.0.0.0:8001 --workers 2 --timeout 120 --log-level debug --error-logfile - LIFTEH_project.wsgi:application\n"
+                echo "5. Запуск Gunicorn с полным путем к venv"
+                screen -S $SCREEN_SESSION -X stuff "${{ secrets.PROJECT_PATH }}/venv/bin/gunicorn --bind 0.0.0.0:8001 --workers 2 --timeout 120 --log-level debug --error-logfile /tmp/gunicorn_error.log LIFTEH_project.wsgi:application\n"
                 
-                echo "5. Проверка запуска Gunicorn"
-                sleep 3
+                echo "6. Проверка запуска Gunicorn"
+                sleep 5
                 if pgrep -f "gunicorn.*LIFTEH_project.wsgi:application"; then
                   echo "Gunicorn успешно перезапущен в сессии $SCREEN_SESSION"
                 else
                   echo "Ошибка: Gunicorn не запустился"
+                  echo "Проверьте логи: /tmp/gunicorn_error.log"
                   exit 1
                 fi
               fi
