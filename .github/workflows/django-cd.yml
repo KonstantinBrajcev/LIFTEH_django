@@ -52,15 +52,30 @@ jobs:
 
               echo "Перезапуск Gunicorn в существующей screen-сессии"
               SCREEN_SESSION=854015
-
+              
               if [ -n "$SCREEN_SESSION" ]; then
-                echo "Подключение к сессии $SCREEN_SESSION для перезапуска Gunicorn"
-
-                # Отправляем команды в screen-сессию:
-                # 1. Ctrl+C для остановки Gunicorn
-                # 2. Команду для запуска Gunicorn
+                echo "1. Остановка Gunicorn в сессии $SCREEN_SESSION"
                 screen -S $SCREEN_SESSION -X stuff $'\003'
-                sleep 2
-                screen -S $SCREEN_SESSION -X stuff "venv/bin/gunicorn --bind 0.0.0.0:8001 --workers 2 --timeout 120 --log-level debug --error-logfile - LIFTEH_project.wsgi:application\n"
-                echo "Gunicorn успешно перезапущен в существующей сессии $SCREEN_SESSION"
+                sleep 5
+                
+                echo "2. Проверка, что Gunicorn остановился"
+                if pgrep -f "gunicorn.*LIFTEH_project.wsgi:application"; then
+                  pkill -f "gunicorn.*LIFTEH_project.wsgi:application"
+                  sleep 2
+                fi
+                
+                echo "3. Переход в правильную директорию перед запуском"
+                screen -S $SCREEN_SESSION -X stuff "cd ${{ secrets.PROJECT_PATH }}/LIFTEH_project\n"
+                
+                echo "4. Запуск Gunicorn с полным путем к venv"
+                screen -S $SCREEN_SESSION -X stuff "${{ secrets.PROJECT_PATH }}/venv/bin/gunicorn --bind 0.0.0.0:8001 --workers 2 --timeout 120 --log-level debug --error-logfile - LIFTEH_project.wsgi:application\n"
+                
+                echo "5. Проверка запуска Gunicorn"
+                sleep 3
+                if pgrep -f "gunicorn.*LIFTEH_project.wsgi:application"; then
+                  echo "Gunicorn успешно перезапущен в сессии $SCREEN_SESSION"
+                else
+                  echo "Ошибка: Gunicorn не запустился"
+                  exit 1
+                fi
               fi
