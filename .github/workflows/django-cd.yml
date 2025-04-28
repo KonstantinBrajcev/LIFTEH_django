@@ -69,15 +69,6 @@ jobs:
                 screen -S $SCREEN_SESSION -X stuff "cd ${{ secrets.PROJECT_PATH }}/LIFTEH_project\n"
                 
                 echo "5. Запуск Gunicorn с полным путем к venv"
-                screen -S $SCREEN_SESSION -X stuff "${{ secrets.PROJECT_PATH }}/venv/bin/gunicorn --bind 0.0.0.0:8001 --workers 2 --timeout 120 --log-level debug --error-logfile /tmp/gunicorn_error.log LIFTEH_project.wsgi:application\n"
-                
-                echo "6. Проверка запуска Gunicorn"
-                sleep 5
-                if pgrep -f "gunicorn.*LIFTEH_project.wsgi:application"; then
-                  echo "Gunicorn успешно перезапущен в сессии $SCREEN_SESSION"
-                else
-                  echo "Ошибка: Gunicorn не запустился"
-                  echo "Проверьте логи: /tmp/gunicorn_error.log"
-                  exit 1
-                fi
+                # screen -S $SCREEN_SESSION -X stuff "${{ secrets.PROJECT_PATH }}/venv/bin/gunicorn --bind 0.0.0.0:8001 --workers 2 --timeout 120 --log-level debug --error-logfile /tmp/gunicorn_error.log LIFTEH_project.wsgi:application\n"
+                screen -S $SCREEN_SESSION -X stuff "gunicorn --bind 0.0.0.0:8001 --workers 2 --timeout 120 --log-level debug --error-logfile - LIFTEH_project.wsgi:application"
               fi
