@@ -9,12 +9,12 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Set up Python 3.8
         uses: actions/setup-python@v5
         with:
           python-version: '3.8'
-      
+
       - name: Install dependencies
         working-directory: ./LIFTEH_project
         run: |
@@ -55,26 +55,22 @@ jobs:
               pkill -f "gunicorn.*LIFTEH_project.wsgi:application" || true
               sleep 2
 
-              # Запуск нового экземпляра Gunicorn в screen
-              screen -S gunicorn_session -X quit || true  # Закрываем старую сессию если есть
-              screen -dmS gunicorn_session bash -c "
-                source $PWD/../venv/bin/activate;
-                cd $PWD;
-                exec gunicorn --bind 0.0.0.0:8001 \
-                  --workers 2 \
-                  --timeout 120 \
-                  --log-level debug \
-                  --error-logfile /tmp/gunicorn_error.log \
-                  LIFTEH_project.wsgi:application
-              "
+              # Запуск нового экземпляра Gunicorn в фоне 2
+               nohup ${{ secrets.PROJECT_PATH }}/venv/bin/gunicorn \
+               --bind 0.0.0.0:8001 \
+               --workers 2 \
+               --timeout 120 \
+               --log-level debug \
+               --error-logfile /tmp/gunicorn_error.log \
+               LIFTEH_project.wsgi:application > /tmp/gunicorn_output.log 2>&1 &
 
-              # Проверка запуска
-              sleep 3
-              if ! pgrep -f "gunicorn.*LIFTEH_project.wsgi:application"; then
-                echo "Ошибка: Gunicorn не запустился"
-                echo "Последние строки лога:"
-                tail -n 20 /tmp/gunicorn_error.log || true
+               # Проверка запуска
+               sleep 5
+               if pgrep -f "gunicorn.*LIFTEH_project.wsgi:application"; then
+                 echo "Gunicorn успешно запущен"
+               else
+                 echo "Ошибка: Gunicorn не запустился"
+                 echo "Последние строки лога ошибок:"
+                 tail -n 20 /tmp/gunicorn_error.log || true
                 exit 1
-              fi
-
-              echo "Gunicorn успешно перезапущен"
+               fi
