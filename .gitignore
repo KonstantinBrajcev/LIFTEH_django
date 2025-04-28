@@ -1,8 +1,26 @@
+# Django
+*.log
+*.pot
+*.pyc
+
+# Virtual environment
+LIFTEH_project/myenv
+LIFTEH_project/.venv
+
+# Static files
+LIFTEH_project/static/ico
+
+# Local settings
+LIFTEH_project/LIFTEH_project/settings.py
+
+# Foto services
+LIFTEH_project/services_foto
+
+# DataBase files
+LIFTEH_project/db.sqlite3
+
+# Other files
 LIFTEH_project/my.py
 LIFTEH_project/LIFTEH_v1
 LIFTEH_project/LIFTEH_v2
 LIFTEH_project/get-pip.py
-LIFTEH_project/static/ico
-LIFTEH_project/LIFTEH_project/settings.py
-LIFTEH_project/services_foto
-LIFTEH_project/db.sqlite3
