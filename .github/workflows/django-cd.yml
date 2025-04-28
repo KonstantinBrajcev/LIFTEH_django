@@ -50,25 +50,8 @@ jobs:
               cd LIFTEH_project
               pip install -r requirements-server.txt
 
-              echo "Перезапуск Gunicorn в существующей screen-сессии"
-              SCREEN_SESSION=854015
-              
-              if [ -n "$SCREEN_SESSION" ]; then
-                echo "1. Остановка Gunicorn в сессии $SCREEN_SESSION"
-                screen -S $SCREEN_SESSION -X stuff $'\003' || true
-                sleep 5
-                
-                echo "2. Принудительная остановка Gunicorn, если он еще работает"
-                pkill -f "gunicorn.*LIFTEH_project.wsgi:application" || true
-                sleep 2
-                
-                echo "3. Очистка screen-сессии"
-                screen -S $SCREEN_SESSION -X stuff "reset\n" || true
-                
-                echo "4. Переход в правильную директорию перед запуском"
-                screen -S $SCREEN_SESSION -X stuff "cd ${{ secrets.PROJECT_PATH }}/LIFTEH_project\n"
-                
-                echo "5. Запуск Gunicorn с полным путем к venv"
-                # screen -S $SCREEN_SESSION -X stuff "${{ secrets.PROJECT_PATH }}/venv/bin/gunicorn --bind 0.0.0.0:8001 --workers 2 --timeout 120 --log-level debug --error-logfile /tmp/gunicorn_error.log LIFTEH_project.wsgi:application\n"
-                screen -S $SCREEN_SESSION -X stuff "gunicorn --bind 0.0.0.0:8001 --workers 2 --timeout 120 --log-level debug --error-logfile - LIFTEH_project.wsgi:application"
-              fi
+              pkill -f "gunicorn.*LIFTEH_project.wsgi:application"
+              sleep 2
+
+              screen -r 854015
+              gunicorn --bind 0.0.0.0:8001 --workers 2 --timeout 120 --log-level debug --error-logfile - LIFTEH_project.wsgi:application
