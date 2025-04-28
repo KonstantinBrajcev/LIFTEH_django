@@ -4,7 +4,6 @@
       <h4>Диагностики</h4>
     </div>
     <div class="col d-flex justify-content-end align-items-center">
-      {% comment %} <a href="{% url 'diagnostic_add' %}" class="btn btn-primary">Добавить диагностику</a> {% endcomment %}
       <button type="button" class="btn btn-primary" 
         onclick="loadModalForm('{% url 'diagnostic_add' %}', 'Добавить диагностику')">
           Добавить диагностику
@@ -16,7 +15,6 @@
     <table class="table-hover" style="width: 100%;">
       <thead class="table-light">
         <tr style="background-color: #de4c15;">
-          {% comment %} <th style="text-align: center;">№</th> {% endcomment %}
           <th style="text-align: center;">Заказчик</th>
           <th style="text-align: center;">Адрес</th>
           <th style="text-align: center;">Cоздано</th>
@@ -41,16 +39,6 @@
               <button onclick="loadModalForm('{% url 'diagnostic_edit' pk=diagnostic.id %}', 'Редактирование диагностики')" 
                 class="btn btn-secondary">✏
               </button>
-              
-              {% comment %} <button type="button" class="btn btn-danger" 
-                onclick="if(confirm('Удалить диагностику?')) { document.getElementById('delete-diagnostic-{{ diagnostic.id }}').submit(); }">
-                <form id="delete-diagnostic-{{ diagnostic.id }}" 
-                  method="post" action="{% url 'diagnostic_delete' pk=diagnostic.id %}" 
-                  style="display: none;">
-                  {% csrf_token %}
-                </form>
-                <strong>X</strong>
-              </button> {% endcomment %}
 
               <button onclick="confirmDelete('{% url 'diagnostic_delete' pk=diagnostic.id %}', '{{ diagnostic.id }}')" 
                   class="btn btn-danger">

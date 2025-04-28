@@ -21,11 +21,6 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements-server.txt
 
-      # - name: Collect static files
-      #   working-directory: ./LIFTEH_project
-      #   run: |
-      #     python manage.py collectstatic --noinput
-
       - name: Make migrations
         working-directory: ./LIFTEH_project
         run: python manage.py makemigrations --no-input
@@ -39,27 +34,37 @@ jobs:
             timeout: 30s
             script: |
               set -e
-              echo "Переход в директорию проекта"
               cd ${{ secrets.PROJECT_PATH }}
-              
-              echo "Обновление кода"
+
               git fetch origin main
               git reset --hard origin/main
-              
-              echo "Создаем venv если его нет"
+
               if [ ! -d "venv" ]; then
                 python -m venv venv
               fi
               source venv/bin/activate
-              
-              echo "Установка зависимостей"
+
               pip install --upgrade pip
               cd LIFTEH_project
               pip install -r requirements-server.txt
-        
-              echo "Остановка текущего процесса Gunicorn"
-              screen -S gunicorn_LIFTEH_project -p 0 -X quit || true
-        
+
+              echo "Проверка и перезапуск Gunicorn"
+              # Получаем ID существующей screen-сессии
+              SCREEN_SESSION=$(screen -ls | grep gunicorn_LIFTEH_project | awk '{print $1}')
+
+              if [ -n "$SCREEN_SESSION" ]; then
+                echo "Найдена существующая сессия: $SCREEN_SESSION"
+
+                # Отправляем Ctrl+C в сессию для корректного завершения Gunicorn
+                screen -S $SCREEN_SESSION -X stuff $'\003'
+                sleep 5  # Даем время для корректного завершения
+
+                # Ждем завершения процесса
+                while screen -ls | grep -q $SCREEN_SESSION; do
+                  sleep 1
+                done
+              fi
+
               echo "Запуск Gunicorn в новой сессии screen"
               screen -dmS gunicorn_LIFTEH_project venv/bin/gunicorn \
                 --bind 0.0.0.0:8001 \
@@ -68,5 +73,4 @@ jobs:
                 --log-level debug \
                 --error-logfile - \
                 LIFTEH_project.wsgi:application
-              echo "Gunicorn запущен в сессии screen."
-        
+              echo "Gunicorn успешно перезапущен"
