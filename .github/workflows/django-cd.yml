@@ -42,35 +42,25 @@ jobs:
               if [ ! -d "venv" ]; then
                 python -m venv venv
               fi
+
+              echo "Активация venv"
               source venv/bin/activate
 
               pip install --upgrade pip
               cd LIFTEH_project
               pip install -r requirements-server.txt
 
-              echo "Проверка и перезапуск Gunicorn"
-              # Получаем ID существующей screen-сессии
-              SCREEN_SESSION=$(screen -ls | grep gunicorn_LIFTEH_project | awk '{print $1}')
+              echo "Перезапуск Gunicorn в существующей screen-сессии"
+              SCREEN_SESSION=854015
 
               if [ -n "$SCREEN_SESSION" ]; then
-                echo "Найдена существующая сессия: $SCREEN_SESSION"
+                echo "Подключение к сессии $SCREEN_SESSION для перезапуска Gunicorn"
 
-                # Отправляем Ctrl+C в сессию для корректного завершения Gunicorn
+                # Отправляем команды в screen-сессию:
+                # 1. Ctrl+C для остановки Gunicorn
+                # 2. Команду для запуска Gunicorn
                 screen -S $SCREEN_SESSION -X stuff $'\003'
-                sleep 5  # Даем время для корректного завершения
-
-                # Ждем завершения процесса
-                while screen -ls | grep -q $SCREEN_SESSION; do
-                  sleep 1
-                done
+                sleep 2
+                screen -S $SCREEN_SESSION -X stuff "venv/bin/gunicorn --bind 0.0.0.0:8001 --workers 2 --timeout 120 --log-level debug --error-logfile - LIFTEH_project.wsgi:application\n"
+                echo "Gunicorn успешно перезапущен в существующей сессии $SCREEN_SESSION"
               fi
-
-              echo "Запуск Gunicorn в новой сессии screen"
-              screen -dmS gunicorn_LIFTEH_project venv/bin/gunicorn \
-                --bind 0.0.0.0:8001 \
-                --workers 2 \
-                --timeout 120 \
-                --log-level debug \
-                --error-logfile - \
-                LIFTEH_project.wsgi:application
-              echo "Gunicorn успешно перезапущен"
