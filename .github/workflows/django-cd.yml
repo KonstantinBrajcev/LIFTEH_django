@@ -9,12 +9,12 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
-
+      
       - name: Set up Python 3.8
         uses: actions/setup-python@v5
         with:
           python-version: '3.8'
-
+      
       - name: Install dependencies
         working-directory: ./LIFTEH_project
         run: |
@@ -33,44 +33,21 @@ jobs:
             key: ${{ secrets.SSH_PRIVATE_KEY }}
             timeout: 30s
             script: |
-              set -ex
               cd ${{ secrets.PROJECT_PATH }}
-
+              
               # Обновление кода
               git fetch origin main
               git reset --hard origin/main
-
-              # Настройка окружения
-              if [ ! -d "venv" ]; then
-                python -m venv venv
-              fi
+              
+              # Активация venv
               source venv/bin/activate
-
+              
               # Установка зависимостей
-              pip install --upgrade pip
-              cd LIFTEH_project
-              pip install -r requirements-server.txt
-
-              # Остановка предыдущего Gunicorn
-              pkill -f "gunicorn.*LIFTEH_project.wsgi:application" || true
+              pip install -r LIFTEH_project/requirements-server.txt
+              
+              # Остановка Gunicorn
+              screen -S 854015 -X stuff $'\003'
               sleep 2
-
-              # Запуск нового экземпляра Gunicorn в фоне 2
-               nohup ${{ secrets.PROJECT_PATH }}/venv/bin/gunicorn \
-               --bind 0.0.0.0:8001 \
-               --workers 2 \
-               --timeout 120 \
-               --log-level debug \
-               --error-logfile /tmp/gunicorn_error.log \
-               LIFTEH_project.wsgi:application > /tmp/gunicorn_output.log 2>&1 &
-
-               # Проверка запуска
-               sleep 5
-               if pgrep -f "gunicorn.*LIFTEH_project.wsgi:application"; then
-                 echo "Gunicorn успешно запущен"
-               else
-                 echo "Ошибка: Gunicorn не запустился"
-                 echo "Последние строки лога ошибок:"
-                 tail -n 20 /tmp/gunicorn_error.log || true
-                exit 1
-               fi
+              
+              # Запуск Gunicorn в существующей screen-сессии
+              screen -S 854015 -X stuff "gunicorn --bind 0.0.0.0:8001 --workers 2 --timeout 120 LIFTEH_project.wsgi:application^M"
