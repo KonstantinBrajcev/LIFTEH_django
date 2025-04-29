@@ -49,12 +49,12 @@ jobs:
 
       - name: Deploy to server via SSH
         uses: appleboy/ssh-action@v1
+        env:
+          DJANGO_SETTINGS_MODULE: LIFTEH_project.settings_prod
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          env:
-            DJANGO_SETTINGS_MODULE: LIFTEH_project.settings_prod
           timeout: 30s
           script: |
             cd ${{ secrets.PROJECT_PATH }}
