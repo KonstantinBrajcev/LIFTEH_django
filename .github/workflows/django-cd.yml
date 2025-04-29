@@ -9,6 +9,16 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Получаем всю историю коммитов
+
+      - name: Verify settings_prod.py exists
+        run: |
+          ls -la LIFTEH_project/settings_prod.py
+          if [ ! -f "LIFTEH_project/settings_prod.py" ]; then
+            echo "::error::settings_prod.py not found!"
+            exit 1
+          fi
 
       - name: Set up Python 3.8
         uses: actions/setup-python@v5
@@ -25,16 +35,17 @@ jobs:
         working-directory: ./LIFTEH_project
         run: python manage.py makemigrations --no-input
 
-      # Копируем settings_prod.py на сервер (если он есть в репозитории)
+      # Копируем settings_prod.py на сервер
       - name: Copy settings_prod.py to server
         uses: appleboy/scp-action@v1
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          source: "LIFTEH_project/settings_prod.py"
+          source: "./LIFTEH_project/settings_prod.py"  # Изменённый путь
           target: "${{ secrets.PROJECT_PATH }}/LIFTEH_project/"
-          rm: true  # Перезаписываем, если файл уже есть
+          rm: true
+          overwrite: true  # Добавлено для перезаписи
 
       - name: Deploy to server via SSH
         uses: appleboy/ssh-action@v1
@@ -43,30 +54,31 @@ jobs:
           username: ${{ secrets.SSH_USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           env:
-          DJANGO_SETTINGS_MODULE: LIFTEH_project.settings_prod
+            DJANGO_SETTINGS_MODULE: LIFTEH_project.settings_prod
           timeout: 30s
           script: |
-              cd ${{ secrets.PROJECT_PATH }}
-
-              # Обновление кода
-              git fetch origin main
-              git reset --hard origin/main
-
-              # Активация venv
-              source venv/bin/activate
-
-              # Установка зависимостей
-              pip install -r LIFTEH_project/requirements-server.txt
-
-              # Применяем миграции
-              python manage.py migrate --no-input
-
-              # Собираем статику (если нужно)
-              python manage.py collectstatic --no-input
-
-              # Остановка Gunicorn
-              screen -S 854015 -X stuff $'\003'
-              sleep 2
-
-              # Запуск Gunicorn в существующей screen-сессии
-              screen -S 854015 -X stuff "gunicorn --bind 0.0.0.0:8001 --workers 2 --timeout 120 LIFTEH_project.wsgi:application^M"
+            cd ${{ secrets.PROJECT_PATH }}
+            
+            # Проверяем, что settings_prod.py скопировался
+            ls -la LIFTEH_project/settings_prod.py || echo "settings_prod.py not found!"
+            
+            # Обновление кода
+            git fetch origin main
+            git reset --hard origin/main
+            
+            # Активация venv
+            source venv/bin/activate
+            
+            # Установка зависимостей
+            pip install -r LIFTEH_project/requirements-server.txt
+            
+            # Применяем миграции
+            python manage.py migrate --no-input
+            
+            # Собираем статику
+            python manage.py collectstatic --no-input --clear
+            
+            # Перезапуск Gunicorn
+            screen -S 854015 -X quit || true
+            sleep 2
+            screen -S 854015 -dm bash -c "gunicorn --bind 0.0.0.0:8001 --workers 2 --timeout 120 LIFTEH_project.wsgi:application"
