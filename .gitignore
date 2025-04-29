@@ -19,6 +19,7 @@ services_foto/
 
 # DataBase files
 db.sqlite3
+LIFTEH_project/db.sqlite3
 
 # Other files
 LIFTEH_project/my.py

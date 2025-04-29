@@ -17,7 +17,7 @@ from django.contrib import messages
 import re
 from django.http import JsonResponse
 from django.template.loader import render_to_string
-from LIFTEH.models import Object, Avr, Service, Work, Diagnostic
+from LIFTEH.models import Object, Avr, Service, Work, Diagnostic, Switch
 from LIFTEH.forms import ObjectForm, ServiceForm, AvrForm, ObjectAvrForm, DiagnosticForm
 
 
@@ -620,3 +620,20 @@ def service_add(request, object_id):
         'services': services,
         'current_datetime': current_datetime
     })
+
+
+class SwitchView(View):
+    def get(self, request):
+        # Получаем или создаём состояние устройства
+        state, created = Switch.objects.get_or_create(id=1)
+
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'power': state.power})
+
+        return render(request, 'switch.html', {'power': state.power})
+
+    def post(self, request):
+        state = Switch.objects.get(id=1)
+        state.power = not state.power
+        state.save()
+        return JsonResponse({'power': state.power})

@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.urls import path
-from LIFTEH.views import LoginView, ToView, HomeView, ChartsView, TasksView, DiagnosticView
+from LIFTEH.views import LoginView, ToView, HomeView, ChartsView, TasksView, DiagnosticView, SwitchView
 from LIFTEH import views
 # from django.urls import include
 
@@ -31,6 +31,7 @@ urlpatterns = [
     path('service/add/<int:object_id>/', views.service_add, name='service_add'),
 
     path('login/', LoginView.as_view(), name='login'),
+    path('switch/', SwitchView.as_view(), name='switch'),
 
     path('to/', ToView.as_view(), name='to'),
     path('admin/', admin.site.urls),

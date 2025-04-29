@@ -72,3 +72,10 @@ class Diagnostic(models.Model):
 
     def __str__(self):
         return f"Диагностика {self.object.name} от {self.insert_date}"
+
+
+class Switch(models.Model):
+    power = models.BooleanField(default=False)
+
+    def __str__(self):
+        return "Включено" if self.power else "Выключено"
