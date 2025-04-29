@@ -14,8 +14,8 @@ jobs:
 
       - name: Verify settings_prod.py exists
         run: |
-            ls -la LIFTEH_project/LIFTEH_project/settings_prod.py
-            if [ ! -f "LIFTEH_project/LIFTEH_project/settings_prod.py" ]; then
+            ls -la settings_prod.py
+            if [ ! -f "settings_prod.py" ]; then
               echo "::error::settings_prod.py not found!"
               exit 1
             fi
@@ -41,8 +41,8 @@ jobs:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          source: "LIFTEH_project/LIFTEH_project/settings_prod.py"
-          target: "${{ secrets.PROJECT_PATH }}/LIFTEH_project/LIFTEH_project/"
+          source: "settings_prod.py"
+          target: "${{ secrets.PROJECT_PATH }}"
           rm: true
           overwrite: true
 
@@ -59,7 +59,7 @@ jobs:
             cd ${{ secrets.PROJECT_PATH }}
             
             # Проверяем копирование файла
-            ls -la LIFTEH_project/LIFTEH_project/settings_prod.py || echo "settings_prod.py not found!"
+            ls -la settings_prod.py || echo "settings_prod.py not found!"
             
             # Обновление кода
             git fetch origin main
