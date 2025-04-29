@@ -9,12 +9,12 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Set up Python 3.8
         uses: actions/setup-python@v5
         with:
           python-version: '3.8'
-      
+
       - name: Install dependencies
         working-directory: ./LIFTEH_project
         run: |
@@ -39,20 +39,22 @@ jobs:
       - name: Deploy to server via SSH
         uses: appleboy/ssh-action@v1
         with:
-            host: ${{ secrets.SSH_HOST }}
-            username: ${{ secrets.SSH_USERNAME }}
-            key: ${{ secrets.SSH_PRIVATE_KEY }}
-            timeout: 30s
-            script: |
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          env:
+          DJANGO_SETTINGS_MODULE: LIFTEH_project.settings_prod
+          timeout: 30s
+          script: |
               cd ${{ secrets.PROJECT_PATH }}
-              
+
               # Обновление кода
               git fetch origin main
               git reset --hard origin/main
-              
+
               # Активация venv
               source venv/bin/activate
-              
+
               # Установка зависимостей
               pip install -r LIFTEH_project/requirements-server.txt
 
@@ -61,10 +63,10 @@ jobs:
 
               # Собираем статику (если нужно)
               python manage.py collectstatic --no-input
-              
+
               # Остановка Gunicorn
               screen -S 854015 -X stuff $'\003'
               sleep 2
-              
+
               # Запуск Gunicorn в существующей screen-сессии
               screen -S 854015 -X stuff "gunicorn --bind 0.0.0.0:8001 --workers 2 --timeout 120 LIFTEH_project.wsgi:application^M"
