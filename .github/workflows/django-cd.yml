@@ -25,6 +25,17 @@ jobs:
         working-directory: ./LIFTEH_project
         run: python manage.py makemigrations --no-input
 
+      # Копируем settings_prod.py на сервер (если он есть в репозитории)
+      - name: Copy settings_prod.py to server
+        uses: appleboy/scp-action@v1
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          source: "LIFTEH_project/settings_prod.py"
+          target: "${{ secrets.PROJECT_PATH }}/LIFTEH_project/"
+          rm: true  # Перезаписываем, если файл уже есть
+
       - name: Deploy to server via SSH
         uses: appleboy/ssh-action@v1
         with:
@@ -44,6 +55,12 @@ jobs:
               
               # Установка зависимостей
               pip install -r LIFTEH_project/requirements-server.txt
+
+              # Применяем миграции
+              python manage.py migrate --no-input
+
+              # Собираем статику (если нужно)
+              python manage.py collectstatic --no-input
               
               # Остановка Gunicorn
               screen -S 854015 -X stuff $'\003'

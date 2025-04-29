@@ -117,3 +117,12 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 LOGIN_URL = '/login/'
 
 INTERNAL_IPS = ['127.0.0.1',]
+
+# Импорт локальных или продакшен-настроек
+try:
+    from .settings_local import *  # Для разработки
+except ImportError:
+    try:
+        from .settings_prod import *  # Для продакшена
+    except ImportError:
+        pass  # Оставляем дефолтные
