@@ -58,8 +58,8 @@ jobs:
           script: |
             cd ${{ secrets.PROJECT_PATH }}
             
-            # Проверяем, что settings_prod.py скопировался
-            ls -la LIFTEH_project/settings_prod.py || echo "settings_prod.py not found!"
+            # Проверяем копирование файла
+            ls -la LIFTEH_project/LIFTEH_project/settings_prod.py || echo "settings_prod.py not found!"
             
             # Обновление кода
             git fetch origin main
