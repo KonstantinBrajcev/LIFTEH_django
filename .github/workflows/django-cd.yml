@@ -13,8 +13,8 @@ jobs:
           fetch-depth: 0
 
       - name: Verify settings_prod.py exists
+        working-directory: ./LIFTEH_project/LIFTEH_project
         run: |
-            cd ${{ secrets.PROJECT_PATH }}
             ls -la settings_prod.py
             if [ ! -f "settings_prod.py" ]; then
               echo "::error::settings_prod.py not found!"
