@@ -12,6 +12,7 @@ static/ico/
 
 # Local settings
 LIFTEH_project/settings.py
+LIFTEH_project/LIFTEH_project/settings.py
 
 # Foto services
 services_foto/
