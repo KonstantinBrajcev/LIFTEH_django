@@ -36,16 +36,17 @@ jobs:
         working-directory: ./LIFTEH_project
         run: python manage.py makemigrations --no-input
 
-      - name: Copy settings_prod.py to server
-        uses: appleboy/scp-action@v1
-        with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USERNAME }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          source: "settings_prod.py"
-          target: "${{ secrets.PROJECT_PATH }}"
-          rm: true
-          overwrite: true
+      # - name: Copy settings_prod.py to server
+      #   uses: appleboy/scp-action@v1
+      #   with:
+      #     working-directory: ./LIFTEH_project/LIFTEH_project
+      #     host: ${{ secrets.SSH_HOST }}
+      #     username: ${{ secrets.SSH_USERNAME }}
+      #     key: ${{ secrets.SSH_PRIVATE_KEY }}
+      #     source: "settings_prod.py"
+      #     target: "${{ secrets.PROJECT_PATH }}"
+      #     rm: true
+      #     overwrite: true
 
       - name: Deploy to server via SSH
         uses: appleboy/ssh-action@v1
