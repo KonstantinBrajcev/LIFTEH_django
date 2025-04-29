@@ -1,53 +1,7 @@
 <h1>Добавить Объект и АВР</h1>
 <hr>
 
-<script>
-    // Объявляем функцию в глобальной области видимости
-    window.addWorkRow = function() {
-        console.log("Функция addWorkRow вызвана"); // Для отладки
-        
-        const container = document.getElementById('work-rows');
-        if (!container) {
-            console.error("Элемент work-rows не найден");
-            return;
-        }
-        
-        const newRow = document.createElement('div');
-        newRow.className = 'work-row';
-        newRow.style.display = 'flex';
-        newRow.style.gap = '10px';
-        newRow.style.alignItems = 'flex-start';
-        newRow.style.marginBottom = '10px';
-        
-        // Создаем уникальные имена для полей, добавляя timestamp
-        const timestamp = Date.now();
-        
-        newRow.innerHTML = `
-            <div class="input-group" style="width: 380px;">
-                <label class="input-group-text">Наименование работ:</label>
-                <input class="form-control" type="text" name="workname_${timestamp}" maxlength="100" required>
-            </div>
-            <div class="input-group" style="width: 180px;">
-                <label class="input-group-text">Ед. изм.:</label>
-                <select class="form-select" name="unit_${timestamp}" required>
-                    <option value="шт.">шт.</option>
-                    <option value="комп.">комп.</option>
-                    <option value="л.">л.</option>
-                    <option value="кг.">кг.</option>
-                    <option value="м.">м.</option>
-                </select>
-            </div>
-            <div class="input-group" style="width: 180px;">
-                <label class="input-group-text">Количество:</label>
-                <input class="form-control" type="number" name="quantity_${timestamp}" min="1" value="1" style="width: 50px;" required>
-            </div>
-        `;
-        
-        container.appendChild(newRow);
-    };
-</script>
-
-    <form method="post">
+    <form method="post" action="{% url 'object_avr_add' %}">
         {% csrf_token %}
         {{ form.as_p }}
     <hr>
@@ -78,9 +32,7 @@
     </div>
 
     <div>
-        {% comment %} <button type="button" class="btn btn-warning"
-        onclick="addWorkRow()">+ Добавить работу</button> {% endcomment %}
-        <button type="button" class="btn btn-warning" onclick="addWorkRow()">+ Добавить работу</button>
+        <button type="button" class="btn btn-warning" id="addWorkButton">+ Добавить работу</button>
     </div>
 
     <hr>

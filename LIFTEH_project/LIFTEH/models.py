@@ -43,7 +43,9 @@ class Avr(models.Model):
     insert_date = models.DateTimeField(default=timezone.now)
     object = models.ForeignKey(Object, on_delete=models.CASCADE)
     problem = models.CharField(max_length=500, default='')
-    work_id = models.IntegerField(null=True, blank=True)
+    # work_id = models.IntegerField(null=True, blank=True)
+    # Разрешить NULL и добавить default
+    work_id = models.IntegerField(null=True, blank=True, default=0)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     # result = models.IntegerField(null=True, blank=True)
     result = models.CharField(max_length=3, null=True, blank=True)

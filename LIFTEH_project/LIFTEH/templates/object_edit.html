@@ -1,6 +1,6 @@
 <h1>Редактирование объекта</h1>
 <hr>
-<form method="post" id="objectEditForm">
+<form method="post" id="objectEditForm" action="{% url 'object_edit' pk=object.id %}">
     {% csrf_token %}
     {{ form.as_p }}
     <hr>
@@ -8,7 +8,7 @@
     <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Отмена</button>
 </form>
 
-<script>
+{% comment %} <script>
 document.getElementById('objectEditForm').addEventListener('submit', function(e) {
     e.preventDefault();
     const form = e.target;
@@ -33,4 +33,4 @@ document.getElementById('objectEditForm').addEventListener('submit', function(e)
     })
     .catch(error => console.error('Error:', error));
 });
-</script>
+</script> {% endcomment %}

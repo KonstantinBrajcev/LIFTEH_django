@@ -34,8 +34,10 @@
       <td style="text-align: center;">{{ avr.insert_date|date:"d.m.Y" }}<br>{{ avr.user.username }}</td>
       <td>
         <div class="btn-group" style="gap: 2px;">
-          <button onclick="loadModalForm('{% url 'avr_edit' pk=avr.id %}', 'Редактирование АВР')" 
-            class="btn btn-secondary">✏</button>
+          {% comment %} <button onclick="loadModalForm('{% url 'avr_edit' pk=avr.id %}', 'Редактирование АВР')" 
+            class="btn btn-secondary">✏</button> {% endcomment %}
+
+          <button onclick="loadAvrEditForm({{ avr.id }})" class="btn btn-secondary btn-sm">✏</button>
 
           <button onclick="confirmDelete('{% url 'avr_delete' pk=avr.id %}', '{{ avr.id }}')" 
             class="btn btn-danger">

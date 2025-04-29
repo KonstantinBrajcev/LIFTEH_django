@@ -28,17 +28,36 @@
     </tr>
     {% endfor %}
 </table>
-<form method="POST" enctype="multipart/form-data" id="serviceAddForm">
+<form method="POST" enctype="multipart/form-data" id="serviceAddForm" action="{% url 'service_add' object_id=object.id %}">
     {% csrf_token %}
     <input type="text" name="service_date" value="{{ current_datetime|date:'Y-m-d H:i:s' }}" required id="service_date" hidden>
     <div class="input-group">
         <label class="input-group-text" for="comments">Комментарии:</label>
         <textarea class="form-control" id="comments" name="comments" rows="4" cols="50" required></textarea>
     </div>
-    <div class="input-group">
+    {% comment %} <div class="input-group">
         <label class="input-group-text" for="result">Результат:</label>
         <input class="form-control" type="text" id="result" name="result" required>
+    </div> {% endcomment %}
+
+    <div class="input-group">
+        <label class="input-group-text">Результат:</label>
+        <div class="form-control" style="display: flex; gap: 15px; align-items: center; padding: 10px;">
+            <div class="form-check">
+                <input class="form-check-input" type="radio" name="result" id="result0" value="0" required>
+                <label class="form-check-label" for="result0">0 - Успешно</label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="radio" name="result" id="result1" value="1">
+                <label class="form-check-label" for="result1">1 - Предупреждение</label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="radio" name="result" id="result2" value="2">
+                <label class="form-check-label" for="result2">2 - Ошибка</label>
+            </div>
+        </div>
     </div>
+
     <div class="input-group">
         <label class="input-group-text" for="foto">Фото:</label>
         <input type="file" class="form-control" id="foto" name="foto" accept="image/*">

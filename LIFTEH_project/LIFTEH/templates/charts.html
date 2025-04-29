@@ -90,8 +90,8 @@ document.addEventListener('DOMContentLoaded', function() {
                   annotations: {
                       avgLine: {
                           type: 'line',
-                          yMin: {{ month_avg }},
-                          yMax: {{ month_avg }},
+                          yMin: {{ month_avg|stringformat:"f"|cut:"," }},
+                          yMax: {{ month_avg|stringformat:"f"|cut:"," }},
                           borderColor: 'rgb(255, 99, 71)',
                           borderWidth: 2,
                           borderDash: [6, 6],
@@ -184,8 +184,8 @@ const avgConfig = {
             annotations: {
               avgLine: {
                         type: 'line',
-                        yMin: {{ global_avg }},
-                        yMax: {{ global_avg }},
+                        yMin: {{ global_avg|stringformat:"f"|cut:"," }},
+                        yMax: {{ global_avg|stringformat:"f"|cut:"," }},
                         borderColor: 'red',
                         borderWidth: 2,
                         borderDash: [6, 6],

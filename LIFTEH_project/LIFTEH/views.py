@@ -82,7 +82,7 @@ class ToView(TemplateView):
             service_record = obj.service_set.filter(
                 service_date__year=year,
                 service_date__month=month
-            ).first()
+            ).last()
             service_records[obj.id] = service_record
 
         # Фильтрация по выбранным цветам
@@ -482,30 +482,41 @@ def avr_add(request, pk):
 
         if form.is_valid():
             avr = form.save(commit=False)
-            avr.user = request.user  # Устанавливаем пользователя
+            avr.user = request.user
             avr.object = obj
             avr.save()
 
-            # Сохраняем работы
+            # Получаем списки значений
             worknames = request.POST.getlist('workname')
             units = request.POST.getlist('unit')
             quantities = request.POST.getlist('quantity')
 
-            for workname, unit, quantity in zip(worknames, units, quantities):
-                if workname:  # Проверяем, что название работы не пустое
-                    Work.objects.create(
-                        avr=avr,
-                        name=workname,
-                        unit=unit,
-                        quantity=quantity
-                    )
+            # Проверяем, что все списки одинаковой длины
+            if len(worknames) == len(units) == len(quantities):
+                works = []
+                for i in range(len(worknames)):
+                    if worknames[i].strip():  # Проверяем, что название не пустое
+                        works.append(Work(
+                            avr=avr,
+                            name=worknames[i],
+                            unit=units[i],
+                            quantity=int(quantities[i])
+                        ))
+
+                if works:  # Если есть хотя бы одна работа
+                    Work.objects.bulk_create(works)
+
             return redirect(reverse('to') + '#acts')
         else:
-            print(form.errors)  # Выводим ошибки формы в консоль
+            print("Ошибки формы:", form.errors)
     else:
         form = AvrForm()
-    return render(request, 'avr_add.html', {'form': form, 'object': obj, 'current_datetime': current_datetime})
 
+    return render(request, 'avr_add.html', {
+        'form': form,
+        'object': obj,
+        'current_datetime': current_datetime
+    })
 
 # def avr_edit(request, pk):
 #     avr = get_object_or_404(Avr, pk=pk)
@@ -520,23 +531,67 @@ def avr_add(request, pk):
 #         return redirect(reverse('to') + '#acts')  # Замените 'to' на ваш URL
 #     return render(request, 'avr_edit.html', {'avr': avr, 'current_datetime': current_datetime})
 
+# def avr_edit(request, pk):
+#     avr = get_object_or_404(Avr, pk=pk)
+#     current_datetime = timezone.now()
+
+#     if request.method == 'POST':
+#         form = AvrForm(request.POST, instance=avr)
+#         if form.is_valid():
+#             form.save()
+#             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+#                 return JsonResponse({'success': True})
+#             return redirect(reverse('to') + '#acts')
+#         else:
+#             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+#                 return render(request, 'avr_edit.html', {
+#                     'avr': avr,
+#                     'current_datetime': current_datetime
+#                 }, status=400)
+#     return render(request, 'avr_edit.html', {
+#         'avr': avr,
+#         'current_datetime': current_datetime
+#     })
+
+
 def avr_edit(request, pk):
     avr = get_object_or_404(Avr, pk=pk)
     current_datetime = timezone.now()
 
     if request.method == 'POST':
-        form = AvrForm(request.POST, instance=avr)
-        if form.is_valid():
-            form.save()
-            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-                return JsonResponse({'success': True})
-            return redirect(reverse('to') + '#acts')
-        else:
-            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-                return render(request, 'avr_edit.html', {
-                    'avr': avr,
-                    'current_datetime': current_datetime
-                }, status=400)
+        # Обновляем основную информацию AVR
+        avr.problem = request.POST.get('problem', '')
+        # avr.work_id = request.POST.get('work_id', None)
+        avr.work_id = request.POST.get('work_id', 0) or None
+        avr.save()
+
+        # Удаляем все старые работы
+        avr.work_set.all().delete()
+
+        # Сохраняем новые работы
+        worknames = request.POST.getlist('workname')
+        units = request.POST.getlist('unit')
+        quantities = request.POST.getlist('quantity')
+
+        works = []
+        for workname, unit, quantity in zip(worknames, units, quantities):
+            if workname.strip():  # Проверяем, что название работы не пустое
+                works.append(Work(
+                    avr=avr,
+                    name=workname,
+                    unit=unit,
+                    quantity=quantity
+                ))
+
+        Work.objects.bulk_create(works)
+
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({
+                'success': True,
+                'redirect_url': reverse('to') + '#acts'
+            })
+        return redirect(reverse('to') + '#acts')
+
     return render(request, 'avr_edit.html', {
         'avr': avr,
         'current_datetime': current_datetime
