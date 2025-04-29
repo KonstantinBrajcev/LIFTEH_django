@@ -1,20 +1,18 @@
 import os
 from pathlib import Path
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-03alwk0(#3q^7&9v0i_!s+*bp-_)tspc7wsrrx1@gf02c-!3c('
+# Безопасность - лучше вынести в переменные окружения
+SECRET_KEY = os.getenv('DJANGO_SECRET_KEY',
+                       'django-insecure-ваш-ключ-только-для-разработки')
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+# Дебаг по умолчанию False для безопасности
+DEBUG = True
 
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost']  # Local
+# Пустые хосты по умолчанию (переопределяются в local/prod)
+ALLOWED_HOSTS = []
 
-# ALLOWED_HOSTS = ['jelezo.by', '178.159.242.118', 'www.jelezo.by']  # Deploy
-
-# Application definition
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -33,7 +31,6 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    # 'whitenoise.middleware.WhiteNoiseMiddleware',
 ]
 
 ROOT_URLCONF = 'LIFTEH_project.urls'
@@ -56,19 +53,12 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'LIFTEH_project.wsgi.application'
 
-
-# Database
-# https://docs.djangoproject.com/en/4.2/ref/settings/#databases
-
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
-
-# Password validation
-# https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -85,44 +75,30 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
-# Internationalization
-# https://docs.djangoproject.com/en/4.2/topics/i18n/
-
-LANGUAGE_CODE = 'en-us'
-
+LANGUAGE_CODE = 'ru-ru'  # Изменено на русский
 TIME_ZONE = 'Europe/Moscow'
-
 USE_I18N = True
-
 USE_TZ = True
 
-
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/4.2/howto/static-files/
-
+# Статические файлы
 STATIC_URL = '/static/'
+if DEBUG:
+    STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
+else:
+    STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
-STATIC_ROOT = os.path.join(BASE_DIR, 'static')
-
-# STATICFILES_DIRS = [
-#     os.path.join(BASE_DIR, 'static'),
-# ]
-
-# Default primary key field type
-# https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
+# Медиа файлы (если нужны)
+# MEDIA_URL = '/media/'
+# MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
 LOGIN_URL = '/login/'
+INTERNAL_IPS = ['127.0.0.1']
 
-INTERNAL_IPS = ['127.0.0.1',]
-
-# Импорт локальных или продакшен-настроек
 try:
     from .settings_local import *  # Для разработки
 except ImportError:
     try:
         from .settings_prod import *  # Для продакшена
     except ImportError:
-        pass  # Оставляем дефолтные
+        pass

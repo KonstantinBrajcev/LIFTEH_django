@@ -2,6 +2,8 @@ from django.contrib import admin
 from django.urls import path
 from LIFTEH.views import LoginView, ToView, HomeView, ChartsView, TasksView, DiagnosticView, SwitchView
 from LIFTEH import views
+from django.conf import settings
+from django.conf.urls.static import static
 # from django.urls import include
 
 urlpatterns = [
@@ -35,4 +37,4 @@ urlpatterns = [
 
     path('to/', ToView.as_view(), name='to'),
     path('admin/', admin.site.urls),
-]
+] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
