@@ -80,6 +80,20 @@ jobs:
             python manage.py collectstatic --no-input --clear
             
             # Перезапуск Gunicorn
-            screen -S 854015 -X quit || true
+            pkill -f gunicorn || true
             sleep 2
-            screen -S 854015 -dm bash -c "gunicorn --bind 0.0.0.0:8001 --workers 2 --timeout 120 LIFTEH_project.wsgi:application"
+            # screen -S 854015 -dm bash -c "gunicorn --bind 0.0.0.0:8001 --workers 2 --timeout 120 LIFTEH_project.wsgi:application"
+
+            gunicorn \
+              --bind 0.0.0.0:8001 \
+              --workers 3 \
+              --timeout 120 \
+              #--access-logfile ${{ secrets.PROJECT_PATH }}/gunicorn_access.log \
+              #--error-logfile ${{ secrets.PROJECT_PATH }}/gunicorn_error.log \
+              --name LIFTEH_gunicorn \
+              #--pythonpath ${{ secrets.PROJECT_PATH }}/LIFTEH_project \
+              --daemon \
+              LIFTEH_project.wsgi:application
+            
+            echo "Gunicorn успешно перезапущен"
+            ps aux | grep gunicorn
