@@ -14,8 +14,8 @@ jobs:
 
       - name: Verify settings_prod.py exists
         run: |
-          ls -la LIFTEH_project/settings_prod.py
-          if [ ! -f "LIFTEH_project/settings_prod.py" ]; then
+          ls -la ./LIFTEH_project/settings_prod.py
+          if [ ! -f "./LIFTEH_project/settings_prod.py" ]; then
             echo "::error::settings_prod.py not found!"
             exit 1
           fi
