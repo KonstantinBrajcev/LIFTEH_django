@@ -64,7 +64,7 @@ jobs:
             ls -la LIFTEH_project/
             
             # Активация venv
-            source venv/bin/activate
+            source ~/myenv/bin/activate
             
             # Установка зависимостей
             pip install -r LIFTEH_project/requirements-server.txt
