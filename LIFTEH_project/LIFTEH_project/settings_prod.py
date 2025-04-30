@@ -8,7 +8,7 @@ ALLOWED_HOSTS = ['jelezo.by', '178.159.242.118', 'www.jelezo.by']
 # Настройки статических файлов
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 # STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static'),]
-# STATIC_URL = '/static/'
+STATIC_URL = '/static/'
 
 # Настройки WhiteNoise
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
