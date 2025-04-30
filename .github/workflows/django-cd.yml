@@ -48,57 +48,38 @@ jobs:
         env:
           DJANGO_SETTINGS_MODULE: LIFTEH_project.settings_prod
         with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USERNAME }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          script: |
-            set -e  # Прерывать выполнение при ошибках
-            
-            echo "=== Starting deployment ==="
-            cd ${{ secrets.PROJECT_PATH }}
-
-            # Создаем директорию для статики
-            mkdir -p LIFTEH_project/staticfiles
-            chmod 755 LIFTEH_project/staticfiles
-            
-            # Проверка структуры каталогов
-            echo "Current directory: $(pwd)"
-            ls -la
-            echo "LIFTEH_project contents:"
-            ls -la LIFTEH_project/
-            
-            # Активация venv
-            source ~/myenv/bin/activate
-            
-            # Установка зависимостей
-            pip install -r LIFTEH_project/requirements-server.txt
-            
-            # Применение миграций
-            cd LIFTEH_project
-            python manage.py migrate --no-input
-            python manage.py collectstatic --no-input --clear
-            cd ..
-            
-            # Перезапуск Gunicorn
-            echo "Stopping existing Gunicorn processes..."
-            pkill -f gunicorn || echo "No Gunicorn processes found"
-            sleep 2
-            
-            echo "Starting new Gunicorn process..."
-            cd LIFTEH_project
-            gunicorn \
-              --bind 0.0.0.0:8001 \
-              --workers 3 \
-              --timeout 120 \
-              --access-logfile ${{ secrets.PROJECT_PATH }}/gunicorn_access.log \
-              --error-logfile ${{ secrets.PROJECT_PATH }}/gunicorn_error.log \
-              --name LIFTEH_gunicorn \
-              --pythonpath ${{ secrets.PROJECT_PATH }}/LIFTEH_project \
-              --daemon \
-              LIFTEH_project.wsgi:application
-            
-            echo "=== Deployment completed ==="
-            echo "Gunicorn processes:"
-            ps aux | grep gunicorn
-            echo "Listening ports:"
-            netstat -tulnp | grep 8001 || echo "Port 8001 not listening"
+            host: ${{ secrets.SSH_HOST }}
+            username: ${{ secrets.SSH_USERNAME }}
+            key: ${{ secrets.SSH_PRIVATE_KEY }}
+            script: |
+              set -e
+              cd ${{ secrets.PROJECT_PATH }}
+              
+              # Создаем директории
+              mkdir -p LIFTEH_project/staticfiles
+              mkdir -p LIFTEH_project/media
+              chmod -R 755 LIFTEH_project/staticfiles
+              chmod -R 755 LIFTEH_project/media
+              
+              # Активация venv и установка зависимостей
+              source ~/myenv/bin/activate
+              pip install -r LIFTEH_project/requirements-server.txt
+              
+              # Применение миграций и сбор статики
+              cd LIFTEH_project
+              python manage.py migrate --no-input
+              python manage.py collectstatic --no-input --clear
+              
+              # Перезапуск Gunicorn с правильными путями
+              pkill -f gunicorn || echo "No Gunicorn processes found"
+              sleep 2
+              
+              gunicorn \
+                --bind 0.0.0.0:8001 \
+                --workers 3 \
+                --timeout 120 \
+                --access-logfile ${{ secrets.PROJECT_PATH }}/gunicorn_access.log \
+                --error-logfile ${{ secrets.PROJECT_PATH }}/gunicorn_error.log \
+                --pythonpath ${{ secrets.PROJECT_PATH }}/LIFTEH_project \
+                --daemon \
+                LIFTEH_project.wsgi:application
