@@ -56,6 +56,10 @@ jobs:
             
             echo "=== Starting deployment ==="
             cd ${{ secrets.PROJECT_PATH }}
+
+            # Создаем директорию для статики
+            mkdir -p LIFTEH_project/staticfiles
+            chmod 755 LIFTEH_project/staticfiles
             
             # Проверка структуры каталогов
             echo "Current directory: $(pwd)"
