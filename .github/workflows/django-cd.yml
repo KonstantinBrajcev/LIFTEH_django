@@ -15,26 +15,22 @@ jobs:
       - name: Verify settings_prod.py exists
         working-directory: ./LIFTEH_project/LIFTEH_project
         run: |
-            ls -la settings_prod.py
-            if [ ! -f "settings_prod.py" ]; then
-              echo "::error::settings_prod.py not found!"
-              exit 1
-            fi
+          if [ ! -f "settings_prod.py" ]; then
+            echo "::error::settings_prod.py not found in repository!"
+            exit 1
+          fi
+          echo "settings_prod.py found and valid"
 
-      - name: Set up Python 3.8
+      - name: Set up Python 3.9
         uses: actions/setup-python@v5
         with:
-          python-version: '3.8'
+          python-version: '3.9'
 
       - name: Install dependencies
         working-directory: ./LIFTEH_project
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements-server.txt
-
-      - name: Make migrations
-        working-directory: ./LIFTEH_project
-        run: python manage.py makemigrations --no-input
 
       - name: Copy project to server
         uses: appleboy/scp-action@v1
@@ -50,59 +46,55 @@ jobs:
       - name: Deploy to server via SSH
         uses: appleboy/ssh-action@v1
         env:
-            DJANGO_SETTINGS_MODULE: LIFTEH_project.settings_prod
+          DJANGO_SETTINGS_MODULE: LIFTEH_project.settings_prod
         with:
-            host: ${{ secrets.SSH_HOST }}
-            username: ${{ secrets.SSH_USERNAME }}
-            key: ${{ secrets.SSH_PRIVATE_KEY }}
-            script: |
-              set -e  # Прерывать выполнение при ошибках
-              
-              echo "=== Starting deployment ==="
-              cd ${{ secrets.PROJECT_PATH }}
-              
-              # Проверка структуры каталогов
-              echo "Current directory: $(pwd)"
-              ls -la
-              echo "LIFTEH_project contents:"
-              ls -la LIFTEH_project/
-              
-              # Обновление кода
-              git fetch origin main
-              git reset --hard origin/main
-              
-              # Активация venv
-              source venv/bin/activate
-              
-              # Установка зависимостей
-              pip install -r LIFTEH_project/requirements-server.txt
-              
-              # Применение миграций
-              cd LIFTEH_project
-              python manage.py migrate --no-input
-              python manage.py collectstatic --no-input --clear
-              cd ..
-              
-              # Перезапуск Gunicorn
-              echo "Stopping existing Gunicorn processes..."
-              pkill -f gunicorn || echo "No Gunicorn processes found"
-              sleep 2
-              
-              echo "Starting new Gunicorn process..."
-              cd LIFTEH_project
-              gunicorn \
-                --bind 0.0.0.0:8001 \
-                --workers 3 \
-                --timeout 120 \
-                --access-logfile ${{ secrets.PROJECT_PATH }}/gunicorn_access.log \
-                --error-logfile ${{ secrets.PROJECT_PATH }}/gunicorn_error.log \
-                --name LIFTEH_gunicorn \
-                --pythonpath ${{ secrets.PROJECT_PATH }}/LIFTEH_project \
-                --daemon \
-                LIFTEH_project.wsgi:application
-              
-              echo "=== Deployment completed ==="
-              echo "Gunicorn processes:"
-              ps aux | grep gunicorn
-              echo "Listening ports:"
-              netstat -tulnp | grep 8001 || echo "Port 8001 not listening"
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            set -e  # Прерывать выполнение при ошибках
+            
+            echo "=== Starting deployment ==="
+            cd ${{ secrets.PROJECT_PATH }}
+            
+            # Проверка структуры каталогов
+            echo "Current directory: $(pwd)"
+            ls -la
+            echo "LIFTEH_project contents:"
+            ls -la LIFTEH_project/
+            
+            # Активация venv
+            source venv/bin/activate
+            
+            # Установка зависимостей
+            pip install -r LIFTEH_project/requirements-server.txt
+            
+            # Применение миграций
+            cd LIFTEH_project
+            python manage.py migrate --no-input
+            python manage.py collectstatic --no-input --clear
+            cd ..
+            
+            # Перезапуск Gunicorn
+            echo "Stopping existing Gunicorn processes..."
+            pkill -f gunicorn || echo "No Gunicorn processes found"
+            sleep 2
+            
+            echo "Starting new Gunicorn process..."
+            cd LIFTEH_project
+            gunicorn \
+              --bind 0.0.0.0:8001 \
+              --workers 3 \
+              --timeout 120 \
+              --access-logfile ${{ secrets.PROJECT_PATH }}/gunicorn_access.log \
+              --error-logfile ${{ secrets.PROJECT_PATH }}/gunicorn_error.log \
+              --name LIFTEH_gunicorn \
+              --pythonpath ${{ secrets.PROJECT_PATH }}/LIFTEH_project \
+              --daemon \
+              LIFTEH_project.wsgi:application
+            
+            echo "=== Deployment completed ==="
+            echo "Gunicorn processes:"
+            ps aux | grep gunicorn
+            echo "Listening ports:"
+            netstat -tulnp | grep 8001 || echo "Port 8001 not listening"
