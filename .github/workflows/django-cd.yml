@@ -147,6 +147,12 @@ jobs:
             cd ${{ secrets.PROJECT_PATH }}/LIFTEH_project
             source ~/myenv/bin/activate
             export DJANGO_SETTINGS_MODULE=LIFTEH_project.settings_prod
+
+            # Отладочная информация
+            echo "Current dir: $(pwd)"
+            echo "Python: $(which python)"
+            echo "Django settings: $DJANGO_SETTINGS_MODULE"
+            pip list | grep -E "gunicorn|django"
             
             # Останавливаем старые процессы (если есть)
             pkill -f gunicorn || echo "No Gunicorn processes to kill"
