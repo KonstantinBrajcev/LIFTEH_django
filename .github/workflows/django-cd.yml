@@ -46,7 +46,7 @@ jobs:
       - name: Deploy to server via SSH
         uses: appleboy/ssh-action@v1
         env:
-          DJANGO_SETTINGS_MODULE: LIFTEH_project.settings_prod
+            DJANGO_SETTINGS_MODULE: LIFTEH_project.settings_prod
         with:
             host: ${{ secrets.SSH_HOST }}
             username: ${{ secrets.SSH_USERNAME }}
@@ -67,12 +67,13 @@ jobs:
               
               # Применение миграций и сбор статики
               cd LIFTEH_project
+              python manage.py makemigrations  # Добавьте эту строку
               python manage.py migrate --no-input
               python manage.py collectstatic --no-input --clear
               
               # Перезапуск Gunicorn с правильными путями
               pkill -f gunicorn || echo "No Gunicorn processes found"
-              sleep 2
+              sleep 5
               
               gunicorn \
                 --bind 0.0.0.0:8001 \

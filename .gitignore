@@ -2,13 +2,18 @@
 *.log
 *.pot
 *.pyc
+*.sqlite3
+*.pyc
+__pycache__/
 
 # Virtual environment
 myenv/
 .venv/
 
 # Static files
-static/ico/
+/media/
+/staticfiles/
+/static/ico/
 
 # Local settings
 LIFTEH_project/settings_local.py
