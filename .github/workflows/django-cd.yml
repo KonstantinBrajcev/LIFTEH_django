@@ -140,21 +140,21 @@ jobs:
       - name: Restart Gunicorn
         uses: appleboy/ssh-action@v1
         with:
-            host: ${{ secrets.SSH_HOST }}
-            username: ${{ secrets.SSH_USERNAME }}
-            key: ${{ secrets.SSH_PRIVATE_KEY }}
-            script: |
-              cd ${{ secrets.PROJECT_PATH }}/LIFTEH_project
-              source ~/myenv/bin/activate
-              export DJANGO_SETTINGS_MODULE=LIFTEH_project.settings_prod
-              pkill -f gunicorn || echo "No Gunicorn processes found"
-              sleep 5
-              gunicorn \
-                --bind 0.0.0.0:8001 \
-                --workers 3 \
-                --timeout 120 \
-                --access-logfile ${{ secrets.PROJECT_PATH }}/gunicorn_access.log \
-                --error-logfile ${{ secrets.PROJECT_PATH }}/gunicorn_error.log \
-                --pythonpath ${{ secrets.PROJECT_PATH }}/LIFTEH_project \
-                --daemon \
-                LIFTEH_project.wsgi:application
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd ${{ secrets.PROJECT_PATH }}/LIFTEH_project
+            source ~/myenv/bin/activate
+            export DJANGO_SETTINGS_MODULE=LIFTEH_project.settings_prod
+            
+            # Останавливаем старые процессы (если есть)
+            pkill -f gunicorn || echo "No Gunicorn processes to kill"
+            sleep 3
+            
+            # Запускаем Gunicorn (без демонизации для логов в консоль)
+            gunicorn \
+              --bind 0.0.0.0:8001 \
+              --workers 3 \
+              --timeout 120 \
+              LIFTEH_project.wsgi:application
