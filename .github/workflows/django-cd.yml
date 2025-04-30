@@ -51,15 +51,10 @@ jobs:
             host: ${{ secrets.SSH_HOST }}
             username: ${{ secrets.SSH_USERNAME }}
             key: ${{ secrets.SSH_PRIVATE_KEY }}
+            script_timeout: 600
             script: |
               set -e
               cd ${{ secrets.PROJECT_PATH }}
-              
-              # Создаем директории
-              mkdir -p LIFTEH_project/staticfiles
-              mkdir -p LIFTEH_project/media
-              chmod -R 755 LIFTEH_project/staticfiles
-              chmod -R 755 LIFTEH_project/media
               
               # Активация venv и установка зависимостей
               source ~/myenv/bin/activate
@@ -67,13 +62,13 @@ jobs:
               
               # Применение миграций и сбор статики
               cd LIFTEH_project
-              python manage.py makemigrations  # Добавьте эту строку
+              # python manage.py makemigrations  # Добавьте эту строку
               python manage.py migrate --no-input
               python manage.py collectstatic --no-input --clear
               
               # Перезапуск Gunicorn с правильными путями
               pkill -f gunicorn || echo "No Gunicorn processes found"
-              sleep 5
+              sleep 3
               
               gunicorn \
                 --bind 0.0.0.0:8001 \
@@ -84,3 +79,5 @@ jobs:
                 --pythonpath ${{ secrets.PROJECT_PATH }}/LIFTEH_project \
                 --daemon \
                 LIFTEH_project.wsgi:application
+
+                cat ${{ secrets.PROJECT_PATH }}/gunicorn_error.log
