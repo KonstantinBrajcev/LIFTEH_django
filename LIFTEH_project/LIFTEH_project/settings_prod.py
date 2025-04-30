@@ -7,6 +7,7 @@ ALLOWED_HOSTS = ['jelezo.by', '178.159.242.118', 'www.jelezo.by']
 
 # Настройки статических файлов
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static'),]
 STATIC_URL = '/static/'
 
 # Настройки WhiteNoise
@@ -24,11 +25,3 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
-
-# Дополнительные настройки безопасности
-SECURE_HSTS_SECONDS = 31536000  # 1 year
-SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-SECURE_HSTS_PRELOAD = True
-SECURE_SSL_REDIRECT = True
-SESSION_COOKIE_SECURE = True
-CSRF_COOKIE_SECURE = True

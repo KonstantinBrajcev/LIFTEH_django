@@ -1,9 +1,88 @@
-name: Django CD
+# name: Django CD
 
+# on:
+#   push:
+#     branches: [main]
+
+# jobs:
+#   deploy:
+#     runs-on: ubuntu-24.04
+#     steps:
+#       - uses: actions/checkout@v4
+#         with:
+#           fetch-depth: 0
+
+#       - name: Verify settings_prod.py exists
+#         working-directory: ./LIFTEH_project/LIFTEH_project
+#         run: |
+#           if [ ! -f "settings_prod.py" ]; then
+#             echo "::error::settings_prod.py not found in repository!"
+#             exit 1
+#           fi
+#           echo "settings_prod.py found and valid"
+
+#       - name: Set up Python 3.9
+#         uses: actions/setup-python@v5
+#         with:
+#           python-version: '3.9'
+
+#       - name: Install dependencies
+#         working-directory: ./LIFTEH_project
+#         run: |
+#           python -m pip install --upgrade pip
+#           pip install -r requirements-server.txt
+
+#       - name: Copy project to server
+#         uses: appleboy/scp-action@v1
+#         with:
+#           host: ${{ secrets.SSH_HOST }}
+#           username: ${{ secrets.SSH_USERNAME }}
+#           key: ${{ secrets.SSH_PRIVATE_KEY }}
+#           source: "LIFTEH_project/"
+#           target: "${{ secrets.PROJECT_PATH }}"
+#           rm: true
+#           overwrite: true
+
+#       - name: Prepare server (migrations + static)
+#         uses: appleboy/ssh-action@v1
+#         with:
+#             host: ${{ secrets.SSH_HOST }}
+#             username: ${{ secrets.SSH_USERNAME }}
+#             key: ${{ secrets.SSH_PRIVATE_KEY }}
+#             script: |
+#               cd ${{ secrets.PROJECT_PATH }}
+#               source ~/myenv/bin/activate
+#               pip install -r LIFTEH_project/requirements-server.txt
+#               cd LIFTEH_project
+#               python manage.py makemigrations
+#               python manage.py migrate --no-input
+#               python manage.py collectstatic --no-input --clear
+        
+#       - name: Restart Gunicorn
+#         uses: appleboy/ssh-action@v1
+#         with:
+#             host: ${{ secrets.SSH_HOST }}
+#             username: ${{ secrets.SSH_USERNAME }}
+#             key: ${{ secrets.SSH_PRIVATE_KEY }}
+#             script: |
+#               cd ${{ secrets.PROJECT_PATH }}
+#               source ~/myenv/bin/activate
+#               pkill -f gunicorn || echo "No Gunicorn processes found"
+#               sleep 5
+#               gunicorn \
+#                 --bind 0.0.0.0:8001 \
+#                 --workers 3 \
+#                 --timeout 120 \
+#                 --access-logfile ${{ secrets.PROJECT_PATH }}/gunicorn_access.log \
+#                 --error-logfile ${{ secrets.PROJECT_PATH }}/gunicorn_error.log \
+#                 --pythonpath ${{ secrets.PROJECT_PATH }}/LIFTEH_project \
+#                 --daemon \
+#                 LIFTEH_project.wsgi:application
+
+name: Django CD
 on:
   push:
     branches: [main]
-
 jobs:
   deploy:
     runs-on: ubuntu-24.04
@@ -50,10 +129,10 @@ jobs:
             username: ${{ secrets.SSH_USERNAME }}
             key: ${{ secrets.SSH_PRIVATE_KEY }}
             script: |
-              cd ${{ secrets.PROJECT_PATH }}
+              cd ${{ secrets.PROJECT_PATH }}/LIFTEH_project
               source ~/myenv/bin/activate
-              pip install -r LIFTEH_project/requirements-server.txt
-              cd LIFTEH_project
+              export DJANGO_SETTINGS_MODULE=LIFTEH_project.settings_prod
+              pip install -r requirements-server.txt
               python manage.py makemigrations
               python manage.py migrate --no-input
               python manage.py collectstatic --no-input --clear
@@ -65,8 +144,9 @@ jobs:
             username: ${{ secrets.SSH_USERNAME }}
             key: ${{ secrets.SSH_PRIVATE_KEY }}
             script: |
-              cd ${{ secrets.PROJECT_PATH }}
+              cd ${{ secrets.PROJECT_PATH }}/LIFTEH_project
               source ~/myenv/bin/activate
+              export DJANGO_SETTINGS_MODULE=LIFTEH_project.settings_prod
               pkill -f gunicorn || echo "No Gunicorn processes found"
               sleep 5
               gunicorn \
