@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.contrib.auth import views as auth_views
 from django.urls import path
 from LIFTEH.views import LoginView, ToView, HomeView, ChartsView, TasksView, DiagnosticView, SwitchView
 from LIFTEH import views
@@ -33,6 +34,7 @@ urlpatterns = [
     path('service/add/<int:object_id>/', views.service_add, name='service_add'),
 
     path('login/', LoginView.as_view(), name='login'),
+    path('logout/', auth_views.LogoutView.as_view(next_page='login'), name='logout'),
     path('switch/', SwitchView.as_view(), name='switch'),
 
     path('to/', ToView.as_view(), name='to'),

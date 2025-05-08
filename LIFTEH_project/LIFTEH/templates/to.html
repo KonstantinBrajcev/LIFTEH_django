@@ -28,12 +28,27 @@
             <div class="new">
                 <img src="{% static 'logo_lifteh.png' %}" alt="Logo" style="height: 3.5em; margin: 0px 20px;">
             </div>
-            {% comment %} <strong>LIFTEH</strong></h1> {% endcomment %}
         {% if user.is_authenticated %}
-            <div class="new" style="margin: 0px 20px;">
-                <span class="fw">Пользователь: <strong>{{ user.first_name }} {{ user.last_name }}</strong></span>
-            </div>
+          <div class="new" style="margin: 0px 20px;">
+            <span class="fw">Пользователь: <strong>{{ user.first_name }} {{ user.last_name }}</strong></span>
+          </div>
         {% endif %}
+
+
+        {% if user.is_authenticated %}
+        <div class="new" style="margin: 0px 20px;">
+        <form action="{% url 'logout' %}" method="post">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-link p-0" style="transition: opacity 0.3s;">
+            <img src="{% static 'ico/box-arrow-in-right.svg' %}" alt="Выйти" 
+                 style="height: 30px; width: 30px; opacity: 0.8; filter: invert(100%) brightness(2);"
+                 onmouseover="this.style.opacity=1" 
+                 onmouseout="this.style.opacity=0.8">
+          </button>
+        </form>
+      </div>
+      {% endif %}
+
     </div>
 
 
@@ -58,27 +73,22 @@
     </div>
 
     <div id="service" class="m-4 tab">
-      {% comment %} <h2>Обслуживание</h2> {% endcomment %}
       {% include 'object_table.html' %}
     </div>
 
     <div id="acts" class="m-4 tab">
-        {% comment %} <h2>Акты</h2> {% endcomment %}
         {% include 'avr_table.html' %}
     </div>
 
     <div id="charts" class="m-4 tab">
-        {% comment %} <h2>Графики</h2> {% endcomment %}
         {% include 'charts.html' %}
     </div>
 
     <div id="tasks" class="m-4 tab">
-        {% comment %} <h2>Задачи</h2> {% endcomment %}
         {% include 'tasks.html' %}
     </div>
 
     <div id="diagnostic" class="m-4 tab">
-        {% comment %} <h2>Задачи</h2> {% endcomment %}
         {% include 'diagnostic.html' %}
     </div>
 
@@ -93,16 +103,19 @@
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body" id="modalFormContent">
+
           <!-- Сюда загружается форма -->
           <div class="text-center py-4">
             <div class="spinner-border" role="status">
               <span class="visually-hidden">Загрузка...</span>
             </div>
           </div>
+
         </div>
       </div>
     </div>
   </div>
+
 
   <!-- Модальное окно для подтверждения удаления -->
   <div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-hidden="true">
@@ -126,8 +139,9 @@
     </div>
   </div>
 
+
 <script>
-  // Функция для загрузки формы редактирования AVR
+  // ФУНКЦИЯ ДЛЯ ЗАГРУЗКИ ФОРМЫ РЕДАКТИРОВАНИЯ AVR
 function loadAvrEditForm(pk) {
   const modal = new bootstrap.Modal(document.getElementById('objectModal'));
   const url = `/avr/edit/${pk}/`;
@@ -151,7 +165,7 @@ function loadAvrEditForm(pk) {
   .catch(error => console.error('Error:', error));
 }
 
-
+// ФУНКЦИЯ ОТКРЫТИЯ МОДАЛЬНОГО ОКНА
 function loadModalForm(url, title) {
   const modal = new bootstrap.Modal(document.getElementById('objectModal'));
   document.getElementById('modalTitle').textContent = title;
@@ -161,6 +175,8 @@ function loadModalForm(url, title) {
   .then(response => response.text())
   .then(html => {
       document.getElementById('modalFormContent').innerHTML = html;
+
+
       
         // Добавляем обработчик после загрузки содержимого
         const addBtn = document.getElementById('addWorkButton');
@@ -170,12 +186,16 @@ function loadModalForm(url, title) {
         }
       
       setupFormSubmit();
+
+      // Добавляем обработчик для изменения цвета radio-кнопок
+      setupResultRadioButtons();
+
       modal.show();
   })
   .catch(error => console.error('Error:', error));
 }
 
-// Функция для настройки отправки формы
+// ФУНКЦИЯ ДЛЯ НАСТРОЙКИ И ОТПРАВКИ ФОРМЫ
 function setupFormSubmit() {
     const form = document.querySelector('#objectModal form');
     if (form) {
@@ -208,7 +228,7 @@ function setupFormSubmit() {
     }
 }
 
-  // Функция для подтверждения удаления
+  // ФУНКЦИЯ ДЛЯ ПОДТВЕРЖДЕНИЯ УДАЛЕНИЯ
   function confirmDelete(url, objectId) {
     const modal = new bootstrap.Modal(document.getElementById('deleteConfirmModal'));
     document.getElementById('deleteConfirmText').textContent = 
@@ -217,11 +237,7 @@ function setupFormSubmit() {
     form.action = url;
     modal.show();
 }
-</script>
 
-
-
-<script>
 function showTab(tabName) {
     // Скрыть все вкладки
     const tabs = document.querySelectorAll('.tab');
@@ -242,9 +258,8 @@ function showTab(tabName) {
     } else {
         showTab('service');
     }
-</script>
 
-<script>
+  // ФУНКЦИЯ ДОБАВЛЕНИЯ РАБОТ В АВР 
   function addWorkRow() {
     console.log("Функция addWorkRow вызвана");
     
@@ -280,7 +295,7 @@ function showTab(tabName) {
             <label class="input-group-text">Количество:</label>
             <input class="form-control" type="number" name="quantity" min="1" value="1" style="width: 50px;" required>
         </div>
-        <button type="button" class="btn btn-danger btn-sm remove-work">×</button>
+        <button type="button" class="btn btn-danger btn-sm remove-work"><strong>X</strong></button>
     `;
     
     container.appendChild(newRow);
@@ -290,6 +305,36 @@ function showTab(tabName) {
         container.removeChild(newRow);
     });
   }
+
+
+// ФУНКЦИЯ ДЛЯ RADIO-КНОПОК
+function setupResultRadioButtons() {
+  const modalBody = document.querySelector('.modal-body');
+  if (!modalBody) return;
+  
+  function updateBackground() {
+      const selectedValue = document.querySelector('input[name="result"]:checked')?.value;
+      if (!selectedValue) return;
+      
+      modalBody.classList.remove(
+          'result-bg-green', 'result-bg-yellow', 'result-bg-red'
+      );
+      
+      const colorClass = {
+          '0': 'result-bg-green',
+          '1': 'result-bg-yellow',
+          '2': 'result-bg-red'
+      }[selectedValue];
+      
+      if (colorClass) modalBody.classList.add(colorClass);
+  }
+  
+  document.querySelectorAll('input[name="result"]').forEach(radio => {
+      radio.addEventListener('change', updateBackground);
+  });
+  
+  updateBackground();
+}
 </script>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>

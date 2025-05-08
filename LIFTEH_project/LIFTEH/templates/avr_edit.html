@@ -1,5 +1,4 @@
-<h1>Редактирование АВР</h1>
-<hr>
+{% comment %} <h1>Редактирование АВР</h1> {% endcomment %}
 <form method="post" id="avrEditForm" action="{% url 'avr_edit' pk=avr.object.id %}">
     {% csrf_token %}
 

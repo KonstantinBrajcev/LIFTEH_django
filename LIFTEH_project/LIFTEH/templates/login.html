@@ -81,6 +81,7 @@
 </head>
 <body>
     <div class="login-container">
+
         <!-- Левая часть с логотипом -->
         <div class="logo-section">
             <img src="{% static 'logo_lifteh.png' %}" alt="Логотип организации">
@@ -88,7 +89,7 @@
         
         <!-- Правая часть с формой входа -->
         <div class="form-section">
-            <h2 class="form-title" style="text-align:center;">ВХОД В СИСТЕМУ_N</h2>
+            <h2 class="form-title" style="text-align:center;">ВХОД В СИСТЕМУ</h2>
             
             {% if error %}
                 <div class="error-message">{{ error }}</div>
@@ -107,10 +108,12 @@
                 </div>
                 
                 <button type="submit" class="btn btn-login">Войти</button>
+                
             </form>
+
         </div>
     </div>
     
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

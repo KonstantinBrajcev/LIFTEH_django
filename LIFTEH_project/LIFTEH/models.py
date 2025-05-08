@@ -68,9 +68,10 @@ class Work(models.Model):
 class Diagnostic(models.Model):
     object = models.ForeignKey(
         Object, on_delete=models.CASCADE, related_name='diagnostics')
-    insert_date = models.DateTimeField(default=timezone.now)
-    end_date = models.DateTimeField(default=timezone.now)
-    result = models.IntegerField(null=True, blank=True)
+    insert_date = models.DateTimeField('Дата ввода', default=timezone.now)
+    end_date = models.DateTimeField('Дата окончания', default=timezone.now)
+    fact_date = models.DateTimeField('Дата проведения', null=True, blank=True)
+    result = models.IntegerField('Результат', null=True, blank=True)
 
     def __str__(self):
         return f"Диагностика {self.object.name} от {self.insert_date}"

@@ -69,10 +69,60 @@ class ObjectAvrForm(forms.Form):
     problem = forms.CharField(max_length=500)
 
 
+# class DiagnosticForm(forms.ModelForm):
+#     class Meta:
+#         model = Diagnostic
+#         fields = ['object', 'end_date', 'result']
+#         widgets = {
+#             'end_date': forms.DateTimeInput(attrs={'type': 'datetime-local'}),
+#         }
+
 class DiagnosticForm(forms.ModelForm):
+    customer = forms.CharField(max_length=255, label='Заказчик')
+    address = forms.CharField(max_length=255, label='Адрес')
+    phone = forms.CharField(max_length=20, label='Телефон')
+    name = forms.CharField(max_length=255, label='Имя')
+    
     class Meta:
         model = Diagnostic
-        fields = ['object', 'end_date', 'result']
+        fields = ['end_date', 'fact_date', 'result']
         widgets = {
             'end_date': forms.DateTimeInput(attrs={'type': 'datetime-local'}),
+            'fact_date': forms.DateTimeInput(attrs={'type': 'datetime-local'}),
         }
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Убираем проверку на существование object, так как при создании его нет
+        if self.instance.pk and hasattr(self.instance, 'object'):
+            self.fields['customer'].initial = self.instance.object.customer
+            self.fields['address'].initial = self.instance.object.address
+            self.fields['phone'].initial = self.instance.object.phone
+            self.fields['name'].initial = self.instance.object.name
+    
+    def save(self, commit=True):
+        diagnostic = super().save(commit=False)
+        
+        # Создаем или обновляем объект
+        if hasattr(diagnostic, 'object') and diagnostic.object:
+            # Обновляем существующий объект
+            obj = diagnostic.object
+            obj.customer = self.cleaned_data['customer']
+            obj.address = self.cleaned_data['address']
+            obj.phone = self.cleaned_data['phone']
+            obj.name = self.cleaned_data['name']
+            obj.save()
+        else:
+            # Создаем новый объект
+            obj = Object(
+                customer=self.cleaned_data['customer'],
+                address=self.cleaned_data['address'],
+                phone=self.cleaned_data['phone'],
+                name=self.cleaned_data['name']
+            )
+            obj.save()
+            diagnostic.object = obj
+        
+        if commit:
+            diagnostic.save()
+        return diagnostic

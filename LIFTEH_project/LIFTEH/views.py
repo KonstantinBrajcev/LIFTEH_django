@@ -240,6 +240,7 @@ class ChartsView(TemplateView):
         # context['canvas_width'] = len(context['customers']) * 30
         return context
 
+
 # ----------- ЗАДАЧИ -----------
 
 
@@ -308,6 +309,7 @@ class TasksView(TemplateView):
 
         return context
 
+
 # --------ДИАГНОСТИКА -----------
 
 
@@ -316,63 +318,52 @@ class DiagnosticView(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['diagnostics'] = Diagnostic.objects.all(
+        context['diagnostics'] = Diagnostic.objects.filter(
+            fact_date__isnull=True
         ).select_related('object')
         return context
 
-# ---- ДИАГНОСТИКА -----------
 # def diagnostic_add(request):
 #     if request.method == 'POST':
 #         form = DiagnosticForm(request.POST)
 #         if form.is_valid():
-#             # Создаем объект диагностики, но не сохраняем в БД
 #             diagnostic = form.save(commit=False)
 #             diagnostic.insert_date = timezone.now()
 #             diagnostic.save()
+#             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+#                 return JsonResponse({'success': True})
 #             return redirect(reverse('to') + '#diagnostic')
 #     else:
 #         form = DiagnosticForm()
 
+#     if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+#         return render(request, 'diagnostic_add.html', {'form': form})
 #     return render(request, 'diagnostic_add.html', {'form': form})
 
 
 # def diagnostic_edit(request, pk):
-#     # Получаем объект диагностики или возвращаем 404 если не найден
 #     diagnostic = get_object_or_404(Diagnostic, pk=pk)
-
 #     if request.method == 'POST':
-#         # Создаем форму с данными из POST-запроса и привязываем к существующему объекту
 #         form = DiagnosticForm(request.POST, instance=diagnostic)
 #         if form.is_valid():
-#             # Сохраняем изменения
 #             form.save()
-#             # Перенаправляем на страницу списка диагностик
+#             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+#                 return JsonResponse({'success': True})
 #             return redirect(reverse('to') + '#diagnostic')
+#         else:
+#             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+#                 return render(request, 'diagnostic_edit.html', {
+#                     'form': form,
+#                     'diagnostic': diagnostic
+#                 }, status=400)
 #     else:
-#         # Создаем форму с данными из существующего объекта
 #         form = DiagnosticForm(instance=diagnostic)
 
-#     # Рендерим шаблон с формой
 #     return render(request, 'diagnostic_edit.html', {
 #         'form': form,
 #         'diagnostic': diagnostic
 #     })
 
-
-# def diagnostic_delete(request, pk):
-#     # Получаем объект диагностики или возвращаем 404 если не найден
-#     diagnostic = get_object_or_404(Diagnostic, pk=pk)
-
-#     if request.method == 'POST':
-#         # Удаляем объект
-#         diagnostic.delete()
-#         # Добавляем сообщение об успешном удалении
-#         messages.success(request, 'Диагностика успешно удалена')
-#         # Перенаправляем на страницу списка диагностик
-#         return redirect(reverse('to') + '#diagnostic')
-
-#     # Если запрос не POST, перенаправляем на список диагностик
-#     return redirect(reverse('to') + '#diagnostic')
 
 def diagnostic_add(request):
     if request.method == 'POST':
@@ -380,13 +371,14 @@ def diagnostic_add(request):
         if form.is_valid():
             diagnostic = form.save(commit=False)
             diagnostic.insert_date = timezone.now()
+            diagnostic.user = request.user
             diagnostic.save()
             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
                 return JsonResponse({'success': True})
             return redirect(reverse('to') + '#diagnostic')
     else:
         form = DiagnosticForm()
-
+    
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
         return render(request, 'diagnostic_add.html', {'form': form})
     return render(request, 'diagnostic_add.html', {'form': form})
@@ -409,7 +401,7 @@ def diagnostic_edit(request, pk):
                 }, status=400)
     else:
         form = DiagnosticForm(instance=diagnostic)
-
+    
     return render(request, 'diagnostic_edit.html', {
         'form': form,
         'diagnostic': diagnostic

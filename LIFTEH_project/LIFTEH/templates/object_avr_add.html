@@ -1,11 +1,9 @@
-<h1>Добавить Объект и АВР</h1>
-<hr>
-
+{% comment %} <h1>Добавить Объект и АВР</h1> {% endcomment %}
     <form method="post" action="{% url 'object_avr_add' %}">
         {% csrf_token %}
         {{ form.as_p }}
     <hr>
-    <h3>Работы:</h3>
+    <h5>Работы:</h5>
     <div id="work-rows">
         <div class="work-row" style="display: flex; gap: 10px; align-items: flex-start; margin-bottom: 10px;">
             <div class="input-group" style="width: 380px;">

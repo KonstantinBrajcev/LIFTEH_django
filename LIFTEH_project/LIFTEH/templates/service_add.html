@@ -1,5 +1,12 @@
-<h1>Добавление обслуживания</h1>
-<h2>Объект: {{ object.customer }}</h2>
+{% comment %} <h1>Добавление обслуживания</h1> {% endcomment %}
+<style>
+    .result-bg-green { background-color: #d4edda !important; }  /* Зеленый */
+    .result-bg-yellow { background-color: #fff3cd !important; }  /* Желтый */
+    .result-bg-red { background-color: #f8d7da !important; }     /* Красный */
+</style>
+
+<h5>Заказчик: {{ object.customer }}</h5>
+<h5>Адрес: {{ object.address }}</h5>
 <table class="table table-sm">
     <tr>
         <th>Дата</th>
@@ -42,18 +49,18 @@
 
     <div class="input-group">
         <label class="input-group-text">Результат:</label>
-        <div class="form-control" style="display: flex; gap: 15px; align-items: center; padding: 10px;">
+        <div class="form-control" name="result-container" style="display: flex; gap: 15px; align-items: center; padding: 10px;">
             <div class="form-check">
-                <input class="form-check-input" type="radio" name="result" id="result0" value="0" required>
-                <label class="form-check-label" for="result0">0 - Успешно</label>
+                <input class="form-check-input" type="radio" name="result" id="result0" value="0" checked required>
+                <label class="form-check-label" for="result0">В исправном состоянии</label>
             </div>
             <div class="form-check">
                 <input class="form-check-input" type="radio" name="result" id="result1" value="1">
-                <label class="form-check-label" for="result1">1 - Предупреждение</label>
+                <label class="form-check-label" for="result1">Требуется устранить замечания</label>
             </div>
             <div class="form-check">
                 <input class="form-check-input" type="radio" name="result" id="result2" value="2">
-                <label class="form-check-label" for="result2">2 - Ошибка</label>
+                <label class="form-check-label" for="result2">Не работает</label>
             </div>
         </div>
     </div>

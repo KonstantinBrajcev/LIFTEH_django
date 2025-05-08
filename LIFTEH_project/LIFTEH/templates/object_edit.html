@@ -1,5 +1,4 @@
-<h1>Редактирование объекта</h1>
-<hr>
+{% comment %} <h1>Редактирование объекта</h1> {% endcomment %}
 <form method="post" id="objectEditForm" action="{% url 'object_edit' pk=object.id %}">
     {% csrf_token %}
     {{ form.as_p }}

@@ -1,14 +1,17 @@
 <div class="card mb-4">
   <div class="card-header d-flex">
+
     <div>
       <h4>Диагностики</h4>
     </div>
+
     <div class="col d-flex justify-content-end align-items-center">
       <button type="button" class="btn btn-primary" 
         onclick="loadModalForm('{% url 'diagnostic_add' %}', 'Добавить диагностику')">
-          Добавить диагностику
+          Добавить
       </button>
     </div>
+
   </div>
 
   <div class="card-body" style="padding: 0px; min-height: 50px;">
@@ -18,8 +21,8 @@
           <th style="text-align: center;">Заказчик</th>
           <th style="text-align: center;">Адрес</th>
           <th style="text-align: center;">Cоздано</th>
-          <th style="text-align: center;">Выполнено</th>
-          <th style="text-align: center;">Результат</th>
+          <th style="text-align: center;">Срок</th>
+          {% comment %} <th style="text-align: center;">Результат</th> {% endcomment %}
           <th style="text-align: center;">Действия</th>
         </tr>
       </thead>
@@ -30,15 +33,18 @@
           <td style="text-align: center;">{{ diagnostic.object.customer|default:"-" }}</td>
           <td style="text-align: center;">{{ diagnostic.object.address|default:"-" }}</td>
           <td style="text-align: center;">{{ diagnostic.insert_date|date:"d.m.Y H:i" }}</td>
-          <td style="text-align: center;">{{ diagnostic.estimate_date|date:"d.m.Y H:i" }}</td>
-          <td style="text-align: center;">{{ diagnostic.result|default:"-" }}</td>
+          <td style="text-align: center;">{{ diagnostic.end_date|date:"d.m.Y H:i" }}</td>
+          {% comment %} <td style="text-align: center;">{{ diagnostic.result|default:"-" }}</td> {% endcomment %}
 
           <td style="text-align: center;">
             <div class="btn-group btn-group" style="gap: 2px;">
-              {% comment %} <a href="{% url 'diagnostic_edit' pk=diagnostic.id %}" class="btn btn-secondary">✏</a> {% endcomment %}
+
               <button onclick="loadModalForm('{% url 'diagnostic_edit' pk=diagnostic.id %}', 'Редактирование диагностики')" 
                 class="btn btn-secondary">✏
               </button>
+
+              <button onclick="loadModalForm('{% url 'avr_add' pk=diagnostic.object.id %}', 'Добавление АВР')" 
+              class="btn btn-success">АВР</button>
 
               <button onclick="confirmDelete('{% url 'diagnostic_delete' pk=diagnostic.id %}', '{{ diagnostic.id }}')" 
                   class="btn btn-danger">

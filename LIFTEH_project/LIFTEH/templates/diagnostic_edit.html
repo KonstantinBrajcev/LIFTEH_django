@@ -1,11 +1,51 @@
-{% block content %}
+{% comment %} {% block content %} {% endcomment %}
 <div class="container">
-    <h2>Редактирование диагностики</h2>
-    <form method="post">
+    {% comment %} <h2>Редактирование диагностики</h2> {% endcomment %}
+    <form method="post" enctype="multipart/form-data" action="{% url 'diagnostic_edit' pk=diagnostic.id %}">
         {% csrf_token %}
-        {{ form.as_p }}
+        {% comment %} {{ form.as_p }} {% endcomment %}
+
+        <div class="mb-3">
+            <label class="form-label">Заказчик</label>
+            {{ form.customer }}
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Адрес</label>
+            {{ form.address }}
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Телефон</label>
+            {{ form.phone }}
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Имя</label>
+            {{ form.name }}
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Дата ввода</label>
+            <input type="text" class="form-control" 
+                   value="{{ diagnostic.insert_date|date:'Y-m-d H:i' }}" readonly>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Дата окончания</label>
+            {% comment %} {{ form.end_date }} {% endcomment %}
+            <input type="datetime-local" name="end_date" class="form-control" 
+            value="{{ diagnostic.end_date|date:'Y-m-d\TH:i' }}">
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Дата проведения</label>
+            {% comment %} {{ form.fact_date }} {% endcomment %}
+            <input type="datetime-local" name="fact_date" class="form-control" 
+            value="{{ diagnostic.fact_date|date:'Y-m-d\TH:i' }}">
+        </div>
+        
+        {% comment %} <div class="mb-3">
+            <label class="form-label">Результат</label>
+            {{ form.result }}
+        </div> {% endcomment %}
+
         <button type="submit" class="btn btn-success">Сохранить</button>
         <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Отмена</button>
     </form>
 </div>
-{% endblock %}
+{% comment %} {% endblock %} {% endcomment %}
