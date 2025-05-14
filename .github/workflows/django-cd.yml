@@ -145,12 +145,16 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             source ~/myenv/bin/activate
+            echo "Виртуальная среда активирована"
             cd ${{ secrets.PROJECT_PATH }}/LIFTEH_project
+            echo "зашли в папку:  ${{ secrets.PROJECT_PATH }}/LIFTEH_project"
             export DJANGO_SETTINGS_MODULE=LIFTEH_project.settings_prod
-            
+            echo "Экспортировали настройки"
             # Остановка предыдущего процесса
             pkill -9 -f gunicorn || echo "No Gunicorn processes found"
+            echo "Остановили процессы Gunicorn"
             sleep 10
-            
+            echo "Заснули на 10 мс"
             # Запуск Gunicorn
             gunicorn --bind 0.0.0.0:8001 --workers 3 LIFTEH_project.wsgi:application
+            echo "Запустили Gunicorn"
