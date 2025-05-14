@@ -144,8 +144,8 @@ jobs:
           username: ${{ secrets.SSH_USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            cd ${{ secrets.PROJECT_PATH }}/LIFTEH_project
             source ~/myenv/bin/activate
+            cd ${{ secrets.PROJECT_PATH }}/LIFTEH_project
             export DJANGO_SETTINGS_MODULE=LIFTEH_project.settings_prod
             
             # Остановка предыдущего процесса
@@ -153,4 +153,4 @@ jobs:
             sleep 10
             
             # Запуск Gunicorn
-             gunicorn --bind 0.0.0.0:8001 --workers 3 LIFTEH_project.wsgi:application
+            gunicorn --bind 0.0.0.0:8001 --workers 3 LIFTEH_project.wsgi:application
