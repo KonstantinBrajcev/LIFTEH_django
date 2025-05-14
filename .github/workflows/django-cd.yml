@@ -69,7 +69,7 @@ jobs:
               echo "cd"
               source ~/myenv/bin/activate
               echo "source"
-              pkill -f gunicorn || echo "No Gunicorn processes found"
+              pkill -f gunicorn
               echo "pkill"
               sleep 5
               echo "seec"
