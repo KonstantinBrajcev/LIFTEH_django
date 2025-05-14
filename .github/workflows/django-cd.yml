@@ -151,13 +151,13 @@ jobs:
             cd ~/www/jelezo.by/LIFTEH_project
             echo "Зашли в папку:  cd ~/www/jelezo.by/LIFTEH_project"
             sleep 10
+            echo "Таймер 10 секунд"
 
-            #export DJANGO_SETTINGS_MODULE=LIFTEH_project.settings_prod
-            #echo "Экспортировали настройки"
+            export DJANGO_SETTINGS_MODULE=LIFTEH_project.settings_prod
+            echo "Экспортировали настройки"
+            sleep 10
+            echo "Таймер 10 секунд"
 
-            # Остановка предыдущего процесса
-            #pkill -f gunicorn || echo "Процесс Gunicorn не найден"
-            # Пытаемся корректно завершить процессы
             timeout 10 pkill -f gunicorn && sleep 5 || echo "Процесс Gunicorn не найден"
             echo "Пытались остановить процесс Gunicorn"
 
