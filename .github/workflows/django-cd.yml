@@ -75,21 +75,16 @@ jobs:
           script: |
             source ~/myenv/bin/activate
             echo "Виртуальная среда активирована"
-            sleep 10
+
             cd ~/www/jelezo.by/LIFTEH_project
             echo "Зашли в папку:  cd ~/www/jelezo.by/LIFTEH_project"
-            sleep 10
-            echo "Таймер 10 секунд"
 
             export DJANGO_SETTINGS_MODULE=LIFTEH_project.settings_prod
             echo "Экспортировали настройки"
-            sleep 10
-            echo "Таймер 10 секунд"
 
             pkill -f gunicorn && sleep 5 || echo "Процесс Gunicorn не найден"
             echo "Пытались остановить процесс Gunicorn"
 
-            # Принудительно завершаем оставшиеся процессы
             pkill -9 -f gunicorn && sleep 3 || echo "Нет процессов для принудительного завершения"
             echo "Остановили процессы Gunicorn принудительно"
             sleep 10
