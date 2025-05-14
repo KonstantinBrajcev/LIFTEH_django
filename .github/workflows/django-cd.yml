@@ -82,10 +82,8 @@ jobs:
             export DJANGO_SETTINGS_MODULE=LIFTEH_project.settings_prod
             echo "Экспортировали настройки"
 
-            set +e
-            pkill -f gunicorn
+            pkill -f gunicorn || true
             echo "Попытались остановить Gunicorn (мягко)"
-            set -e  # если дальше хочешь, чтобы ошибки снова были фатальными
 
             # pkill -9 -f gunicorn
             # echo "Попытались остановить Gunicorn (жестко)"
