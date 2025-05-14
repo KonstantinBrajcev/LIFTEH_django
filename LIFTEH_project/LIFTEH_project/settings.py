@@ -98,6 +98,14 @@ LOGIN_URL = 'login'
 
 INTERNAL_IPS = ['127.0.0.1']
 
+# Игнорировать эти файлы при collectstatic
+STATICFILES_IGNORE_PATTERNS = [
+    'ico/*',  # Пропускаем все иконки
+    '*.scss',
+    '*.less',
+    '*.map'
+]
+
 try:
     from .settings_local import *  # Для разработки
 except ImportError:
