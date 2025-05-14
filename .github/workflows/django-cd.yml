@@ -160,6 +160,9 @@ jobs:
             echo "Экспортировали настройки"
             sleep 10
             echo "Таймер 10 секунд"
+            cd ~
+            cd ~/www/jelezo.by/LIFTEH_project
+            echo "cd обновили"
 
             timeout 10 pkill -f gunicorn && sleep 5 || echo "Процесс Gunicorn не найден"
             echo "Пытались остановить процесс Gunicorn"
