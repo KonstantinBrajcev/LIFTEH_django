@@ -155,10 +155,20 @@ jobs:
             #echo "Экспортировали настройки"
 
             # Остановка предыдущего процесса
-            pkill -9 -f gunicorn || echo "No Gunicorn processes found"
+            pkill -f gunicorn || echo "Процесс Gunicorn не найден"
             echo "Остановили процессы Gunicorn"
             sleep 10
+
+            # Проверка, что процессы завершились
+            if pgrep -f gunicorn; then
+              echo "Процессы не завершились, отправляем SIGKILL"
+              pkill -9 -f gunicorn
+              sleep 5
+            fi
 
             # Запуск Gunicorn
             gunicorn --bind 0.0.0.0:8001 --workers 3 LIFTEH_project.wsgi:application
             echo "Запустили Gunicorn"
+
+            echo "Проверка запущенных процессов:"
+            pgrep -af gunicorn || echo "Gunicorn не запустился"
