@@ -153,9 +153,4 @@ jobs:
             sleep 10
             
             # Запуск Gunicorn
-            gunicorn \
-              --bind 0.0.0.0:8001 \
-              --workers 3 \
-              --timeout 120 \
-            #  --pythonpath ${{ secrets.PROJECT_PATH }}/LIFTEH_project \
-              LIFTEH_project.wsgi:application
+             gunicorn --bind 0.0.0.0:8001 --workers 3 LIFTEH_project.wsgi:application
