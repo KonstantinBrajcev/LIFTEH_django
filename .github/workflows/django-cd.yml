@@ -63,6 +63,7 @@ jobs:
   
             echo "Сбор статических файлов"
             # python manage.py collectstatic --no-input --clear
+        timeout-minutes: 20
   
       - name: Restart Gunicorn
         uses: appleboy/ssh-action@v1
@@ -71,7 +72,7 @@ jobs:
           username: ${{ secrets.SSH_USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            # set +e  # отключаем прерывание по ошибке
+            set +e  # отключаем прерывание по ошибке
             source ~/myenv/bin/activate
             echo "Виртуальная среда активирована"
 
@@ -107,4 +108,4 @@ jobs:
             pgrep -af gunicorn || echo "Gunicorn не запустился"
 
             echo "Деплой завершён"
-            # exit 0
+            exit 0
