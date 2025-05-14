@@ -82,13 +82,14 @@ jobs:
             export DJANGO_SETTINGS_MODULE=LIFTEH_project.settings_prod
             echo "Экспортировали настройки"
 
-            echo "Пробуем завершить процессы gunicorn"
-            if pgrep -f gunicorn > /dev/null; then
-              pkill -f gunicorn
-              echo "Gunicorn остановлен"
+            PIDS=$(pgrep -f gunicorn)
+              if [ -n "$PIDS" ]; then
+              echo "Gunicorn процессы найдены: $PIDS"
+              echo "$PIDS" | xargs kill
             else
-              echo "Процессы Gunicorn не найдены — пропускаем pkill"
+                echo "Gunicorn не запущен — ничего не делаем"
             fi
+
 
 
             # pkill -f gunicorn || true
