@@ -82,8 +82,8 @@ jobs:
             export DJANGO_SETTINGS_MODULE=LIFTEH_project.settings_prod
             echo "Экспортировали настройки"
 
-            # pkill -f gunicorn
-            # echo "Попытались остановить Gunicorn (мягко)"
+            pkill -f gunicorn
+            echo "Попытались остановить Gunicorn (мягко)"
 
             # pkill -9 -f gunicorn
             # echo "Попытались остановить Gunicorn (жестко)"
@@ -96,14 +96,15 @@ jobs:
             #   sleep 3
             # fi
 
-            echo "Запускаем Gunicorn"
-            gunicorn --bind 0.0.0.0:8001 --workers 3 LIFTEH_project.wsgi:application &
+            echo "Запускаем Gunicorn в фоне через nohup"
+            nohup gunicorn --bind 0.0.0.0:8001 --workers 3 LIFTEH_project.wsgi:application > gunicorn.log 2>&1 &
             sleep 3
 
             echo "Проверка запущенных процессов:"
             pgrep -af gunicorn || echo "Gunicorn не запустился"
 
-            exit 0  # <-- важно! завершить с кодом 0 всегда
+            echo "Деплой завершён"
+            exit 0
 
       # - name: Restart Gunicorn
       #   uses: appleboy/ssh-action@v1
