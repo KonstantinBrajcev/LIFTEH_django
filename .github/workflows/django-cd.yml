@@ -82,17 +82,24 @@ jobs:
             export DJANGO_SETTINGS_MODULE=LIFTEH_project.settings_prod
             echo "Экспортировали настройки"
 
-            echo "Ищем процессы Gunicorn..."
             PIDS=$(pgrep -f gunicorn)
+            MY_PID=$$
+            MY_PPID=$(ps -o ppid= -p $$ | tr -d ' ')
+
             if [ -n "$PIDS" ]; then
               echo "Gunicorn процессы найдены: $PIDS"
-                for pid in $PIDS; do
+              for pid in $PIDS; do
+                if [ "$pid" = "$MY_PID" ] || [ "$pid" = "$MY_PPID" ]; then
+                  echo "Пропускаем свой PID: $pid"
+                  continue
+                fi
                 echo "Пробуем завершить процесс $pid"
                 kill "$pid" 2>/dev/null || echo "Процесс $pid уже завершён"
               done
             else
               echo "Gunicorn не запущен — ничего не делаем"
             fi
+
 
             # pkill -f gunicorn || true
             # echo "Попытались остановить Gunicorn (мягко)"
