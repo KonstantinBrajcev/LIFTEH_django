@@ -63,7 +63,6 @@ jobs:
   
             echo "Сбор статических файлов"
             # python manage.py collectstatic --no-input --clear
-        timeout-minutes: 20
   
       - name: Restart Gunicorn
         uses: appleboy/ssh-action@v1
@@ -72,7 +71,7 @@ jobs:
           username: ${{ secrets.SSH_USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            set +e  # отключаем прерывание по ошибке
+            # set +e  # отключаем прерывание по ошибке
             source ~/myenv/bin/activate
             echo "Виртуальная среда активирована"
 
@@ -100,65 +99,12 @@ jobs:
               echo "Gunicorn не запущен — ничего не делаем"
             fi
 
-
-            # pkill -f gunicorn || true
-            # echo "Попытались остановить Gunicorn (мягко)"
-
-            # pkill -9 -f gunicorn
-            # echo "Попытались остановить Gunicorn (жестко)"
-
-            # sleep 5
-
-            # if pgrep -f gunicorn; then
-            #   echo "Процессы не завершились, отправляем SIGKILL"
-            #   pkill -9 -f gunicorn
-            #   sleep 3
-            # fi
-
             echo "Запускаем Gunicorn в фоне через nohup"
-            nohup gunicorn --bind 0.0.0.0:8001 --workers 3 LIFTEH_project.wsgi:application > gunicorn.log 2>&1 &
+            nohup gunicorn --bind 0.0.0.0:8001 --workers 3 --timeout 120 LIFTEH_project.wsgi:application > gunicorn.log 2>&1 &
             sleep 3
 
             echo "Проверка запущенных процессов:"
             pgrep -af gunicorn || echo "Gunicorn не запустился"
 
             echo "Деплой завершён"
-            exit 0
-
-      # - name: Restart Gunicorn
-      #   uses: appleboy/ssh-action@v1
-      #   with:
-      #     host: ${{ secrets.SSH_HOST }}
-      #     username: ${{ secrets.SSH_USERNAME }}
-      #     key: ${{ secrets.SSH_PRIVATE_KEY }}
-      #     script: |
-      #       source ~/myenv/bin/activate
-      #       echo "Виртуальная среда активирована"
-
-      #       cd ~/www/jelezo.by/LIFTEH_project
-      #       echo "Зашли в папку:  cd ~/www/jelezo.by/LIFTEH_project"
-
-      #       export DJANGO_SETTINGS_MODULE=LIFTEH_project.settings_prod
-      #       echo "Экспортировали настройки"
-
-      #       pkill -f gunicorn && sleep 5 || echo "Процесс Gunicorn не найден"
-      #       echo "Пытались остановить процесс Gunicorn"
-
-      #       pkill -9 -f gunicorn && sleep 3 || echo "Нет процессов для принудительного завершения"
-      #       echo "Остановили процессы Gunicorn принудительно"
-      #       sleep 10
-
-      #       # Проверка, что процессы завершились
-      #       if pgrep -f gunicorn; then
-      #         echo "Процессы не завершились, отправляем SIGKILL"
-      #         pkill -9 -f gunicorn
-      #         sleep 5
-      #       fi
-
-      #       # Запуск Gunicorn
-      #       gunicorn --bind 0.0.0.0:8001 --workers 3 LIFTEH_project.wsgi:application
-      #       echo "Запустили Gunicorn"
-
-      #       echo "Проверка запущенных процессов:"
-      #       pgrep -af gunicorn || echo "Gunicorn не запустился"
-      #   timeout-minutes: 20
+            # exit 0
