@@ -136,7 +136,7 @@ jobs:
               python manage.py makemigrations --no-input
               python manage.py makemigrations --no-input
               python manage.py migrate --no-input
-              python manage.py collectstatic --no-input --no-clear
+              python manage.py collectstatic --no-input --clear
         
       - name: Restart Gunicorn
         uses: appleboy/ssh-action@v1
