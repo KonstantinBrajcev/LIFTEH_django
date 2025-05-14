@@ -134,6 +134,7 @@ jobs:
               export DJANGO_SETTINGS_MODULE=LIFTEH_project.settings_prod
               pip install -r requirements-server.txt
               python manage.py makemigrations --no-input
+              python manage.py makemigrations --no-input
               python manage.py migrate --no-input
               python manage.py collectstatic --no-input --no-clear
         
