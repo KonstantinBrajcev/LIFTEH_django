@@ -104,10 +104,10 @@ jobs:
           fi
           echo "settings_prod.py found and valid"
 
-      - name: Set up Python 3.7
+      - name: Set up Python 3.8
         uses: actions/setup-python@v5
         with:
-          python-version: '3.7'
+          python-version: '3.8'
 
       - name: Install dependencies
         working-directory: ./LIFTEH_project
@@ -129,18 +129,27 @@ jobs:
       - name: Prepare server (migrations + static)
         uses: appleboy/ssh-action@v1
         with:
-            host: ${{ secrets.SSH_HOST }}
-            username: ${{ secrets.SSH_USERNAME }}
-            key: ${{ secrets.SSH_PRIVATE_KEY }}
-            script: |
-              cd ${{ secrets.PROJECT_PATH }}/LIFTEH_project
-              source ~/myenv/bin/activate
-              export DJANGO_SETTINGS_MODULE=LIFTEH_project.settings_prod
-              pip install -r requirements-server.txt
-              #python manage.py makemigrations
-              #python manage.py migrate --no-input
-              #python manage.py collectstatic --no-input --clear
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            echo "Начинаем подготовку сервера"
+            cd ${{ secrets.PROJECT_PATH }}/LIFTEH_project
+            source ~/myenv/bin/activate
+            export DJANGO_SETTINGS_MODULE=LIFTEH_project.settings_prod
+            echo "Активирована виртуальная среда"
+                
+            echo "Установка зависимостей"
+            pip install -r requirements-server.txt
+  
+            echo "Применение миграций"
+            python manage.py makemigrations
+            python manage.py migrate --no-input
+  
+            echo "Сбор статических файлов"
+            python manage.py collectstatic --no-input --clear
         timeout-minutes: 20
+  
         
       - name: Restart Gunicorn
         uses: appleboy/ssh-action@v1
