@@ -97,13 +97,13 @@ jobs:
             # fi
 
             echo "Запускаем Gunicorn"
-            gunicorn --bind 0.0.0.0:8001 --workers 3 LIFTEH_project.wsgi:application
-            # sleep 3
+            gunicorn --bind 0.0.0.0:8001 --workers 3 LIFTEH_project.wsgi:application &
+            sleep 3
 
-            # echo "Проверка запущенных процессов:"
-            # pgrep -af gunicorn || echo "Gunicorn не запустился"
+            echo "Проверка запущенных процессов:"
+            pgrep -af gunicorn || echo "Gunicorn не запустился"
 
-            # exit 0  # <-- важно! завершить с кодом 0 всегда
+            exit 0  # <-- важно! завершить с кодом 0 всегда
 
       # - name: Restart Gunicorn
       #   uses: appleboy/ssh-action@v1
