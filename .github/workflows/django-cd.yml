@@ -66,9 +66,13 @@ jobs:
             key: ${{ secrets.SSH_PRIVATE_KEY }}
             script: |
               cd ${{ secrets.PROJECT_PATH }}
+              echo "cd"
               source ~/myenv/bin/activate
+              echo "source"
               pkill -f gunicorn || echo "No Gunicorn processes found"
+              echo "pkill"
               sleep 5
+              echo "seec"
               gunicorn \
                 --bind 0.0.0.0:8001 \
                 --workers 3 \
