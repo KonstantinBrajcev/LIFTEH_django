@@ -147,8 +147,8 @@ jobs:
             source ~/myenv/bin/activate
             echo "Виртуальная среда активирована"
             sleep 10
-            cd ${{ secrets.PROJECT_PATH }}/LIFTEH_project
-            echo "зашли в папку:  ${{ secrets.PROJECT_PATH }}/LIFTEH_project"
+            cd www/jelezo.by/LIFTEH_project/
+            echo "зашли в папку:  cd www/jelezo.by/LIFTEH_project/"
             sleep 10
 
             #export DJANGO_SETTINGS_MODULE=LIFTEH_project.settings_prod
