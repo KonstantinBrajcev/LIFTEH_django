@@ -155,7 +155,7 @@ jobs:
             #echo "Экспортировали настройки"
 
             # Остановка предыдущего процесса
-            pkill -9 -f gunicorn || echo "No Gunicorn processes found"
+            pkill -9 -f gunicorn
             echo "Остановили процессы Gunicorn"
             sleep 10
 
