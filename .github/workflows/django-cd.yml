@@ -155,8 +155,14 @@ jobs:
             #echo "Экспортировали настройки"
 
             # Остановка предыдущего процесса
-            pkill -f gunicorn || echo "Процесс Gunicorn не найден"
-            echo "Остановили процессы Gunicorn"
+            #pkill -f gunicorn || echo "Процесс Gunicorn не найден"
+            # Пытаемся корректно завершить процессы
+            timeout 10 pkill -f gunicorn && sleep 5 || echo "Процесс Gunicorn не найден"
+            echo "Пытались остановить процесс Gunicorn"
+
+            # Принудительно завершаем оставшиеся процессы
+            timeout 5 pkill -9 -f gunicorn && sleep 3 || echo "Нет процессов для принудительного завершения"
+            echo "Остановили процессы Gunicorn принудительно"
             sleep 10
 
             # Проверка, что процессы завершились
