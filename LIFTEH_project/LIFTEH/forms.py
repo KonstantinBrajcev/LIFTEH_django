@@ -33,6 +33,18 @@ class ObjectForm(forms.ModelForm):
     M12 = forms.DecimalField(required=False, decimal_places=2,
                              max_digits=12, widget=forms.NumberInput(attrs={'step': 'any'}))
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for month in range(1, 13):
+            field_name = f'M{month}'
+            self.fields[field_name].widget = forms.NumberInput(attrs={
+                'step': '0.01',
+                'class': 'form-control',
+                'type': 'number',
+                'lang': 'en'  # Указываем английскую локаль для точки
+            })
+            self.fields[field_name].localize = True
+
 
 class ServiceForm(forms.ModelForm):
     class Meta:
@@ -82,7 +94,7 @@ class DiagnosticForm(forms.ModelForm):
     address = forms.CharField(max_length=255, label='Адрес')
     phone = forms.CharField(max_length=20, label='Телефон')
     name = forms.CharField(max_length=255, label='Имя')
-    
+
     class Meta:
         model = Diagnostic
         fields = ['end_date', 'fact_date', 'result']
@@ -90,7 +102,7 @@ class DiagnosticForm(forms.ModelForm):
             'end_date': forms.DateTimeInput(attrs={'type': 'datetime-local'}),
             'fact_date': forms.DateTimeInput(attrs={'type': 'datetime-local'}),
         }
-    
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         # Убираем проверку на существование object, так как при создании его нет
@@ -99,10 +111,10 @@ class DiagnosticForm(forms.ModelForm):
             self.fields['address'].initial = self.instance.object.address
             self.fields['phone'].initial = self.instance.object.phone
             self.fields['name'].initial = self.instance.object.name
-    
+
     def save(self, commit=True):
         diagnostic = super().save(commit=False)
-        
+
         # Создаем или обновляем объект
         if hasattr(diagnostic, 'object') and diagnostic.object:
             # Обновляем существующий объект
@@ -122,7 +134,7 @@ class DiagnosticForm(forms.ModelForm):
             )
             obj.save()
             diagnostic.object = obj
-        
+
         if commit:
             diagnostic.save()
         return diagnostic

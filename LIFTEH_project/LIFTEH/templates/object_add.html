@@ -1,7 +1,142 @@
 <form method="post" action="{% url 'object_add' %}">
     {% csrf_token %}
     <div class="mb-3">
-      {{ form.as_p }}
+      {% comment %} {{ form.as_p }} {% endcomment %}
+
+      {% comment %} <div class="mb-3"> {% endcomment %}
+      <div class="form-floating mb-2">
+        <input type="text" class="form-control" name="customer" maxlength="255" id="id_customer" placeholder='' required=''>
+        <label for="id_customer" class="form-label">Заказчик:</label>
+      </div>
+
+      <div class="form-floating mb-2">
+        <input type="text" class="form-control" name="address" maxlength="255" id="id_address" placeholder='' required=''>
+        <label for="id_address" class="form-label">Адрес:</label>
+      </div>
+
+            <div class="row g-2">
+        <div class="col-md-6">
+      <div class="form-floating mb-2">
+        <input type="text" class="form-control" name="model" maxlength="255" id="id_model" placeholder='' required=''>
+        <label for="id_model" class="form-label">Модель:</label>
+      </div>
+    </div>
+
+    <div class="col-md-6">
+      <div class="form-floating mb-2">
+        <input type="text" class="form-control" name="work" maxlength="20" id="id_work" placeholder='' required=''>
+        <label for="id_work" class="form-label">Работы:</label>
+      </div>
+    </div>
+  </div>
+
+      <div class="row g-2">
+        <div class="col-md-6">
+      <div class="form-floating mb-2">
+        <input type="text" class="form-control" name="phone" maxlength="20" id="id_phone" placeholder='' required=''>
+        <label for="id_phone" class="form-label">Телефон:</label>
+      </div>
+    </div>
+
+    <div class="col-md-6">
+      <div class="form-floating mb-2">
+        <input type="text" class="form-control" name="name" maxlength="255" id="id_name" placeholder='' required=''>
+        <label for="id_name" class="form-label">Имя:</label>
+      </div>
+      </div>
+    </div>
+
+          <div class="row g-2">
+        <div class="col-md-3">
+      <div class="form-floating mb-2">
+        <input type="number" class="form-control" name="M1" step="any" id="id_M1" placeholder=''>
+        <label for="id_M1" class="form-label">Январь:</label>
+      </div>
+    </div>
+
+        <div class="col-md-3">
+      <div class="form-floating mb-2">
+        <input type="number" class="form-control" name="M2" step="any" id="id_M2" placeholder=''>
+        <label for="id_M2" class="form-label">Февраль:</label>
+      </div>
+    </div>
+
+        <div class="col-md-3">
+      <div class="form-floating mb-2">
+        <input type="number" class="form-control" name="M3" step="any" id="id_M3" placeholder=''>
+        <label for="id_M3" class="form-label">Март:</label>
+      </div>
+    </div>
+
+        <div class="col-md-3">
+      <div class="form-floating mb-2">
+        <input type="number" class="form-control" name="M4" step="any" id="id_M4" placeholder=''>
+        <label for="id_M4" class="form-label">Апрель:</label>
+      </div>
+    </div>
+  </div>
+
+            <div class="row g-2">
+    <div class="col-md-3">
+      <div class="form-floating mb-2">
+        <input type="number" class="form-control" name="M5" step="any" id="id_M5" placeholder=''>
+        <label for="id_M5" class="form-label">Май:</label>
+      </div>
+    </div>
+
+    <div class="col-md-3">
+      <div class="form-floating mb-2">
+        <input type="number" class="form-control" name="M6" step="any" id="id_M6" placeholder=''>
+        <label for="id_M6" class="form-label">Июнь:</label>
+      </div>
+    </div>
+
+            <div class="col-md-3">
+      <div class="form-floating mb-2">
+        <input type="number" class="form-control" name="M7" step="any" id="id_M7" placeholder=''>
+        <label for="id_M7" class="form-label">Июль:</label>
+      </div>
+    </div>
+
+    <div class="col-md-3">
+      <div class="form-floating mb-2">
+        <input type="number" class="form-control" name="M8" step="any" id="id_M8" placeholder=''>
+        <label for="id_M8" class="form-label">Август:</label>
+      </div>
+    </div>
+  </div>
+
+              <div class="row g-2">
+    <div class="col-md-3">
+      <div class="form-floating mb-2">
+        <input type="number" class="form-control" name="M9" step="any" id="id_M9" placeholder=''>
+        <label for="id_M9" class="form-label">Сентябрь:</label>
+      </div>
+    </div>
+
+        <div class="col-md-3">
+      <div class="form-floating mb-2">
+        <input type="number" class="form-control" name="M10" step="any" id="id_M10" placeholder=''>
+        <label for="id_M10" class="form-label">Октябрь:</label>
+      </div>
+    </div>
+
+        <div class="col-md-3">
+      <div class="form-floating mb-2">
+        <input type="number" class="form-control" name="M11" step="any" id="id_M11" placeholder=''>
+        <label for="id_M11" class="form-label">Ноябрь:</label>
+      </div>
+    </div>
+
+        <div class="col-md-3">
+      <div class="form-floating mb-2">
+        <input type="number" class="form-control" name="M12" step="any" id="id_M12" placeholder=''>
+        <label for="id_M12" class="form-label">Декабрь:</label>
+      </div>
+    </div>
+  </div>
+    {% comment %} </div> {% endcomment %}
+
     </div>
     <div class="modal-footer">
       <button type="submit" class="btn btn-success">Сохранить</button>

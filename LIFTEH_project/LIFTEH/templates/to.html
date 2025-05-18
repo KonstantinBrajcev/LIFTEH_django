@@ -307,33 +307,43 @@ function showTab(tabName) {
   }
 
 
-// ФУНКЦИЯ ДЛЯ RADIO-КНОПОК
+// ОБЪЕДИНЕННАЯ ФУНКЦИЯ ДЛЯ RADIO-КНОПОК
 function setupResultRadioButtons() {
   const modalBody = document.querySelector('.modal-body');
-  if (!modalBody) return;
+  const fotoGroup = document.getElementById('foto-group');
   
-  function updateBackground() {
-      const selectedValue = document.querySelector('input[name="result"]:checked')?.value;
-      if (!selectedValue) return;
-      
-      modalBody.classList.remove(
-          'result-bg-green', 'result-bg-yellow', 'result-bg-red'
-      );
-      
-      const colorClass = {
-          '0': 'result-bg-green',
-          '1': 'result-bg-yellow',
-          '2': 'result-bg-red'
-      }[selectedValue];
-      
-      if (colorClass) modalBody.classList.add(colorClass);
+  if (!modalBody || !fotoGroup) return;
+  
+  function updateUI() {
+    const selectedValue = document.querySelector('input[name="result"]:checked')?.value;
+    if (!selectedValue) return;
+    
+    // 1. Обновляем фон модального окна
+    modalBody.classList.remove(
+      'result-bg-green', 'result-bg-yellow', 'result-bg-red'
+    );
+    
+    const colorClass = {
+      '0': 'result-bg-green',
+      '1': 'result-bg-yellow',
+      '2': 'result-bg-red'
+    }[selectedValue];
+    
+    if (colorClass) modalBody.classList.add(colorClass);
+    
+    // 2. Управляем видимостью поля для фото
+    const shouldShowFoto = ['1', '2'].includes(selectedValue);
+    fotoGroup.classList.toggle('d-none', !shouldShowFoto);
+    document.getElementById('foto').required = false;
   }
   
+  // Назначаем обработчики для всех radio-кнопок
   document.querySelectorAll('input[name="result"]').forEach(radio => {
-      radio.addEventListener('change', updateBackground);
+    radio.addEventListener('change', updateUI);
   });
   
-  updateBackground();
+  // Инициализируем состояние при загрузке
+  updateUI();
 }
 </script>
 

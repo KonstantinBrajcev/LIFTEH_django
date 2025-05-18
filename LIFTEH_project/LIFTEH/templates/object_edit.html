@@ -1,7 +1,78 @@
 {% comment %} <h1>Редактирование объекта</h1> {% endcomment %}
+
+{% load form_tags %}
+
 <form method="post" id="objectEditForm" action="{% url 'object_edit' pk=object.id %}">
     {% csrf_token %}
-    {{ form.as_p }}
+
+        <div class="form-floating mb-2">
+            <div class="form-floating">
+                <input type="text" class="form-control" name="customer" value="{{ form.customer.value }}" id="id_customer" required=''>
+                <label for="id_customer">Заказчик</label>
+            </div>
+        </div>
+
+        <div class="form-floating mb-2">
+            <div class="form-floating">
+                <input type="text" class="form-control" name="address" value="{{ form.address.value }}" id="id_address" required="">
+                <label for="id_address">Адрес</label>
+            </div>
+        </div>
+
+            <div class="row g-2">
+        <div class="col-md-6">
+      <div class="form-floating mb-2">
+        <input type="text" class="form-control" name="model" value="{{ form.model.value }}" maxlength="255" id="id_model" placeholder='' required=''>
+        <label for="id_model" class="form-label">Модель:</label>
+      </div>
+    </div>
+
+    <div class="col-md-6">
+      <div class="form-floating mb-2">
+        <input type="text" class="form-control" name="work" value="{{ form.work.value }}" maxlength="20" id="id_work" placeholder='' required=''>
+        <label for="id_work" class="form-label">Работы:</label>
+      </div>
+    </div>
+  </div>
+
+      <div class="row g-2">
+        <div class="col-md-6">
+      <div class="form-floating mb-2">
+        <input type="text" class="form-control" name="phone" value="{{ form.phone.value }}" maxlength="20" id="id_phone" placeholder='' required=''>
+        <label for="id_phone" class="form-label">Телефон:</label>
+      </div>
+    </div>
+
+    <div class="col-md-6">
+      <div class="form-floating mb-2">
+        <input type="text" class="form-control" name="name" value="{{ form.name.value }}" maxlength="255" id="id_name" placeholder='' required=''>
+        <label for="id_name" class="form-label">Имя:</label>
+      </div>
+      </div>
+    </div>
+
+<div class="row g-2">
+    {% for month in "1 2 3 4 5 6 7 8 9 10 11 12"|split %}
+    <div class="col-md-3">
+        <div class="form-floating mb-2">
+            {% with field_name="M"|add:month %}
+            <input type="number" class="form-control" 
+                   name="{{ field_name }}" 
+                   step="any" 
+                   {% comment %} value="{{ form|get_field_value:field_name|default_if_none:'' }}"  {% endcomment %}
+                   value="{{ form|get_field_value:field_name|format_decimal|default_if_none:'' }}"
+                   id="id_{{ field_name }}">
+            <label for="id_{{ field_name }}" class="form-label">
+                {{ month|get_month_name }}
+            </label>
+            {% endwith %}
+        </div>
+    </div>
+    {% endfor %}
+</div>
+    {% comment %} {{ form.as_p }} {% endcomment %}
+
+
     <hr>
     <button type="submit" class="btn btn-success">Сохранить</button>
     <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Отмена</button>
