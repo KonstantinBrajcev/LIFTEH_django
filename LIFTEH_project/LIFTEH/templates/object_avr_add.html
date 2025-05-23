@@ -1,18 +1,31 @@
 {% comment %} <h1>Добавить Объект и АВР</h1> {% endcomment %}
     <form method="post" action="{% url 'object_avr_add' %}">
         {% csrf_token %}
-        {{ form.as_p }}
-    <hr>
-    <h5>Работы:</h5>
+        {% comment %} {{ form.as_p }} {% endcomment %}
+    <div class="form-floating mb-2">
+        <input class="form-control" type="text" name="customer" maxlength="255" required="" id="id_customer">
+        <label class="form-label" for="id_customer">Заказчик:</label>
+    </div>
+
+  <div class="form-floating mb-2">
+      <input class="form-control" type="text" name="address" maxlength="255" required="" id="id_address">
+      <label class="form-label" for="id_address">Адрес:</label>
+  </div>
+
+  <div class="form-floating mb-2">
+      <input class="form-control" type="text" name="problem" maxlength="255" required="" id="id_problem" style="height: 100px;">
+      <label class="form-label" for="id_problem">Проблема:</label>
+  </div>
+
+    {% comment %} <h5>Работы:</h5> {% endcomment %}
     <div id="work-rows">
-        <div class="work-row" style="display: flex; gap: 10px; align-items: flex-start; margin-bottom: 10px;">
-            <div class="input-group" style="width: 380px;">
-                <label class="input-group-text" for="workname">Наименование работ:</label>
+        <div class="work-row" style="display: flex; gap: 10px; align-items: center; margin-bottom: 10px; width: 100%;">
+            <div class="form-floating" style="flex: 1; min-width: 200px;">
                 <input class="form-control" type="text" name="workname" maxlength="100" required>
+                <label class="form-label" for="workname">Наименование работ:</label>
             </div>
 
-            <div class="input-group" style="width: 180px;">
-                <label class="input-group-text" for="unit">Ед. изм.:</label>
+            <div class="form-floating" style="width: 100px;">
                 <select class="form-select" name="unit" required>
                     <option value="шт.">шт.</option>
                     <option value="комп.">комп.</option>
@@ -20,11 +33,12 @@
                     <option value="кг.">кг.</option>
                     <option value="м.">м.</option>
                 </select>
+                <label class="form-label" for="unit">Ед. изм.:</label>
             </div>
 
-            <div class="input-group" style="width: 180px;">
-                <label class="input-group-text" for="quantity">Количество:</label>
-                <input class="form-control" type="number" name="quantity" min="1" value="1" style="width: 50px;" required>
+            <div class="form-floating" style="width: 100px;">
+                <input class="form-control" type="number" name="quantity" min="1" value="1" required>
+                <label class="form-label" for="quantity">Кол-во:</label>
             </div>
         </div>
     </div>

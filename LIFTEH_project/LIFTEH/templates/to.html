@@ -273,29 +273,34 @@ function showTab(tabName) {
     newRow.className = 'work-row';
     newRow.style.display = 'flex';
     newRow.style.gap = '10px';
-    newRow.style.alignItems = 'flex-start';
+    newRow.style.alignItems = 'center';
     newRow.style.marginBottom = '10px';
     
     newRow.innerHTML = `
-        <div class="input-group" style="width: 380px;">
-            <label class="input-group-text">Наименование работ:</label>
-            <input class="form-control" type="text" name="workname" maxlength="100" required>
-        </div>
-        <div class="input-group" style="width: 180px;">
-            <label class="input-group-text">Ед. изм.:</label>
-            <select class="form-select" name="unit" required>
+            <div class="form-floating" style="flex: 1; min-width: 200px;">
+                <input class="form-control" type="text" name="workname" maxlength="100" required>
+                <label class="form-label" for="workname">Наименование работ:</label>
+            </div>
+            
+            <div class="form-floating" style="width: 100px;">
+              <select class="form-select" name="unit" required>
                 <option value="шт.">шт.</option>
                 <option value="комп.">комп.</option>
                 <option value="л.">л.</option>
                 <option value="кг.">кг.</option>
                 <option value="м.">м.</option>
-            </select>
-        </div>
-        <div class="input-group" style="width: 180px;">
-            <label class="input-group-text">Количество:</label>
-            <input class="form-control" type="number" name="quantity" min="1" value="1" style="width: 50px;" required>
-        </div>
-        <button type="button" class="btn btn-danger btn-sm remove-work"><strong>X</strong></button>
+              </select>
+              <label class="form-label" for="unit">Ед. изм.:</label>
+            </div>
+
+            <div class="form-floating" style="width: 100px;">
+                <input class="form-control" type="number" name="quantity" min="1" value="1" required>
+                <label class="form-label" for="quantity">Кол-во:</label>
+            </div>
+        <button type="button" class="btn btn-danger remove-work" 
+          style="align-self: stretch; display: flex; align-items: center; justify-content: center;">
+          <strong>X</strong>
+        </button>
     `;
     
     container.appendChild(newRow);

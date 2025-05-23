@@ -3,23 +3,31 @@
     .result-bg-green { background-color: #d4edda !important; }  /* Зеленый */
     .result-bg-yellow { background-color: #fff3cd !important; }  /* Желтый */
     .result-bg-red { background-color: #f8d7da !important; }     /* Красный */
+
+
+    .table-success { background-color: #d4edda; }
+    .table-warning { background-color: #fff3cd; }
+    .table-danger { background-color: #f8d7da; }
+
 </style>
 
 <h5>Заказчик: {{ object.customer }}</h5>
 <h5>Адрес: {{ object.address }}</h5>
-<table class="table table-sm">
-    <tr>
+<table class="table table-sm" style="border-radius: 5px; overflow: hidden;">
+    <tr style="text-align: center;">
         <th>Дата</th>
         <th>Комментарии</th>
-        <th>Результат</th>
+        <th hidden>Результат</th>
         <th>User</th>
         <th>Фото</th>
     </tr>
 {% for service in services %}
-    <tr>
-        <td>{{ service.service_date|date:"d.m.Y H:i" }}</td>
+    {% comment %} <tr> {% endcomment %}
+    <tr style="text-align: center;"
+    class="{% if service.result == 0 %}table-success{% elif service.result == 1 %}table-warning{% elif service.result == 2 %}table-danger{% endif %}">
+        <td>{{ service.service_date|date:"d.m.Y" }}</td>
         <td>{{ service.comments }}</td>
-        <td>{{ service.result }}</td>
+        <td hidden>{{ service.result }}</td>
         <td>{{ service.user.username }}</td>
         <td>
             {% if service.foto %}
@@ -38,18 +46,13 @@
 <form method="POST" enctype="multipart/form-data" id="serviceAddForm" action="{% url 'service_add' object_id=object.id %}">
     {% csrf_token %}
     <input type="text" name="service_date" value="{{ current_datetime|date:'Y-m-d H:i:s' }}" required id="service_date" hidden>
-    <div class="input-group">
-        <label class="input-group-text" for="comments">Комментарии:</label>
-        <textarea class="form-control" id="comments" name="comments" rows="4" cols="50" required></textarea>
+    <div class="form-floating">
+        <textarea class="form-control" id="comments" name="comments" rows="4" cols="50" style="height: 100px;" required></textarea>
+        <label class="form-label" for="comments">Комментарии:</label>
     </div>
-    {% comment %} <div class="input-group">
-        <label class="input-group-text" for="result">Результат:</label>
-        <input class="form-control" type="text" id="result" name="result" required>
-    </div> {% endcomment %}
 
-    <div class="input-group mt-2">
-        <label class="input-group-text">Результат:</label>
-        <div class="form-control" name="result-container" style="display: flex; gap: 15px; align-items: center; padding: 10px;">
+    <div class="form-floating mt-2">
+        <div class="form-control" name="result-container" style="display: table;">
             <div class="form-check">
                 <input class="form-check-input" type="radio" name="result" id="result0" value="0" checked required>
                 <label class="form-check-label" for="result0">В исправном состоянии</label>
@@ -63,19 +66,13 @@
                 <label class="form-check-label" for="result2">Не работает</label>
             </div>
         </div>
+        <label class="form-label">Результат:</label>
     </div>
-
-    {% comment %} <div class="input-group">
-        <label class="input-group-text" for="foto">Фото:</label>
-        <input type="file" class="form-control" id="foto" name="foto" accept="image/*">
-    </div> {% endcomment %}
 
 <div class="input-group d-none" id="foto-group">
     <label class="input-group-text" for="foto">Фото:</label>
     <input type="file" class="form-control" id="foto" name="foto" accept="image/*">
 </div>
-
-    <hr>
     <button type="submit" class="btn btn-success">Сохранить</button>
     <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Отмена</button>
 </form>

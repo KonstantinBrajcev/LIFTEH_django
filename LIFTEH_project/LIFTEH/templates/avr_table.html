@@ -20,7 +20,7 @@
         <th style="text-align: center;">Адрес</th>
         <th style="text-align: center;">Проблема</th>
         <th style="text-align: center;">Введено</th>
-        <th style="text-align: center;">Действия</th>
+        <th></th>
       </tr>
     </thead>
 
@@ -37,7 +37,7 @@
           {% comment %} <button onclick="loadModalForm('{% url 'avr_edit' pk=avr.id %}', 'Редактирование АВР')" 
             class="btn btn-secondary">✏</button> {% endcomment %}
 
-          <button onclick="loadAvrEditForm({{ avr.id }})" class="btn btn-secondary btn-sm">✏</button>
+          <button onclick="loadAvrEditForm({{ avr.id }})" class="btn btn-secondary">✏</button>
 
           <button onclick="confirmDelete('{% url 'avr_delete' pk=avr.id %}', '{{ avr.id }}')" 
             class="btn btn-danger">

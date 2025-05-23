@@ -20,10 +20,10 @@
         <tr style="background-color: #de4c15;">
           <th style="text-align: center;">Заказчик</th>
           <th style="text-align: center;">Адрес</th>
-          <th style="text-align: center;">Cоздано</th>
+          {% comment %} <th style="text-align: center;">Cоздано</th> {% endcomment %}
           <th style="text-align: center;">Срок</th>
           {% comment %} <th style="text-align: center;">Результат</th> {% endcomment %}
-          <th style="text-align: center;">Действия</th>
+          <th></th>
         </tr>
       </thead>
       <tbody>
@@ -32,11 +32,11 @@
           {% comment %} <td style="text-align: center;">{{ diagnostic.id }}</td> {% endcomment %}
           <td style="text-align: center;">{{ diagnostic.object.customer|default:"-" }}</td>
           <td style="text-align: center;">{{ diagnostic.object.address|default:"-" }}</td>
-          <td style="text-align: center;">{{ diagnostic.insert_date|date:"d.m.Y H:i" }}</td>
-          <td style="text-align: center;">{{ diagnostic.end_date|date:"d.m.Y H:i" }}</td>
+          {% comment %} <td style="text-align: center;">{{ diagnostic.insert_date|date:"d.m.Y" }}</td> {% endcomment %}
+          <td style="text-align: center;">{{ diagnostic.end_date|date:"d.m.Y" }}</td>
           {% comment %} <td style="text-align: center;">{{ diagnostic.result|default:"-" }}</td> {% endcomment %}
 
-          <td style="text-align: center;">
+          <td style="text-align: end;">
             <div class="btn-group btn-group" style="gap: 2px;">
 
               <button onclick="loadModalForm('{% url 'diagnostic_edit' pk=diagnostic.id %}', 'Редактирование диагностики')" 

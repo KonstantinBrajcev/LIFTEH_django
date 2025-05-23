@@ -1,4 +1,6 @@
 {% comment %} <h1>Редактирование АВР</h1> {% endcomment %}
+<h5>Заказчик: {{ avr.object.customer }}</h5>
+<h5>Адрес: {{ avr.object.address }}</h5>
 <form method="post" id="avrEditForm" action="{% url 'avr_edit' pk=avr.object.id %}">
     {% csrf_token %}
 
@@ -8,23 +10,23 @@
     <input type="hidden" name="work_id" value="{{ avr.work_id|default:'0' }}">
 
     <!-- Основная информация -->
-    <div class="input-group mb-3">
-        <label class="input-group-text" for="id_problem">Проблема:</label>
-        <textarea class="form-control" name="problem" maxlength="500" required id="id_problem" rows="4">{{ avr.problem }}</textarea>
+    <div class="form-floating mb-2">
+        <textarea class="form-control" name="problem" maxlength="500" required id="id_problem" style="height: 100px;">
+            {{ avr.problem }}
+        </textarea>
+        <label class="form-label" for="id_problem">Проблема:</label>
     </div>
 
-    <hr>
-    <h3>Работы:</h3>
+    {% comment %} <h3>Работы:</h3> {% endcomment %}
     <div id="work-rows">
         {% for work in avr.work_set.all %}
-        <div class="work-row mb-3" style="display: flex; gap: 10px; align-items: flex-start;">
-            <div class="input-group" style="width: 380px;">
-                <label class="input-group-text">Наименование работ:</label>
+        <div class="work-row mb-2" style="display: flex; gap: 10px; align-items: flex-start;">
+            <div class="form-floating" style="flex: 1; width: 200px;">
                 <input class="form-control" type="text" name="workname" value="{{ work.name }}" maxlength="100" required>
+                <label class="form-label">Наименование работ:</label>
             </div>
             
-            <div class="input-group" style="width: 180px;">
-                <label class="input-group-text">Ед. изм.:</label>
+            <div class="form-floating" style="width: 100px;">
                 <select class="form-select" name="unit" required>
                     <option value="шт." {% if work.unit == 'шт.' %}selected{% endif %}>шт.</option>
                     <option value="комп." {% if work.unit == 'комп.' %}selected{% endif %}>комп.</option>
@@ -32,19 +34,23 @@
                     <option value="кг." {% if work.unit == 'кг.' %}selected{% endif %}>кг.</option>
                     <option value="м." {% if work.unit == 'м.' %}selected{% endif %}>м.</option>
                 </select>
+                <label class="form-label">Ед. изм.:</label>
             </div>
             
-            <div class="input-group" style="width: 180px;">
-                <label class="input-group-text">Количество:</label>
-                <input class="form-control" type="number" name="quantity" value="{{ work.quantity }}" min="1" style="width: 50px;" required>
+            <div class="form-floating" style="width: 100px;">
+                <input class="form-control" type="number" name="quantity" value="{{ work.quantity }}" min="1" required>
+                <label class="form-label">Кол-во:</label>
             </div>
             
-            <button type="button" class="btn btn-danger btn-sm remove-work">×</button>
+            <button type="button" class="btn btn-danger btn-sm remove-work"
+                style="align-self: stretch; display: flex; align-items: center; justify-content: center;">
+                <strong>X</strong>
+            </button>
         </div>
         {% endfor %}
     </div>
     
-    <div class="mb-3">
+    <div class="mb-2">
         <button type="button" class="btn btn-warning" onclick="addWorkRow()">+ Добавить работу</button>
     </div>
     
