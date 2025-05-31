@@ -35,3 +35,9 @@ select[multiple] option:checked {
 .new.img {
   height: 50px;
 }
+
+@media (max-width: 660px) {
+  .delete {
+    display: none;
+  }
+}

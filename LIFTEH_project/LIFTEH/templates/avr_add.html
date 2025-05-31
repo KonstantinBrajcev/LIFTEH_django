@@ -18,7 +18,8 @@
     </div> {% endcomment %}
   
     <div class="form-floating mb-2">
-        <textarea class="form-control" name="problem" maxlength="500" required="" id="id_problem" style="height: 100px;"></textarea>
+        <textarea class="form-control" name="problem" maxlength="500" required="" id="id_problem" style="height: 100px;">
+        </textarea>
         <label class="form-label" for="id_problem">Проблемы:</label>
     </div>
 
@@ -34,32 +35,35 @@
     <div id="work-rows">
         <div class="work-row" style="display: flex; gap: 10px; margin-bottom: 10px; align-items: center; width: 100%;">
             <div class="form-floating" style="flex: 1; min-width: 200px;">
-                <input class="form-control" type="text" name="workname" maxlength="100" required>
-                <label class="form-label" for="workname">Наименование работ:</label>
+                <input class="form-control" type="text" id="workname-field-1" name="workname" maxlength="100" required>
+                <label class="form-label" for="workname-field-1">Наименование работ:</label>
             </div>
-            
+
             <div class="form-floating" style="width: 100px;">
-                <select class="form-select" name="unit" required>
+                <select class="form-select" id="unit-field-1" name="unit" required>
                     <option value="шт.">шт.</option>
                     <option value="комп.">комп.</option>
                     <option value="л.">л.</option>
                     <option value="кг.">кг.</option>
                     <option value="м.">м.</option>
                 </select>
-                <label class="form-label" for="unit">Ед. изм.:</label>
+                <label class="form-label" for="unit-field-1">Ед. изм.:</label>
             </div>
 
             <div class="form-floating" style="width: 100px;">
-                <input class="form-control" type="number" name="quantity" min="1" value="1" required>
-                <label class="form-label" for="quantity">Кол-во:</label>
+                <input class="form-control" type="number" id="quantity-field-1" name="quantity" min="1" value="1" required>
+                <label class="form-label" for="quantity-field-1">Кол-во:</label>
             </div>
+
+            <div>
+                <button type="button" class="btn btn-warning" onclick="addWorkRow()">+</button>
+            </div>
+
         </div>
     </div>
 
-    <div>
-        <button type="button" class="btn btn-warning" onclick="addWorkRow()">+ Добавить работу</button>
-    </div>
-    <hr>
+    {% comment %} <hr> {% endcomment %}
         <button type="submit" class="btn btn-success">Сохранить</button>
         <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Отмена</button>
+
 </form>

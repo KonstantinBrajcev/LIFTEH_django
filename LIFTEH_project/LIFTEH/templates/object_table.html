@@ -3,9 +3,9 @@
 <div class="card mb-4">
   <div class="card-header d-flex">
     <h4>Объекты ТО</h4>
-    
+
     <div class="col d-flex justify-content-end align-items-center">
-      <button type="button" class="btn btn-primary" 
+      <button type="button" class="btn btn-primary delete"
               onclick="loadModalForm('{% url 'object_add' %}', 'Добавить объект')">
         Добавить
       </button>
@@ -19,7 +19,7 @@
     <table class="table-hover" style="width: 100%;">
       <tr style="background-color: #de4c15;">
           {% comment %} <th>ID</th> {% endcomment %}
-          <th style="text-align: center;">Заказчик</th>
+          <th class="delete" style="text-align: center;">Заказчик</th>
           <th style="text-align: center;">Адрес</th>
           <th style="text-align: center;">Телефон</th>
           <th></th>
@@ -39,19 +39,19 @@
       {% endif %};">
       
           {% comment %} <td>{{ object.id }}</td> {% endcomment %}
-          <td style="text-align: center;">{{ object.customer }}</td>
+          <td class="delete" style="text-align: center;">{{ object.customer }}</td>
           <td style="text-align: center;" style="text-align: center;">
-            <img src="{% static 'ico/geo-alt.svg' %}" alt="phone" style="width: 16px; height: 16px; vertical-align: middle;">
+            <img src="{% static 'ico/geo-alt.svg' %}" alt="phone" class="delete" style="width: 16px; height: 16px; vertical-align: middle;">
             {{ object.address }}</td>
           <td style="text-align: center;">
-            <img src="{% static 'ico/telephone.svg' %}" alt="phone" style="width: 16px; height: 16px; vertical-align: middle;">
+            <img src="{% static 'ico/telephone.svg' %}" alt="phone" class="delete" style="width: 16px; height: 16px; vertical-align: middle;">
             {{ object.phone }}<br>
             {{ object.name }}</td>
 
           <td style="text-align: center;">
             <div class="btn-group" style="gap: 2px;">
               <button onclick="loadModalForm('{% url 'object_edit' pk=object.id %}', 'Редактировать объект')" 
-                      class="btn btn-secondary">✏</button>
+                      class="btn btn-secondary delete">✏</button>
               <button onclick="loadModalForm('{% url 'avr_add' pk=object.id %}', 'Добавление АВР')" 
                 class="btn btn-success">АВР</button>
               <button class="btn btn-primary" 
@@ -59,7 +59,7 @@
                   ТО
               </button>
               <button onclick="confirmDelete('{% url 'object_delete' pk=object.id %}', '{{ object.id }}')" 
-                      class="btn btn-danger">
+                      class="btn btn-danger delete">
                 <strong>Х</strong>
               </button>
             </div>

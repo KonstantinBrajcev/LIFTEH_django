@@ -14,7 +14,7 @@
 
         <div class="form-floating mb-2">
             <div class="form-floating">
-                <input type="text" class="form-control" name="address" value="{{ form.address.value }}" id="id_address" required="">
+                <input type="text" class="form-control" name="address" value="{{ form.address.value }}" autocomplete="address" id="id_address" required="">
                 <label for="id_address">Адрес</label>
             </div>
         </div>
@@ -38,23 +38,23 @@
       <div class="row g-2">
         <div class="col-md-6">
       <div class="form-floating mb-2">
-        <input type="text" class="form-control" name="phone" value="{{ form.phone.value }}" maxlength="20" id="id_phone" placeholder='' required=''>
+        <input type="text" class="form-control" name="phone" value="{{ form.phone.value }}" maxlength="20" autocomplete="phone" id="id_phone" placeholder='' required=''>
         <label for="id_phone" class="form-label">Телефон:</label>
       </div>
     </div>
 
     <div class="col-md-6">
       <div class="form-floating mb-2">
-        <input type="text" class="form-control" name="name" value="{{ form.name.value }}" maxlength="255" id="id_name" placeholder='' required=''>
+        <input type="text" class="form-control" name="name" value="{{ form.name.value }}" maxlength="255" autocomplete="given-name" id="id_name" placeholder='' required=''>
         <label for="id_name" class="form-label">Имя:</label>
       </div>
       </div>
     </div>
 
-<div class="row g-2">
+<div class="row g-2 mb-2">
     {% for month in "1 2 3 4 5 6 7 8 9 10 11 12"|split %}
-    <div class="col-md-3">
-        <div class="form-floating mb-2">
+    <div class="col-md-2">
+        <div class="form-floating">
             {% with field_name="M"|add:month %}
             <input type="number" class="form-control" 
                    name="{{ field_name }}" 
@@ -73,7 +73,7 @@
     {% comment %} {{ form.as_p }} {% endcomment %}
 
 
-    <hr>
+    {% comment %} <hr> {% endcomment %}
     <button type="submit" class="btn btn-success">Сохранить</button>
     <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Отмена</button>
 </form>

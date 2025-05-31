@@ -11,8 +11,8 @@
 
 </style>
 
-<h5>Заказчик: {{ object.customer }}</h5>
-<h5>Адрес: {{ object.address }}</h5>
+<h5><b>Заказчик:</b> {{ object.customer }}</h5>
+<h5><b>Адрес:</b> {{ object.address }}</h5>
 <table class="table table-sm" style="border-radius: 5px; overflow: hidden;">
     <tr style="text-align: center;">
         <th>Дата</th>
@@ -51,8 +51,9 @@
         <label class="form-label" for="comments">Комментарии:</label>
     </div>
 
-    <div class="form-floating mt-2">
+    <div class="form-floating mt-2 mb-2">
         <div class="form-control" name="result-container" style="display: table;">
+            <legend class="visually-hidden">Результат</legend>
             <div class="form-check">
                 <input class="form-check-input" type="radio" name="result" id="result0" value="0" checked required>
                 <label class="form-check-label" for="result0">В исправном состоянии</label>
@@ -66,10 +67,10 @@
                 <label class="form-check-label" for="result2">Не работает</label>
             </div>
         </div>
-        <label class="form-label">Результат:</label>
+        <label class="form-label" for="result0">Результат:</label>
     </div>
 
-<div class="input-group d-none" id="foto-group">
+<div class="input-group d-none mb-2" id="foto-group">
     <label class="input-group-text" for="foto">Фото:</label>
     <input type="file" class="form-control" id="foto" name="foto" accept="image/*">
 </div>

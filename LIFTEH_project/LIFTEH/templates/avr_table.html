@@ -18,8 +18,8 @@
         {% comment %} <th style="text-align: center;">№</th> {% endcomment %}
         <th style="text-align: center;">Заказчик</th>
         <th style="text-align: center;">Адрес</th>
-        <th style="text-align: center;">Проблема</th>
-        <th style="text-align: center;">Введено</th>
+        <th class="delete" style="text-align: center;">Проблема</th>
+        <th class="delete" style="text-align: center;">Введено</th>
         <th></th>
       </tr>
     </thead>
@@ -30,8 +30,8 @@
       {% comment %} <td style="text-align: center;">{{ avr.id }}</td> {% endcomment %}
       <td style="text-align: center;">{% if avr.object %}{{ avr.object.customer }}{% else %}-{% endif %}</td>
       <td style="text-align: center;">{% if avr.object %}{{ avr.object.address }}{% else %}-{% endif %}</td>
-      <td style="text-align: center;">{{ avr.problem }}</td>
-      <td style="text-align: center;">{{ avr.insert_date|date:"d.m.Y" }}<br>{{ avr.user.username }}</td>
+      <td class="delete" style="text-align: center;">{{ avr.problem }}</td>
+      <td class="delete" style="text-align: center;">{{ avr.insert_date|date:"d.m.Y" }}<br>{{ avr.user.username }}</td>
       <td>
         <div class="btn-group" style="gap: 2px;">
           {% comment %} <button onclick="loadModalForm('{% url 'avr_edit' pk=avr.id %}', 'Редактирование АВР')" 

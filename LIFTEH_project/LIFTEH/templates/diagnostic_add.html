@@ -1,5 +1,5 @@
 {% comment %} {% block content %} {% endcomment %}
-<div class="container">
+{% comment %} <div class="container"> {% endcomment %}
     {% comment %} <h2>Добавить диагностику</h2> {% endcomment %}
     <form method="post" enctype="multipart/form-data" action="{% url 'diagnostic_add' %}">
         {% csrf_token %}
@@ -8,29 +8,29 @@
         <div class="form-floating mb-2">
             {% comment %} {{ form.customer }} {% endcomment %}
             <input class="form-control" type="text" name="customer" maxlength="255" required="" id="id_customer">
-            <label class="form-label">Заказчик</label>
+            <label class="form-label" for="id_customer">Заказчик</label>
         </div>
 
         <div class="form-floating mb-2">
             {% comment %} {{ form.address }} {% endcomment %}
-            <input class="form-control" type="text" name="address" maxlength="255" required="" id="id_address">
-            <label class="form-label">Адрес</label>
+            <input class="form-control" type="text" name="address" autocomplete="address" maxlength="255" required="" id="id_address">
+            <label class="form-label" for="id_address">Адрес</label>
         </div>
 
         <div class="row g-2">
         <div class="col-md-6">
         <div class="form-floating mb-2">
             {% comment %} {{ form.phone }} {% endcomment %}
-            <input class="form-control" type="text" name="phone" maxlength="20" required="" id="id_phone">
-            <label class="form-label">Телефон</label>
+            <input class="form-control" type="text" name="phone" autocomplete="phone" maxlength="20" required="" id="id_phone">
+            <label class="form-label" for="id_phone">Телефон</label>
         </div>
         </div>
 
         <div class="col-md-6">
         <div class="form-floating mb-2">
             {% comment %} {{ form.name }} {% endcomment %}
-            <input class="form-control" type="text" name="name" maxlength="255" required="" id="id_name">
-            <label class="form-label">Имя</label>
+            <input class="form-control" type="text" name="name" autocomplete="name" maxlength="255" required="" id="id_name">
+            <label class="form-label" for="id_name">Имя</label>
         </div>
         </div>
         </div>
@@ -39,17 +39,17 @@
         <div class="col-md-6">
         <div class="form-floating mb-2">
             {% comment %} {{ form.end_date }} {% endcomment %}
-            <input type="datetime-local" name="end_date" class="form-control" 
+            <input type="datetime-local" id="end_date" name="end_date" class="form-control" 
             value="{{ diagnostic.end_date|date:'Y-m-d\TH:i' }}">
-            <label class="form-label">Дата окончания</label>
+            <label class="form-label" for="end_date">Дата окончания</label>
         </div>
         </div>
         <div class="col-md-6">
         <div class="form-floating mb-2">
             {% comment %} {{ form.fact_date }} {% endcomment %}
-            <input type="datetime-local" name="fact_date" class="form-control" 
+            <input type="datetime-local" id="fact_date" name="fact_date" class="form-control" 
             value="{{ diagnostic.fact_date|date:'Y-m-d\TH:i' }}">
-            <label class="form-label">Дата проведения</label>
+            <label class="form-label" for="fact_date">Дата проведения</label>
         </div>
         </div>
         </div>
@@ -62,5 +62,5 @@
         <button type="submit" class="btn btn-success">Сохранить</button>
         <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Отмена</button>
     </form>
-</div>
+{% comment %} </div> {% endcomment %}
 {% comment %} {% endblock %} {% endcomment %}

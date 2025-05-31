@@ -11,9 +11,7 @@
 
     <!-- Основная информация -->
     <div class="form-floating mb-2">
-        <textarea class="form-control" name="problem" maxlength="500" required id="id_problem" style="height: 100px;">
-            {{ avr.problem }}
-        </textarea>
+        <textarea class="form-control" name="problem" maxlength="500" required id="id_problem" style="height: 100px;">{{ avr.problem }}</textarea>
         <label class="form-label" for="id_problem">Проблема:</label>
     </div>
 
@@ -22,26 +20,26 @@
         {% for work in avr.work_set.all %}
         <div class="work-row mb-2" style="display: flex; gap: 10px; align-items: flex-start;">
             <div class="form-floating" style="flex: 1; width: 200px;">
-                <input class="form-control" type="text" name="workname" value="{{ work.name }}" maxlength="100" required>
-                <label class="form-label">Наименование работ:</label>
+                <input class="form-control" type="text" id="work-{{ forloop.counter }}" name="workname" value="{{ work.name }}" maxlength="100" required>
+                <label class="form-label" for="work-{{ forloop.counter }}">Наименование работ:</label>
             </div>
             
             <div class="form-floating" style="width: 100px;">
-                <select class="form-select" name="unit" required>
+                <select class="form-select" id="unit-{{ forloop.counter }}" name="unit" required>
                     <option value="шт." {% if work.unit == 'шт.' %}selected{% endif %}>шт.</option>
                     <option value="комп." {% if work.unit == 'комп.' %}selected{% endif %}>комп.</option>
                     <option value="л." {% if work.unit == 'л.' %}selected{% endif %}>л.</option>
                     <option value="кг." {% if work.unit == 'кг.' %}selected{% endif %}>кг.</option>
                     <option value="м." {% if work.unit == 'м.' %}selected{% endif %}>м.</option>
                 </select>
-                <label class="form-label">Ед. изм.:</label>
+                <label class="form-label" for="unit-{{ forloop.counter }}">Ед. изм.:</label>
             </div>
-            
+
             <div class="form-floating" style="width: 100px;">
-                <input class="form-control" type="number" name="quantity" value="{{ work.quantity }}" min="1" required>
-                <label class="form-label">Кол-во:</label>
+                <input class="form-control" type="number" id="quantity-{{ forloop.counter }}" name="quantity" value="{{ work.quantity }}" min="1" required>
+                <label class="form-label" for="quantity-{{ forloop.counter }}">Кол-во:</label>
             </div>
-            
+
             <button type="button" class="btn btn-danger btn-sm remove-work"
                 style="align-self: stretch; display: flex; align-items: center; justify-content: center;">
                 <strong>X</strong>
@@ -54,7 +52,7 @@
         <button type="button" class="btn btn-warning" onclick="addWorkRow()">+ Добавить работу</button>
     </div>
     
-    <hr>
+    {% comment %} <hr> {% endcomment %}
     <button type="submit" class="btn btn-success">Сохранить</button>
     <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Отмена</button>
 </form>
