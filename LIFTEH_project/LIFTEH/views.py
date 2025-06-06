@@ -10,7 +10,7 @@ from django.http import HttpResponse
 from django.views.generic import TemplateView, ListView, CreateView
 from django.views import View
 from django.db import models, connection
-from django.db.models import Sum, FloatField, F
+from django.db.models import Sum, FloatField, F, Q
 from django.db.models.functions import Coalesce
 from django.utils.timezone import now
 from django.contrib import messages
@@ -47,6 +47,7 @@ class ToView(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        # Получаем параметры фильтрации из GET-запроса
         month = self.request.GET.get('month', timezone.now().month)
         year = timezone.now().year
         selected_city = self.request.GET.get('city')
@@ -99,6 +100,10 @@ class ToView(TemplateView):
                     filtered_objects.append(obj)
 
             objects = filtered_objects
+        
+        avrs = Avr.objects.filter(
+            Q(result__isnull=True) | Q(result__in=[0, 1, 2])
+        )
 
         context.update({
             'month': month,
@@ -107,7 +112,8 @@ class ToView(TemplateView):
             'cities': sorted(city_set),
             'selected_city': selected_city,
             'selected_colors': selected_colors,
-            'avrs': Avr.objects.all()
+            # 'avrs': Avr.objects.all()
+            'avrs': avrs
         })
 
         # Добавляем контекст из других представлений
@@ -123,121 +129,6 @@ class ToView(TemplateView):
         diagnostic_view.request = self.request
         context.update(diagnostic_view.get_context_data())
 
-        return context
-
-# ---------- ГРАФИКИ ------------
-
-
-class ChartsView(TemplateView):
-    template_name = 'charts.html'
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-
-        # График №1 по месяцам (сумма по всем объектам)
-        months = ['M1', 'M2', 'M3', 'M4', 'M5', 'M6',
-                  'M7', 'M8', 'M9', 'M10', 'M11', 'M12']
-        month_names = ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь',
-                       'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь']
-
-        # Безопасное суммирование с преобразованием типов
-        month_sums = []
-        for month in months:
-            total = Object.objects.aggregate(
-                sum=Sum(F(month), output_field=models.FloatField())
-            )['sum'] or 0
-            month_sums.append(float(total))
-
-        # Рассчитываем среднее значение по месяцам
-        non_zero_months = [m for m in month_sums if m > 0]
-        context['month_avg'] = round(
-            sum(non_zero_months) / len(non_zero_months), 2) if non_zero_months else 0
-
-        # График №2: Сумма по заказчикам
-        customers_data = []
-        unique_customers = Object.objects.values_list(
-            'customer', flat=True).distinct()
-
-        for customer in unique_customers:
-            customer_total = 0.0
-            # Суммируем все месяцы для каждого заказчика
-            for month in months:
-                month_sum = Object.objects.filter(customer=customer).aggregate(
-                    sum=Coalesce(Sum(month, output_field=FloatField()), 0.0)
-                )['sum']
-                customer_total += float(month_sum)
-
-            if customer_total > 0:  # Исключаем нулевые значения
-                customers_data.append({
-                    'customer': customer,
-                    'total': customer_total
-                })
-
-        # Сортируем по убыванию суммы
-        customers_data.sort(key=lambda x: x['total'], reverse=True)
-
-        # График №3: Среднее значение по месяцам для каждого заказчика
-        customers_avg = []
-        months = ['M1', 'M2', 'M3', 'M4', 'M5', 'M6',
-                  'M7', 'M8', 'M9', 'M10', 'M11', 'M12']
-
-        # Получаем всех уникальных заказчиков
-        unique_customers = Object.objects.values('customer').distinct()
-
-        for customer in unique_customers:
-            customer_name = customer['customer']
-
-            # Получаем все объекты для текущего заказчика
-            customer_objects = Object.objects.filter(customer=customer_name)
-
-            total_sum = 0
-            total_non_null_months = 0
-
-            for obj in customer_objects:
-                for month in months:
-                    month_value = getattr(obj, month)
-                    if month_value is not None:
-                        total_sum += float(month_value)
-                        total_non_null_months += 1
-
-            # Рассчитываем среднее значение (избегаем деления на 0)
-            avg_value = total_sum / total_non_null_months if total_non_null_months > 0 else 0
-
-            customers_avg.append({
-                'customer': customer_name,
-                'avg_value': round(avg_value, 2)  # Округляем до 2 знаков
-            })
-
-        # Сортируем по убыванию среднего значения
-        customers_avg.sort(key=lambda x: x['avg_value'], reverse=True)
-
-        # ИТОГО - Рассчитываем общую сумму
-        total_sum_all = 0.0
-        months = ['M1', 'M2', 'M3', 'M4', 'M5', 'M6',
-                  'M7', 'M8', 'M9', 'M10', 'M11', 'M12']
-
-        for month in months:
-            month_total = Object.objects.aggregate(
-                sum=Coalesce(Sum(month, output_field=FloatField()), 0.0)
-            )['sum']
-            total_sum_all += float(month_total)
-
-        # Рассчитываем среднее значение по всем данным графика №2
-        avg_values = [item['avg_value']
-                      for item in customers_avg if item['avg_value'] > 0]
-        context['global_avg'] = round(
-            sum(avg_values) / len(avg_values), 2) if avg_values else 0
-
-        context.update({
-            'month_names': month_names,
-            'month_sums': month_sums,
-            'customers': [c['customer'] for c in customers_data],
-            'customer_totals': [c['total'] for c in customers_data],
-            'customers_avg': customers_avg,
-            'customers_count': len(customers_data),
-            'total_sum_all': round(total_sum_all, 2)
-        })
-        # context['canvas_width'] = len(context['customers']) * 30
         return context
 
 
@@ -322,47 +213,6 @@ class DiagnosticView(TemplateView):
             fact_date__isnull=True
         ).select_related('object')
         return context
-
-# def diagnostic_add(request):
-#     if request.method == 'POST':
-#         form = DiagnosticForm(request.POST)
-#         if form.is_valid():
-#             diagnostic = form.save(commit=False)
-#             diagnostic.insert_date = timezone.now()
-#             diagnostic.save()
-#             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-#                 return JsonResponse({'success': True})
-#             return redirect(reverse('to') + '#diagnostic')
-#     else:
-#         form = DiagnosticForm()
-
-#     if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-#         return render(request, 'diagnostic_add.html', {'form': form})
-#     return render(request, 'diagnostic_add.html', {'form': form})
-
-
-# def diagnostic_edit(request, pk):
-#     diagnostic = get_object_or_404(Diagnostic, pk=pk)
-#     if request.method == 'POST':
-#         form = DiagnosticForm(request.POST, instance=diagnostic)
-#         if form.is_valid():
-#             form.save()
-#             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-#                 return JsonResponse({'success': True})
-#             return redirect(reverse('to') + '#diagnostic')
-#         else:
-#             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-#                 return render(request, 'diagnostic_edit.html', {
-#                     'form': form,
-#                     'diagnostic': diagnostic
-#                 }, status=400)
-#     else:
-#         form = DiagnosticForm(instance=diagnostic)
-
-#     return render(request, 'diagnostic_edit.html', {
-#         'form': form,
-#         'diagnostic': diagnostic
-#     })
 
 
 def diagnostic_add(request):
@@ -510,41 +360,6 @@ def avr_add(request, pk):
         'current_datetime': current_datetime
     })
 
-# def avr_edit(request, pk):
-#     avr = get_object_or_404(Avr, pk=pk)
-#     current_datetime = timezone.now()
-#     if request.method == 'POST':
-#         avr.insert_date = request.POST['insert_date']
-#         avr.problem = request.POST['problem']
-#         # avr.work_id = request.POST['work_id']
-#         work_id = request.POST['work_id']
-#         avr.work_id = work_id if work_id else None
-#         avr.save()
-#         return redirect(reverse('to') + '#acts')  # Замените 'to' на ваш URL
-#     return render(request, 'avr_edit.html', {'avr': avr, 'current_datetime': current_datetime})
-
-# def avr_edit(request, pk):
-#     avr = get_object_or_404(Avr, pk=pk)
-#     current_datetime = timezone.now()
-
-#     if request.method == 'POST':
-#         form = AvrForm(request.POST, instance=avr)
-#         if form.is_valid():
-#             form.save()
-#             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-#                 return JsonResponse({'success': True})
-#             return redirect(reverse('to') + '#acts')
-#         else:
-#             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-#                 return render(request, 'avr_edit.html', {
-#                     'avr': avr,
-#                     'current_datetime': current_datetime
-#                 }, status=400)
-#     return render(request, 'avr_edit.html', {
-#         'avr': avr,
-#         'current_datetime': current_datetime
-#     })
-
 
 def avr_edit(request, pk):
     avr = get_object_or_404(Avr, pk=pk)
@@ -555,6 +370,8 @@ def avr_edit(request, pk):
         avr.problem = request.POST.get('problem', '')
         # avr.work_id = request.POST.get('work_id', None)
         avr.work_id = request.POST.get('work_id', 0) or None
+                # Сохраняем результат (значение radio)
+        avr.result = request.POST.get('result')
         avr.save()
 
         # Удаляем все старые работы
@@ -684,3 +501,118 @@ class SwitchView(View):
         state.power = not state.power
         state.save()
         return JsonResponse({'power': state.power})
+    
+    # ---------- ГРАФИКИ ------------
+
+
+class ChartsView(TemplateView):
+    template_name = 'charts.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        # График №1 по месяцам (сумма по всем объектам)
+        months = ['M1', 'M2', 'M3', 'M4', 'M5', 'M6',
+                  'M7', 'M8', 'M9', 'M10', 'M11', 'M12']
+        month_names = ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь',
+                       'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь']
+
+        # Безопасное суммирование с преобразованием типов
+        month_sums = []
+        for month in months:
+            total = Object.objects.aggregate(
+                sum=Sum(F(month), output_field=models.FloatField())
+            )['sum'] or 0
+            month_sums.append(float(total))
+
+        # Рассчитываем среднее значение по месяцам
+        non_zero_months = [m for m in month_sums if m > 0]
+        context['month_avg'] = round(
+            sum(non_zero_months) / len(non_zero_months), 2) if non_zero_months else 0
+
+        # График №2: Сумма по заказчикам
+        customers_data = []
+        unique_customers = Object.objects.values_list(
+            'customer', flat=True).distinct()
+
+        for customer in unique_customers:
+            customer_total = 0.0
+            # Суммируем все месяцы для каждого заказчика
+            for month in months:
+                month_sum = Object.objects.filter(customer=customer).aggregate(
+                    sum=Coalesce(Sum(month, output_field=FloatField()), 0.0)
+                )['sum']
+                customer_total += float(month_sum)
+
+            if customer_total > 0:  # Исключаем нулевые значения
+                customers_data.append({
+                    'customer': customer,
+                    'total': customer_total
+                })
+
+        # Сортируем по убыванию суммы
+        customers_data.sort(key=lambda x: x['total'], reverse=True)
+
+        # График №3: Среднее значение по месяцам для каждого заказчика
+        customers_avg = []
+        months = ['M1', 'M2', 'M3', 'M4', 'M5', 'M6',
+                  'M7', 'M8', 'M9', 'M10', 'M11', 'M12']
+
+        # Получаем всех уникальных заказчиков
+        unique_customers = Object.objects.values('customer').distinct()
+
+        for customer in unique_customers:
+            customer_name = customer['customer']
+
+            # Получаем все объекты для текущего заказчика
+            customer_objects = Object.objects.filter(customer=customer_name)
+
+            total_sum = 0
+            total_non_null_months = 0
+
+            for obj in customer_objects:
+                for month in months:
+                    month_value = getattr(obj, month)
+                    if month_value is not None:
+                        total_sum += float(month_value)
+                        total_non_null_months += 1
+
+            # Рассчитываем среднее значение (избегаем деления на 0)
+            avg_value = total_sum / total_non_null_months if total_non_null_months > 0 else 0
+
+            customers_avg.append({
+                'customer': customer_name,
+                'avg_value': round(avg_value, 2)  # Округляем до 2 знаков
+            })
+
+        # Сортируем по убыванию среднего значения
+        customers_avg.sort(key=lambda x: x['avg_value'], reverse=True)
+
+        # ИТОГО - Рассчитываем общую сумму
+        total_sum_all = 0.0
+        months = ['M1', 'M2', 'M3', 'M4', 'M5', 'M6',
+                  'M7', 'M8', 'M9', 'M10', 'M11', 'M12']
+
+        for month in months:
+            month_total = Object.objects.aggregate(
+                sum=Coalesce(Sum(month, output_field=FloatField()), 0.0)
+            )['sum']
+            total_sum_all += float(month_total)
+
+        # Рассчитываем среднее значение по всем данным графика №2
+        avg_values = [item['avg_value']
+                      for item in customers_avg if item['avg_value'] > 0]
+        context['global_avg'] = round(
+            sum(avg_values) / len(avg_values), 2) if avg_values else 0
+
+        context.update({
+            'month_names': month_names,
+            'month_sums': month_sums,
+            'customers': [c['customer'] for c in customers_data],
+            'customer_totals': [c['total'] for c in customers_data],
+            'customers_avg': customers_avg,
+            'customers_count': len(customers_data),
+            'total_sum_all': round(total_sum_all, 2)
+        })
+        # context['canvas_width'] = len(context['customers']) * 30
+        return context

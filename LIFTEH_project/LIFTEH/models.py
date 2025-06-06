@@ -40,6 +40,13 @@ class Service(models.Model):
 
 
 class Avr(models.Model):
+    RESULT_CHOICES = [
+        (0, 'Отправлено КП'),
+        (1, 'Согласовано'),
+        (2, 'Выполнено'),
+        (3, 'Отправлен АКТ'),
+    ]
+        
     insert_date = models.DateTimeField(default=timezone.now)
     object = models.ForeignKey(Object, on_delete=models.CASCADE)
     problem = models.CharField(max_length=500, default='')
@@ -47,9 +54,15 @@ class Avr(models.Model):
     # Разрешить NULL и добавить default
     work_id = models.IntegerField(null=True, blank=True, default=0)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    # result = models.IntegerField(null=True, blank=True)
-    result = models.CharField(max_length=3, null=True, blank=True)
+    result = models.IntegerField(null=True, blank=True, choices=RESULT_CHOICES, default=None)
+    # result = models.CharField(max_length=3, null=True, blank=True)
 
+    def __str__(self):
+        return f"АВР #{self.id} - {self.object.customer}"
+
+    class Meta:
+        verbose_name = 'Акт ВР'
+        verbose_name_plural = 'Акты ВР'
 
 class Work(models.Model):
     UNIT_CHOICES = [

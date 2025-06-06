@@ -7,14 +7,14 @@
 
         <div class="form-floating mb-2">
             <div class="form-floating">
-                <input type="text" class="form-control" name="customer" value="{{ form.customer.value }}" id="id_customer" required=''>
+                <input type="text" class="form-control" name="customer" value="{{ form.customer.value }}" id="id_customer" required>
                 <label for="id_customer">Заказчик</label>
             </div>
         </div>
 
         <div class="form-floating mb-2">
             <div class="form-floating">
-                <input type="text" class="form-control" name="address" value="{{ form.address.value }}" autocomplete="address" id="id_address" required="">
+                <input type="text" class="form-control" name="address" value="{{ form.address.value }}" autocomplete="address" id="id_address" required>
                 <label for="id_address">Адрес</label>
             </div>
         </div>
@@ -22,14 +22,14 @@
             <div class="row g-2">
         <div class="col-md-6">
       <div class="form-floating mb-2">
-        <input type="text" class="form-control" name="model" value="{{ form.model.value }}" maxlength="255" id="id_model" placeholder='' required=''>
+        <input type="text" class="form-control" name="model" value="{{ form.model.value }}" maxlength="255" id="id_model" placeholder='' required>
         <label for="id_model" class="form-label">Модель:</label>
       </div>
     </div>
 
     <div class="col-md-6">
       <div class="form-floating mb-2">
-        <input type="text" class="form-control" name="work" value="{{ form.work.value }}" maxlength="20" id="id_work" placeholder='' required=''>
+        <input type="text" class="form-control" name="work" value="{{ form.work.value }}" maxlength="20" id="id_work" placeholder='' required>
         <label for="id_work" class="form-label">Работы:</label>
       </div>
     </div>
@@ -38,14 +38,14 @@
       <div class="row g-2">
         <div class="col-md-6">
       <div class="form-floating mb-2">
-        <input type="text" class="form-control" name="phone" value="{{ form.phone.value }}" maxlength="20" autocomplete="phone" id="id_phone" placeholder='' required=''>
+        <input type="text" class="form-control" name="phone" value="{{ form.phone.value }}" maxlength="20" autocomplete="phone" id="id_phone" placeholder='' required>
         <label for="id_phone" class="form-label">Телефон:</label>
       </div>
     </div>
 
     <div class="col-md-6">
       <div class="form-floating mb-2">
-        <input type="text" class="form-control" name="name" value="{{ form.name.value }}" maxlength="255" autocomplete="given-name" id="id_name" placeholder='' required=''>
+        <input type="text" class="form-control" name="name" value="{{ form.name.value }}" maxlength="255" autocomplete="given-name" id="id_name" placeholder='' required>
         <label for="id_name" class="form-label">Имя:</label>
       </div>
       </div>
@@ -72,35 +72,7 @@
 </div>
     {% comment %} {{ form.as_p }} {% endcomment %}
 
-
     {% comment %} <hr> {% endcomment %}
     <button type="submit" class="btn btn-success">Сохранить</button>
     <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Отмена</button>
 </form>
-
-{% comment %} <script>
-document.getElementById('objectEditForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-    const form = e.target;
-    const formData = new FormData(form);
-
-    fetch(form.action, {
-        method: 'POST',
-        body: formData,
-        headers: {
-            'X-Requested-With': 'XMLHttpRequest',
-            'X-CSRFToken': form.querySelector('[name=csrfmiddlewaretoken]').value
-        }
-    })
-    .then(response => {
-        if (response.ok) {
-            window.location.reload();
-        } else {
-            return response.text().then(html => {
-                document.getElementById('modalFormContent').innerHTML = html;
-            });
-        }
-    })
-    .catch(error => console.error('Error:', error));
-});
-</script> {% endcomment %}
