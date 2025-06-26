@@ -2,6 +2,7 @@ from django.http import JsonResponse
 from django.utils import timezone
 from datetime import datetime
 from django.contrib.auth import authenticate, login
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
@@ -13,14 +14,22 @@ from django.db import models, connection
 from django.db.models import Sum, FloatField, F, Q
 from django.db.models.functions import Coalesce
 from django.utils.timezone import now
+from django.utils import timezone
 from django.contrib import messages
+from django.views.decorators.http import require_POST
+from django.contrib.auth.mixins import UserPassesTestMixin
+from django.views.generic import TemplateView
 import re
+import json
 from django.http import JsonResponse
 from django.template.loader import render_to_string
-from LIFTEH.models import Object, Avr, Service, Work, Diagnostic, Switch
+from LIFTEH.models import Object, Avr, Service, Work, Diagnostic, Switch, Problem
 from LIFTEH.forms import ObjectForm, ServiceForm, AvrForm, ObjectAvrForm, DiagnosticForm
 
-
+class AdminRequiredMixin(UserPassesTestMixin):
+    def test_func(self):
+        return self.request.user.is_superuser
+    
 class HomeView(TemplateView):
     template_name = 'home.html'
 
@@ -51,8 +60,10 @@ class ToView(TemplateView):
         month = self.request.GET.get('month', timezone.now().month)
         year = timezone.now().year
         selected_city = self.request.GET.get('city')
-        selected_colors = self.request.GET.getlist(
-            'colors')  # Получаем список выбранных цветов
+        selected_colors = self.request.GET.getlist('colors')
+
+        # Удаляем пустые значения из списка выбранных цветов
+        selected_colors = [color for color in selected_colors if color]
 
         objects = Object.objects.all()
         objects = objects.filter(
@@ -89,8 +100,8 @@ class ToView(TemplateView):
         # Фильтрация по выбранным цветам
         if selected_colors:
             filtered_objects = []
-            allowed_results = [color_mapping[color]
-                               for color in selected_colors]
+            # allowed_results = [color_mapping[color] for color in selected_colors]
+            allowed_results = [color_mapping[color] for color in selected_colors if color in color_mapping]
 
             for obj in objects:
                 service_record = service_records.get(obj.id)
@@ -135,7 +146,7 @@ class ToView(TemplateView):
 # ----------- ЗАДАЧИ -----------
 
 
-class TasksView(TemplateView):
+class TasksView(AdminRequiredMixin, TemplateView):
     template_name = 'tasks.html'
 
     def get_context_data(self, **kwargs):
@@ -502,10 +513,10 @@ class SwitchView(View):
         state.save()
         return JsonResponse({'power': state.power})
     
-    # ---------- ГРАФИКИ ------------
+    
+# ---------- ГРАФИКИ ------------
 
-
-class ChartsView(TemplateView):
+class ChartsView(AdminRequiredMixin, TemplateView):
     template_name = 'charts.html'
 
     def get_context_data(self, **kwargs):
@@ -616,3 +627,84 @@ class ChartsView(TemplateView):
         })
         # context['canvas_width'] = len(context['customers']) * 30
         return context
+    
+# --------- РАБОТА С ПРОБЛЕМАМИ ----------
+
+def problems_view(request):
+    problems = Problem.objects.all().order_by('-created_date')
+    today = timezone.now().date()
+    return render(request, 'problems.html', {
+        'problems': problems,
+        'today': today
+    })
+
+def add_problem(request):
+    if request.method == 'POST':
+        name = request.POST.get('name')
+        # created_date = request.POST.get('created_date')
+        Problem.objects.create(name=name, created_date=timezone.now().date())
+    return redirect('problems')
+
+@require_POST
+def update_problem_status(request, problem_id):
+    try:
+        # Логируем входящий запрос
+        print(f"Incoming request: {request.method} {request.path}")
+        print(f"Request body: {request.body}")
+        
+        # Проверяем, что это JSON-запрос
+        if request.content_type != 'application/json':
+            return JsonResponse(
+                {'success': False, 'error': 'Content-Type must be application/json'},
+                status=400
+            )
+        
+        # Парсим JSON
+        try:
+            data = json.loads(request.body)
+        except json.JSONDecodeError as e:
+            return JsonResponse(
+                {'success': False, 'error': f'Invalid JSON: {str(e)}'},
+                status=400
+            )
+        
+        # Получаем задачу
+        problem = Problem.objects.get(id=problem_id)
+        problem.is_completed = data.get('is_completed', False)
+        problem.save()
+        
+        return JsonResponse({
+            'success': True,
+            'is_completed': problem.is_completed
+        })
+        
+    except Problem.DoesNotExist:
+        return JsonResponse(
+            {'success': False, 'error': 'Problem not found'},
+            status=404
+        )
+    except Exception as e:
+        return JsonResponse(
+            {'success': False, 'error': str(e)},
+            status=500
+        )
+    
+@require_POST
+def edit_problem(request, problem_id):
+    try:
+        problem = Problem.objects.get(id=problem_id)
+        problem.name = request.POST.get('name')
+        # problem.created_date = request.POST.get('created_date')
+        problem.save()
+        return JsonResponse({'success': True})
+    except Problem.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Problem not found'}, status=404)
+
+@require_POST
+def delete_problem(request, problem_id):
+    try:
+        problem = Problem.objects.get(id=problem_id)
+        problem.delete()
+        return JsonResponse({'success': True})
+    except Problem.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Problem not found'}, status=404)

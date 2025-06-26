@@ -95,3 +95,15 @@ class Switch(models.Model):
 
     def __str__(self):
         return "Включено" if self.power else "Выключено"
+
+class Problem(models.Model):
+    name = models.CharField(max_length=255, verbose_name="Наименование задачи")
+    created_date = models.DateField(auto_now_add=True, verbose_name="Дата создания")
+    is_completed = models.BooleanField(default=False, verbose_name="Выполнено")
+    
+    def __str__(self):
+        return self.name
+    
+    class Meta:
+        verbose_name = "Задача"
+        verbose_name_plural = "Задачи"

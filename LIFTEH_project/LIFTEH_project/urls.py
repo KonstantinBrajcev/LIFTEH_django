@@ -5,14 +5,21 @@ from LIFTEH.views import LoginView, ToView, HomeView, ChartsView, TasksView, Dia
 from LIFTEH import views
 from django.conf import settings
 from django.conf.urls.static import static
+from django.contrib.auth import views as auth_views
+from django.contrib.auth.decorators import user_passes_test
 # from django.urls import include
 
 urlpatterns = [
     path('', HomeView.as_view(), name='home'),
-    #     path('', include('LIFTEH.urls')),
+
+    path('login/', LoginView.as_view(), name='login'),
+    path('logout/', auth_views.LogoutView.as_view(next_page='login'), name='logout'),
+    
+    path('admin/', admin.site.urls),
+
+    path('to/', ToView.as_view(), name='to'),
 
     path('object/add/', views.object_add, name='object_add'),
-    #     path('object/add/', ObjectCreateView.as_view(), name='object_add'),
     path('object/edit/<int:pk>/', views.objects_edit, name='object_edit'),
     path('object/delete/<int:pk>/', views.object_delete, name='object_delete'),
 
@@ -22,8 +29,6 @@ urlpatterns = [
     path('avr/add/<int:pk>/', views.avr_add, name='avr_add'),
     path('avr/delete/<int:pk>/', views.avr_delete, name='avr_delete'),
 
-    path('charts/', ChartsView.as_view(), name='charts'),
-    path('tasks/', TasksView.as_view(), name='tasks'),
     path('diagnostic/', DiagnosticView.as_view(), name='diagnostic'),
     path('diagnostic/add/', views.diagnostic_add, name='diagnostic_add'),
     path('diagnostic/edit/<int:pk>/',
@@ -33,10 +38,15 @@ urlpatterns = [
 
     path('service/add/<int:object_id>/', views.service_add, name='service_add'),
 
-    path('login/', LoginView.as_view(), name='login'),
-    path('logout/', auth_views.LogoutView.as_view(next_page='login'), name='logout'),
-    path('switch/', SwitchView.as_view(), name='switch'),
+    path('problems/', views.problems_view, name='problems'),
+    path('problems/add/', views.add_problem, name='add_problem'),
+    path('problems/<int:problem_id>/update_status/', views.update_problem_status, name='update_problem_status'),
+    path('problems/<int:problem_id>/edit/', views.edit_problem, name='edit_problem'),
+    path('problems/<int:problem_id>/delete/', views.delete_problem, name='delete_problem'),
 
-    path('to/', ToView.as_view(), name='to'),
-    path('admin/', admin.site.urls),
+#     path('charts/', ChartsView.as_view(), name='charts'),
+    path('tasks/', user_passes_test(lambda u: u.is_superuser)(TasksView.as_view()), name='tasks'),
+    path('tasks/', TasksView.as_view(), name='tasks'),
+
+    path('switch/', SwitchView.as_view(), name='switch'),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

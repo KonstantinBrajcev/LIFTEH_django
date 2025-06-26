@@ -15,7 +15,7 @@
   {% load custom_filters %}
   {% include 'sort_object.html' %}
 
-  <div class="card-body" style="padding: 0px;">
+  <div class="card-body" style="padding: 0px; min-height: 100px !important;">
     <table class="table-hover" style="width: 100%;">
       <tr style="background-color: #de4c15;">
           {% comment %} <th>ID</th> {% endcomment %}
@@ -48,7 +48,7 @@
             {{ object.phone }}<br>
             {{ object.name }}</td>
 
-          <td style="text-align: center;">
+          <td style="text-align: end;">
             <div class="btn-group" style="gap: 2px;">
               <button onclick="loadModalForm('{% url 'object_edit' pk=object.id %}', 'Редактировать объект')" 
                       class="btn btn-secondary delete">✏</button>
@@ -67,6 +67,15 @@
       </tr>
       {% endwith %}
       {% endfor %}
+
+      <!-- Строка с суммой -->
+      <tr style="background-color: #f0f0f0; font-weight: bold;">
+          <td colspan="3" style="text-align: right;">Итого:</td>
+          <td style="text-align: center;">
+            {{ objects|length }}
+          </td>
+      </tr>
+
   </table>
 </div>
 </div>

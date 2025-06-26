@@ -3,6 +3,7 @@
 
   <div class="col" style="justify-items: center;">
     <form method="GET" action="{% url 'to' %}#service" >
+
     <div class="input-group" style="display: flex; align-items: center; width: 200px;">
       <label class="input-group-text" for="monthSelect" style="float: left;">Месяц</label>
 
@@ -20,13 +21,15 @@
           <option value="11" {% if request.GET.month == '11' %}selected{% endif %}>Ноябрь</option>
           <option value="12" {% if request.GET.month == '12' %}selected{% endif %}>Декабрь</option>
         </select>
-
+        <input type="hidden" name="city" value="{{ selected_city }}">
+        <input type="hidden" name="colors" value="{{ selected_colors|join:',' }}">
       </div>
     </form>
   </div>
 
   <div class="col" style="justify-items: center;">
-    <form method="get">
+    <form method="GET" action="{% url 'to' %}#service">
+
       <div class="input-group" style="width: 250px;">
         <label class="input-group-text" for="city">Город:</label>
 
@@ -36,14 +39,15 @@
           <option value="{{ city }}" {% if city == selected_city %}selected{% endif %}>{{ city }}</option>
           {% endfor %}
         </select>
-
+        <input type="hidden" name="month" value="{{ month }}">
+        <input type="hidden" name="colors" value="{{ selected_colors|join:',' }}">
       </div>
     </form>
   </div>
 
   <div class="col" style="justify-items: center;">
-    {% comment %} <a href="{% url 'to' %}" class="btn btn-secondary">Сбросить фильтры</a> {% endcomment %}
-    <form method="get">
+    <form method="GET" action="{% url 'to' %}#service">
+
       <div class="input-group" style="width: 200px;">
         <label class="input-group-text" for="colors">Цвета:</label>
 
@@ -54,18 +58,31 @@
           <option value="red" data-color="#ff000063" {% if 'red' in selected_colors %}selected{% endif %}>Красный</option>
           <option value="gray" data-color="#80808063" {% if 'gray' in selected_colors %}selected{% endif %}>Серый</option>
         </select>
-        {% comment %} <button type="submit" class="btn btn-primary">Применить</button> {% endcomment %}
-
+        <input type="hidden" name="month" value="{{ month }}">
+        <input type="hidden" name="city" value="{{ selected_city }}">
       </div>
     </form>
+  </div>
+
+  <div class="col" style="text-align: center;">
+    <button type="button" class="btn btn-secondary" onclick="resetFilters()">Сбросить фильтры</button>
   </div>
 
 </div>
 
 <script>
-  const currentMonth = new Date().getMonth() + 1; // getMonth() возвращает 0-11
-  const selectedMonth = "{{ request.GET.month|default:'' }}"; // Получаем значение из Django
-  if (!selectedMonth) {document.getElementById('monthSelect').value = currentMonth;}
+    function submitForm(form) {
+    const urlParams = new URLSearchParams(window.location.search);
+    const month = form.month ? form.month.value : '';
+    const city = form.city ? form.city.value : '';
+    const colors = form.colors ? form.colors.value : '';
+
+    if (month) urlParams.set('month', month);
+    if (city) urlParams.set('city', city);
+    if (colors) urlParams.set('colors', colors);
+
+    window.location.search = urlParams.toString();
+  }
 
   // Инициализация мультиселекта цветов
   document.addEventListener('DOMContentLoaded', function() {
@@ -75,6 +92,14 @@
       colorSelect.classList.add('form-select');
     }
   });
+
+    function resetFilters() {
+    const url = new URL(window.location.href);
+    url.searchParams.delete('month');
+    url.searchParams.delete('city');
+    url.searchParams.delete('colors');
+    window.location.href = url.toString();
+  }
 </script>
 
 <style>

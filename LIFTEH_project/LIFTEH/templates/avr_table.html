@@ -38,13 +38,12 @@
       <td style="text-align: center;">{% if avr.object %}{{ avr.object.customer }}{% else %}-{% endif %}</td>
       <td style="text-align: center;">{% if avr.object %}{{ avr.object.address }}{% else %}-{% endif %}</td>
       <td class="delete" style="text-align: center;">{{ avr.problem }}</td>
-      <td>
+      <td style="text-align: end;">
         <div class="btn-group" style="gap: 2px;">
           {% comment %} <button onclick="loadModalForm('{% url 'avr_edit' pk=avr.id %}', 'Редактирование АВР')" 
             class="btn btn-secondary">✏</button> {% endcomment %}
 
           <button onclick="loadAvrEditForm({{ avr.id }})" class="btn btn-secondary">✏</button>
-
           <button onclick="confirmDelete('{% url 'avr_delete' pk=avr.id %}', '{{ avr.id }}')" 
             class="btn btn-danger">
             <strong>X</strong>
@@ -55,6 +54,16 @@
     </tr>
 
     {% endfor %}
+
+
+      <!-- Строка с суммой -->
+      <tr style="background-color: #f0f0f0; font-weight: bold;">
+          <td colspan="4" style="text-align: right;">Итого:</td>
+          <td style="text-align: center;">
+            {{ avrs|length }}
+          </td>
+          <td></td>
+      </tr>
 
     </table>
   </div>
