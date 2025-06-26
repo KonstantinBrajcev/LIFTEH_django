@@ -116,6 +116,8 @@ class ToView(TemplateView):
             Q(result__isnull=True) | Q(result__in=[0, 1, 2])
         )
 
+        problems = Problem.objects.all().order_by('-created_date')
+
         context.update({
             'month': month,
             'objects': objects,
@@ -124,7 +126,9 @@ class ToView(TemplateView):
             'selected_city': selected_city,
             'selected_colors': selected_colors,
             # 'avrs': Avr.objects.all()
-            'avrs': avrs
+            'avrs': avrs,
+            'problems': problems
+
         })
 
         # Добавляем контекст из других представлений
@@ -641,9 +645,9 @@ def problems_view(request):
 def add_problem(request):
     if request.method == 'POST':
         name = request.POST.get('name')
-        # created_date = request.POST.get('created_date')
-        Problem.objects.create(name=name, created_date=timezone.now().date())
-    return redirect('problems')
+        if name and name.strip():
+            Problem.objects.create(name=name.strip(), created_date=timezone.now().date())
+    return redirect(reverse('to') + '#problems')
 
 @require_POST
 def update_problem_status(request, problem_id):
