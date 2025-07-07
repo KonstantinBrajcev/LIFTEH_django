@@ -58,13 +58,13 @@
             <li class="nav-item">
                 <a class="nav-link tab-button" onclick="showTab('diagnostic')">Диагностика</a>
             </li>
+            <li class="nav-item delete">
+                <a class="nav-link tab-button" onclick="showTab('problems')">Проблемы</a>
+            </li>
 
 {% if user.is_superuser %}
             <li class="nav-item delete">
                 <a class="nav-link tab-button" onclick="showTab('tasks')">Задачи</a>
-            </li>
-            <li class="nav-item delete">
-                <a class="nav-link tab-button" onclick="showTab('problems')">Проблемы</a>
             </li>
             <li class="nav-item delete">
                 <a class="nav-link tab-button" onclick="showTab('charts')">Графики</a>
