@@ -122,17 +122,7 @@ jobs:
             
             # Функция для безопасного перезапуска
             restart_gunicorn() {
-              echo "Попытка graceful перезапуска через HUP"
-              kill -HUP $MASTER_PID 2>/dev/null
-              sleep 10
-              
-              NEW_COUNT=$(pgrep -f "gunicorn: worker" | wc -l)
-              if [ "$NEW_COUNT" -ge 3 ]; then
-                echo "Graceful перезапуск успешен"
-                return 0
-              fi
-              
-              echo "Graceful перезапуск не сработал, выполняем полный перезапуск"
+              echo "Выполняем полный перезапуск"
               pkill -f "gunicorn" || true
               sleep 2
               nohup gunicorn --bind 0.0.0.0:8001 --workers 3 --timeout 120 LIFTEH_project.wsgi:application > gunicorn.log 2>&1 &
