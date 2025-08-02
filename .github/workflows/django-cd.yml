@@ -71,6 +71,7 @@ jobs:
           username: ${{ secrets.SSH_USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
+            # set +e  # отключаем прерывание по ошибке
             source ~/myenv/bin/activate
             echo "Виртуальная среда активирована"
 
@@ -105,58 +106,4 @@ jobs:
             echo "Проверка запущенных процессов:"
             pgrep -af gunicorn || echo "Gunicorn не запустился"
             echo "Деплой завершён"
-
-      - name: Monitor and restart workers if needed
-        uses: appleboy/ssh-action@v1
-        with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USERNAME }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          script: |
-            # Обертка для подавления ошибок
-            wrapper() {
-              # Активируем окружение
-              source ~/myenv/bin/activate
-              cd ~/www/jelezo.by/LIFTEH_project
-              export DJANGO_SETTINGS_MODULE=LIFTEH_project.settings_prod
-              
-              echo "=== Проверка состояния Gunicorn ==="
-              
-              # 1. Проверка master-процесса
-              MASTER_PID=$(pgrep -f "gunicorn: master" || true)
-              
-              if [ -z "$MASTER_PID" ]; then
-                echo "Gunicorn не запущен, выполняем запуск..."
-                nohup gunicorn --bind 0.0.0.0:8001 --workers 3 --timeout 120 LIFTEH_project.wsgi:application > gunicorn.log 2>&1 &
-                sleep 5
-                echo "Gunicorn запущен"
-                return 0
-              fi
-              
-              # 2. Проверка worker'ов
-              WORKERS_COUNT=$(pgrep -f "gunicorn: worker" | wc -l || echo "0")
-              echo "Найдено worker'ов: $WORKERS_COUNT"
-              
-              if [ "$WORKERS_COUNT" -lt 3 ]; then
-                echo "Недостаточно worker'ов, перезапускаем Gunicorn..."
-                
-                # Полный перезапуск
-                pkill -f "gunicorn" || true
-                sleep 2
-                nohup gunicorn --bind 0.0.0.0:8001 --workers 3 --timeout 120 LIFTEH_project.wsgi:application > gunicorn.log 2>&1 &
-                sleep 5
-                
-                # Проверка результата
-                NEW_COUNT=$(pgrep -f "gunicorn: worker" | wc -l || echo "0")
-                echo "После перезапуска worker'ов: $NEW_COUNT"
-              else
-                echo "Количество worker'ов в норме"
-              fi
-              
-              return 0
-            }
-            
-            # Вызываем обертку и гарантируем успешный выход
-            wrapper || true
-            echo "=== Процесс завершен успешно ==="
-            exit 0
+            # exit 0
