@@ -113,15 +113,15 @@ jobs:
           username: ${{ secrets.SSH_USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            # Отключаем немедленный выход при ошибках
+            # Отключаем проверку ошибок для всего скрипта
             set +e
             
             # Активируем окружение
             source ~/myenv/bin/activate
-            cd ~/www/jelezo.by/LIFTEH_project || exit 1
+            cd ~/www/jelezo.by/LIFTEH_project
             export DJANGO_SETTINGS_MODULE=LIFTEH_project.settings_prod
             
-            echo "=== Проверка состояния Gunicorn ==="
+            echo "=== Начало проверки Gunicorn ==="
             
             # 1. Проверяем наличие master-процесса
             MASTER_PID=$(pgrep -f "gunicorn: master")
@@ -139,7 +139,7 @@ jobs:
             echo "Текущее количество worker'ов: $WORKERS"
             
             if [ "$WORKERS" -lt 3 ]; then
-              echo "Недостаточно worker'ов ($WORKERS/3), перезапускаем Gunicorn..."
+              echo "Недостаточно worker'ов ($WORKERS/3), выполняем полный перезапуск..."
               
               # Убиваем все процессы gunicorn
               pkill -f "gunicorn" || true
