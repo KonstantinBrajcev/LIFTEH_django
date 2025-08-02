@@ -165,5 +165,5 @@ jobs:
               echo "Все worker'ы работают ($WORKERS_COUNT/$EXPECTED_WORKERS)"
             fi
       
-      echo "Проверка завершена"
-      exit 0  # Гарантируем успешный выход
+            echo "Проверка завершена"
+            exit 0  # Гарантируем успешный выход
