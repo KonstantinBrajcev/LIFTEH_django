@@ -113,43 +113,49 @@ jobs:
           username: ${{ secrets.SSH_USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            set +e  # Отключаем exit при ошибках
+            # Отключаем немедленный выход при ошибках
+            set +e
+            
+            # Активируем окружение
             source ~/myenv/bin/activate
             cd ~/www/jelezo.by/LIFTEH_project || exit 1
             export DJANGO_SETTINGS_MODULE=LIFTEH_project.settings_prod
             
-            echo "=== Начало проверки worker'ов ==="
+            echo "=== Проверка состояния Gunicorn ==="
             
-            # Функция для безопасного перезапуска
-            restart_gunicorn() {
-              echo "Выполняем полный перезапуск"
-              pkill -f "gunicorn" || true
-              sleep 2
-              nohup gunicorn --bind 0.0.0.0:8001 --workers 3 --timeout 120 LIFTEH_project.wsgi:application > gunicorn.log 2>&1 &
-              sleep 5
-              return 0
-            }
-            
-            # Основная проверка
+            # 1. Проверяем наличие master-процесса
             MASTER_PID=$(pgrep -f "gunicorn: master")
             
             if [ -z "$MASTER_PID" ]; then
-              echo "Gunicorn не запущен, запускаем..."
+              echo "Master процесс не найден, запускаем Gunicorn..."
               nohup gunicorn --bind 0.0.0.0:8001 --workers 3 --timeout 120 LIFTEH_project.wsgi:application > gunicorn.log 2>&1 &
               sleep 5
-            else
-              WORKER_COUNT=$(pgrep -f "gunicorn: worker" | wc -l)
-              echo "Текущее количество worker'ов: $WORKER_COUNT"
-              
-              if [ "$WORKER_COUNT" -lt 3 ]; then
-                restart_gunicorn
-              fi
-            end
+              echo "Gunicorn запущен"
+              exit 0
+            fi
             
-            # Финальная проверка
-            FINAL_COUNT=$(pgrep -f "gunicorn: worker" | wc -l)
-            echo "Финальное количество worker'ов: $FINAL_COUNT"
+            # 2. Проверяем количество worker'ов
+            WORKERS=$(pgrep -f "gunicorn: worker" | wc -l)
+            echo "Текущее количество worker'ов: $WORKERS"
+            
+            if [ "$WORKERS" -lt 3 ]; then
+              echo "Недостаточно worker'ов ($WORKERS/3), перезапускаем Gunicorn..."
+              
+              # Убиваем все процессы gunicorn
+              pkill -f "gunicorn" || true
+              sleep 2
+              
+              # Полный перезапуск
+              nohup gunicorn --bind 0.0.0.0:8001 --workers 3 --timeout 120 LIFTEH_project.wsgi:application > gunicorn.log 2>&1 &
+              sleep 5
+              
+              # Проверяем результат
+              NEW_WORKERS=$(pgrep -f "gunicorn: worker" | wc -l)
+              echo "После перезапуска worker'ов: $NEW_WORKERS"
+            else
+              echo "Все worker'ы работают нормально"
+            fi
             
             # Всегда завершаем успешно
-            echo "=== Проверка завершена ==="
+            echo "=== Проверка завершена успешно ==="
             exit 0
