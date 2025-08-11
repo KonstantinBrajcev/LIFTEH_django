@@ -41,12 +41,18 @@
           {% comment %} <td>{{ object.id }}</td> {% endcomment %}
           <td class="delete" style="text-align: center;">{{ object.customer }}</td>
           <td style="text-align: center;" style="text-align: center;">
-            <img src="{% static 'ico/geo-alt.svg' %}" alt="phone" class="delete" style="width: 16px; height: 16px; vertical-align: middle;">
-            {{ object.address }}</td>
+            <a href="https://yandex.ru/maps/?text={{ object.address|urlencode }}" target="_blank" style="text-decoration: none; color: inherit;">
+              <img src="{% static 'ico/geo-alt.svg' %}" alt="phone" class="delete" style="width: 16px; height: 16px; vertical-align: middle;">
+                {{ object.address }}
+            </a>
+          </td>
           <td style="text-align: center;">
-            <img src="{% static 'ico/telephone.svg' %}" alt="phone" class="delete" style="width: 16px; height: 16px; vertical-align: middle;">
-            {{ object.phone }}<br>
-            {{ object.name }}</td>
+            <a href="tel:{{ object.phone }}" style="text-decoration: none; color: inherit;">
+              <img src="{% static 'ico/telephone.svg' %}" alt="phone" class="delete" style="width: 16px; height: 16px; vertical-align: middle;">
+              {{ object.phone }}<br>
+            </a>
+            {{ object.name }}
+          </td>
 
           <td style="text-align: end;">
             <div class="btn-group" style="gap: 2px;">
