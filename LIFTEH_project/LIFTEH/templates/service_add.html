@@ -4,11 +4,9 @@
     .result-bg-yellow { background-color: #fff3cd !important; }  /* Желтый */
     .result-bg-red { background-color: #f8d7da !important; }     /* Красный */
 
-
     .table-success { background-color: #d4edda; }
     .table-warning { background-color: #fff3cd; }
     .table-danger { background-color: #f8d7da; }
-
 </style>
 
 <h5><b>Заказчик:</b> {{ object.customer }}</h5>
@@ -46,8 +44,9 @@
 <form method="POST" enctype="multipart/form-data" id="serviceAddForm" action="{% url 'service_add' object_id=object.id %}">
     {% csrf_token %}
     <input type="text" name="service_date" value="{{ current_datetime|date:'Y-m-d H:i:s' }}" required id="service_date" hidden>
-    <div class="form-floating">
-        <textarea class="form-control" id="comments" name="comments" rows="4" cols="50" style="height: 100px;" required></textarea>
+
+    <div class="form-floating" id="comments-container" style="display: none">
+        <textarea class="form-control" id="comments" name="comments" rows="2" cols="50" style="height: 80px;" required></textarea>
         <label class="form-label" for="comments">Комментарии:</label>
     </div>
 
@@ -60,7 +59,7 @@
             </div>
             <div class="form-check">
                 <input class="form-check-input" type="radio" name="result" id="result1" value="1">
-                <label class="form-check-label" for="result1">Требуется устранить замечания</label>
+                <label class="form-check-label" for="result1">Требуется устранить ...</label>
             </div>
             <div class="form-check">
                 <input class="form-check-input" type="radio" name="result" id="result2" value="2">
@@ -82,6 +81,7 @@
 // Инициализация при загрузке DOM
 document.addEventListener('DOMContentLoaded', function() {
   setupResultRadioButtons();
+
 document.getElementById('serviceAddForm').addEventListener('submit', function(e) {
     e.preventDefault();
     const form = e.target;

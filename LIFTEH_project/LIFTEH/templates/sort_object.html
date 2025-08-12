@@ -1,38 +1,33 @@
 <div class="row gx-5" style="margin-bottom: 10px; margin-top: 15px;">
-
-
   <div class="col" style="justify-items: center;">
-    <form method="GET" action="{% url 'to' %}#service" >
-
-    <div class="input-group" style="display: flex; align-items: center; width: 200px;">
-      <label class="input-group-text" for="monthSelect" style="float: left;">Месяц</label>
-
-        <select class="form-select" id="monthSelect" name="month" onchange="this.form.submit()">
-          <option value="1" {% if request.GET.month == '1' %}selected{% endif %}>Январь</option>
-          <option value="2" {% if request.GET.month == '2' %}selected{% endif %}>Февраль</option>
-          <option value="3" {% if request.GET.month == '3' %}selected{% endif %}>Март</option>
-          <option value="4" {% if request.GET.month == '4' %}selected{% endif %}>Апрель</option>
-          <option value="5" {% if request.GET.month == '5' %}selected{% endif %}>Май</option>
-          <option value="6" {% if request.GET.month == '6' %}selected{% endif %}>Июнь</option>
-          <option value="7" {% if request.GET.month == '7' %}selected{% endif %}>Июль</option>
-          <option value="8" {% if request.GET.month == '8' %}selected{% endif %}>Август</option>
-          <option value="9" {% if request.GET.month == '9' %}selected{% endif %}>Сентябрь</option>
-          <option value="10" {% if request.GET.month == '10' %}selected{% endif %}>Октябрь</option>
-          <option value="11" {% if request.GET.month == '11' %}selected{% endif %}>Ноябрь</option>
-          <option value="12" {% if request.GET.month == '12' %}selected{% endif %}>Декабрь</option>
-        </select>
-        <input type="hidden" name="city" value="{{ selected_city }}">
-        <input type="hidden" name="colors" value="{{ selected_colors|join:',' }}">
+    <form method="GET" action="{% url 'to' %}#service">
+      <div class="input-group" style="display: flex; align-items: center; width: 200px;">
+        <label class="input-group-text" for="monthSelect" style="float: left;">Месяц</label>
+<select class="form-select" id="monthSelect" name="month" onchange="this.form.submit()">
+  <option value="1" {% if request.GET.month == '1' or not request.GET.month and current_month == 1 %}selected{% endif %}>Январь</option>
+  <option value="2" {% if request.GET.month == '2' or not request.GET.month and current_month == 2 %}selected{% endif %}>Февраль</option>
+  <option value="3" {% if request.GET.month == '3' or not request.GET.month and current_month == 3 %}selected{% endif %}>Март</option>
+  <option value="4" {% if request.GET.month == '4' or not request.GET.month and current_month == 4 %}selected{% endif %}>Апрель</option>
+  <option value="5" {% if request.GET.month == '5' or not request.GET.month and current_month == 5 %}selected{% endif %}>Май</option>
+  <option value="6" {% if request.GET.month == '6' or not request.GET.month and current_month == 6 %}selected{% endif %}>Июнь</option>
+  <option value="7" {% if request.GET.month == '7' or not request.GET.month and current_month == 7 %}selected{% endif %}>Июль</option>
+  <option value="8" {% if request.GET.month == '8' or not request.GET.month and current_month == 8 %}selected{% endif %}>Август</option>
+  <option value="9" {% if request.GET.month == '9' or not request.GET.month and current_month == 9 %}selected{% endif %}>Сентябрь</option>
+  <option value="10" {% if request.GET.month == '10' or not request.GET.month and current_month == 10 %}selected{% endif %}>Октябрь</option>
+  <option value="11" {% if request.GET.month == '11' or not request.GET.month and current_month == 11 %}selected{% endif %}>Ноябрь</option>
+  <option value="12" {% if request.GET.month == '12' or not request.GET.month and current_month == 12 %}selected{% endif %}>Декабрь</option>
+</select>
+        {% if selected_city %}<input type="hidden" name="city" value="{{ selected_city }}">{% endif %}
+        {% for color in selected_colors %}<input type="hidden" name="colors" value="{{ color }}">{% endfor %}
       </div>
     </form>
   </div>
 
+  <!-- Форма выбора города -->
   <div class="col" style="justify-items: center;">
     <form method="GET" action="{% url 'to' %}#service">
-
       <div class="input-group" style="width: 250px;">
         <label class="input-group-text" for="city">Город:</label>
-
         <select class="form-select" name="city" id="city" onchange="this.form.submit()">
           <option value="">Все города</option>
           {% for city in cities %}
@@ -40,91 +35,98 @@
           {% endfor %}
         </select>
         <input type="hidden" name="month" value="{{ month }}">
-        <input type="hidden" name="colors" value="{{ selected_colors|join:',' }}">
+          {% for color in selected_colors %}
+            <input type="hidden" name="colors" value="{{ color }}">
+          {% endfor %}
       </div>
     </form>
   </div>
 
-  <div class="col" style="justify-items: center;">
-    <form method="GET" action="{% url 'to' %}#service">
-
-      <div class="input-group" style="width: 200px;">
-        <label class="input-group-text" for="colors">Цвета:</label>
-
-        {% comment %} <select class="form-select" name="colors" id="colors"> {% endcomment %}
-        <select class="form-select" name="colors" id="colors" onchange="this.form.submit()">
-          <option value="green" data-color="#00800063" {% if 'green' in selected_colors %}selected{% endif %}>Зеленый</option>
-          <option value="yellow" data-color="#ffff0063" {% if 'yellow' in selected_colors %}selected{% endif %}>Желтый</option>
-          <option value="red" data-color="#ff000063" {% if 'red' in selected_colors %}selected{% endif %}>Красный</option>
-          <option value="gray" data-color="#80808063" {% if 'gray' in selected_colors %}selected{% endif %}>Серый</option>
-        </select>
-        <input type="hidden" name="month" value="{{ month }}">
-        <input type="hidden" name="city" value="{{ selected_city }}">
+<!-- Форма выбора цветов -->
+<div class="col" style="justify-items: center;">
+  <form method="GET" action="{% url 'to' %}#service" id="color-filter-form">
+    <div class="input-group" style="width: 250px;">
+      <label class="input-group-text">Цвета:</label>
+      <div class="dropdown">
+        <button class="btn btn-outline-secondary dropdown-toggle" type="button" 
+                id="colorDropdown" data-bs-toggle="dropdown" 
+                aria-expanded="false">
+          {% if selected_colors %}Выбрано: {{ selected_colors|length }}{% else %}Выберите цвета{% endif %}
+        </button>
+        <div class="dropdown-menu p-3" aria-labelledby="colorDropdown">
+          <div class="form-check">
+            <input class="form-check-input color-checkbox" type="checkbox" id="color-green" 
+                   name="colors" value="green" 
+                   {% if 'green' in selected_colors %}checked{% endif %}>
+            <label class="form-check-label" for="color-green">Зеленый</label>
+          </div>
+          <div class="form-check">
+            <input class="form-check-input color-checkbox" type="checkbox" id="color-yellow" 
+                   name="colors" value="yellow" 
+                   {% if 'yellow' in selected_colors %}checked{% endif %}>
+            <label class="form-check-label" for="color-yellow">Желтый</label>
+          </div>
+          <div class="form-check">
+            <input class="form-check-input color-checkbox" type="checkbox" id="color-red" 
+                   name="colors" value="red" 
+                   {% if 'red' in selected_colors %}checked{% endif %}>
+            <label class="form-check-label" for="color-red">Красный</label>
+          </div>
+          <div class="form-check">
+            <input class="form-check-input color-checkbox" type="checkbox" id="color-gray" 
+                   name="colors" value="gray" 
+                   {% if 'gray' in selected_colors %}checked{% endif %}>
+            <label class="form-check-label" for="color-gray">Серый</label>
+          </div>
+        </div>
       </div>
-    </form>
-  </div>
+      <input type="hidden" name="month" value="{{ month }}">
+      {% if selected_city %}<input type="hidden" name="city" value="{{ selected_city }}">{% endif %}
+    </div>
+  </form>
+</div>
 
   <div class="col" style="text-align: center;">
     <button type="button" class="btn btn-secondary" onclick="resetFilters()">Сбросить фильтры</button>
   </div>
-
 </div>
 
 <script>
-    function submitForm(form) {
-    const urlParams = new URLSearchParams(window.location.search);
-    const month = form.month ? form.month.value : '';
-    const city = form.city ? form.city.value : '';
-    const colors = form.colors ? form.colors.value : '';
-
-    if (month) urlParams.set('month', month);
-    if (city) urlParams.set('city', city);
-    if (colors) urlParams.set('colors', colors);
-
-    window.location.search = urlParams.toString();
-  }
-
-  // Инициализация мультиселекта цветов
-  document.addEventListener('DOMContentLoaded', function() {
-    const colorSelect = document.getElementById('colors');
-    if (colorSelect) {
-      // Bootstrap стили для мультиселекта
-      colorSelect.classList.add('form-select');
+document.addEventListener('DOMContentLoaded', function() {
+  const colorDropdown = document.getElementById('colorDropdown');
+  const colorForm = document.getElementById('color-filter-form');
+  const colorCheckboxes = document.querySelectorAll('.color-checkbox');
+  
+  // Обработчик закрытия dropdown
+  colorDropdown.addEventListener('hidden.bs.dropdown', function() {
+    // Проверяем, были ли изменения в выборе цветов
+    let formNeedsSubmit = false;
+    const currentColors = [{% for color in selected_colors %}'{{ color }}',{% endfor %}];
+    
+    colorCheckboxes.forEach(checkbox => {
+      const wasSelected = currentColors.includes(checkbox.value);
+      if (checkbox.checked !== wasSelected) {
+        formNeedsSubmit = true;
+      }
+    });
+    
+    if (formNeedsSubmit) {
+      colorForm.submit();
     }
   });
-
-    function resetFilters() {
-    const url = new URL(window.location.href);
-    url.searchParams.delete('month');
-    url.searchParams.delete('city');
-    url.searchParams.delete('colors');
-    window.location.href = url.toString();
-  }
-</script>
-
-<style>
-  /* Стили для выпадающего списка */
-  select#colors option[value="green"] {
-    background-color: #00800063;
-    color: white;
-  }
-  select#colors option[value="yellow"] {
-    background-color: #ffff0063;
-    color: black;
-  }
-  select#colors option[value="red"] {
-    background-color: #ff000063;
-    color: white;
-  }
-  select#colors option[value="gray"] {
-    background-color: #80808063;
-    color: white;
-  }
   
-  /* Стили для выбранных элементов */
-  select#colors option:checked {
-    font-weight: bold;
-    border-left: 3px solid black;
-    padding-left: 5px;
-  }
-</style>
+  // Можно также добавить обработчик изменения чекбоксов
+  // для немедленной отправки при клике (по желанию)
+  /*
+  colorCheckboxes.forEach(checkbox => {
+    checkbox.addEventListener('change', function() {
+      colorForm.submit();
+    });
+  });
+  */
+});
+
+function resetFilters() {
+  window.location.href = "{% url 'to' %}";
+}
+</script>

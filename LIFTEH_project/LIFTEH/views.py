@@ -19,6 +19,7 @@ from django.contrib import messages
 from django.views.decorators.http import require_POST
 from django.contrib.auth.mixins import UserPassesTestMixin
 from django.views.generic import TemplateView
+from datetime import datetime
 import re
 import json
 from django.http import JsonResponse
@@ -56,81 +57,70 @@ class ToView(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        # Получаем параметры фильтрации из GET-запроса
-        month = self.request.GET.get('month', timezone.now().month)
+        current_month = datetime.now().month
+        month = int(self.request.GET.get('month', current_month))
         year = timezone.now().year
-        selected_city = self.request.GET.get('city')
-        selected_colors = self.request.GET.getlist('colors')
+        
+        # Исправляем обработку города (None → пустая строка)
+        selected_city = self.request.GET.get('city', '')
+        if selected_city == 'None':  # Обрабатываем случай, когда city=None в URL
+            selected_city = ''
+            
+        selected_colors = self.request.GET.getlist('colors', ['all'])
+        
+        # Если выбран "Все цвета" или ничего не выбрано, показываем все варианты
+        if 'all' in selected_colors or not selected_colors:
+            selected_colors = ['green', 'yellow', 'red', 'gray']
 
-        # Удаляем пустые значения из списка выбранных цветов
-        selected_colors = [color for color in selected_colors if color]
+        # Базовый запрос с фильтрацией по месяцу
+        objects = Object.objects.filter(**{f'M{month}__gt': 0})
 
-        objects = Object.objects.all()
-        objects = objects.filter(
-            **{f'M{month}__isnull': False}).exclude(**{f'M{month}': 0})
-
-        # Извлекаем города
-        city_set = set()
-        for obj in objects:
-            match = re.match(
-                r'^(г\.п\.|ж/д ст\.|г\.|п\.|д\.)\s*[^,]+', obj.address)
-            if match:
-                city_set.add(match.group(0).strip())
-
-        # Фильтрация по городу
+        # Фильтрация по городу (только если город выбран)
         if selected_city:
             objects = objects.filter(address__icontains=selected_city)
 
         # Собираем информацию о цветах
         service_records = {}
-        color_mapping = {
-            'green': 0,
-            'yellow': 1,
-            'red': 2,
-            'gray': None
-        }
-
+        color_mapping = {'green': 0, 'yellow': 1, 'red': 2, 'gray': None}
+        
         for obj in objects:
-            service_record = obj.service_set.filter(
+            service_records[obj.id] = obj.service_set.filter(
                 service_date__year=year,
                 service_date__month=month
             ).last()
-            service_records[obj.id] = service_record
 
-        # Фильтрация по выбранным цветам
-        if selected_colors:
-            filtered_objects = []
-            # allowed_results = [color_mapping[color] for color in selected_colors]
-            allowed_results = [color_mapping[color] for color in selected_colors if color in color_mapping]
-
-            for obj in objects:
-                service_record = service_records.get(obj.id)
-                if 'gray' in selected_colors and service_record is None:
-                    filtered_objects.append(obj)
-                elif service_record and service_record.result in allowed_results:
-                    filtered_objects.append(obj)
-
-            objects = filtered_objects
+        # Фильтрация по цветам (исправленная логика)
+        filtered_objects = []
         
-        avrs = Avr.objects.filter(
-            Q(result__isnull=True) | Q(result__in=[0, 1, 2])
-        )
-
-        problems = Problem.objects.all().order_by('-created_date')
+        for obj in objects:
+            service_record = service_records.get(obj.id)
+            
+            # Для серого цвета (отсутствие записи)
+            if 'gray' in selected_colors and service_record is None:
+                filtered_objects.append(obj)
+            # Для других цветов (наличие записи с нужным результатом)
+            elif service_record and any(
+                color in selected_colors 
+                and service_record.result == color_mapping.get(color)
+                for color in ['green', 'yellow', 'red']
+            ):
+                filtered_objects.append(obj)
 
         context.update({
             'month': month,
-            'objects': objects,
+            'current_month': current_month,
+            'objects': filtered_objects,
             'service_records': service_records,
-            'cities': sorted(city_set),
+            'cities': sorted({re.match(r'^(г\.п\.|ж/д ст\.|г\.|п\.|д\.)\s*[^,]+', obj.address).group(0).strip() 
+                          for obj in Object.objects.all() 
+                          if re.match(r'^(г\.п\.|ж/д ст\.|г\.|п\.|д\.)\s*[^,]+', obj.address)}),
             'selected_city': selected_city,
             'selected_colors': selected_colors,
-            # 'avrs': Avr.objects.all()
-            'avrs': avrs,
-            'problems': problems
-
+            'avrs': Avr.objects.filter(Q(result__isnull=True) | Q(result__in=[0, 1, 2])),
+            'problems': Problem.objects.all().order_by('-created_date')
         })
-
+        
+        return context
         # Добавляем контекст из других представлений
         charts_view = ChartsView()
         charts_view.request = self.request

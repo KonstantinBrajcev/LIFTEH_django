@@ -55,7 +55,7 @@
             <li class="nav-item">
                 <a class="nav-link tab-button" onclick="showTab('acts')">Акты</a>
             </li>
-            <li class="nav-item">
+            <li class="nav-item" hidden>
                 <a class="nav-link tab-button" onclick="showTab('diagnostic')">Диагностика</a>
             </li>
             <li class="nav-item delete">
@@ -63,10 +63,10 @@
             </li>
 
 {% if user.is_superuser %}
-            <li class="nav-item delete">
+            <li class="nav-item delete" hidden>
                 <a class="nav-link tab-button" onclick="showTab('tasks')">Задачи</a>
             </li>
-            <li class="nav-item delete">
+            <li class="nav-item delete" hidden>
                 <a class="nav-link tab-button" onclick="showTab('charts')">Графики</a>
             </li>
 {% endif %}
@@ -317,32 +317,70 @@ function showTab(tabName) {
 
 // ОБЪЕДИНЕННАЯ ФУНКЦИЯ ДЛЯ RADIO-КНОПОК
 function setupResultRadioButtons() {
-  const modalBody = document.querySelector('.modal-body');
+  const modalContent = document.querySelector('.modal-content');
   const fotoGroup = document.getElementById('foto-group');
+  const commentsContainer = document.getElementById('comments-container');
+  const commentsField = document.getElementById('comments');
+
+  if (!modalContent || !fotoGroup || !commentsContainer) return;
   
-  if (!modalBody || !fotoGroup) return;
-  
+  // Функция для определения цвета последней записи
+  function getLastServiceClass() {
+    const serviceRows = document.querySelectorAll('table tr[class*="table-"]');
+    if (serviceRows.length === 0) return null;
+    
+    const lastRow = serviceRows[serviceRows.length - 1];
+    if (lastRow.classList.contains('table-success')) return '#d4edda'; // Зеленый
+    if (lastRow.classList.contains('table-warning')) return '#fff3cd'; // Желтый
+    if (lastRow.classList.contains('table-danger')) return '#f8d7da';  // Красный
+    return null;
+  }
+
+  // Устанавливаем начальный цвет модального окна
+  const lastColor = getLastServiceClass();
+  if (lastColor) {
+    modalContent.style.backgroundColor = lastColor;
+  }
+
   function updateUI() {
     const selectedValue = document.querySelector('input[name="result"]:checked')?.value;
     if (!selectedValue) return;
     
     // 1. Обновляем фон модального окна
-    modalBody.classList.remove(
-      'result-bg-green', 'result-bg-yellow', 'result-bg-red'
-    );
-    
-    const colorClass = {
-      '0': 'result-bg-green',
-      '1': 'result-bg-yellow',
-      '2': 'result-bg-red'
+    const newColor = {
+      '0': '#8fdfa1ff', // Зеленый
+      '1': '#c7b372ff', // Желтый
+      '2': '#e9757fff'  // Красный
     }[selectedValue];
     
-    if (colorClass) modalBody.classList.add(colorClass);
+    if (newColor) {
+      modalContent.style.backgroundColor = newColor;
+      modalContent.style.transition = 'background-color 0.3s ease';
+    }
     
+    // 2. Управляем видимостью полей
+    if (selectedValue === '0') {
+      // Для "В исправном состоянии"
+      commentsContainer.style.display = 'none';
+      fotoGroup.classList.add('d-none');
+      commentsField.value = 'В исправном состоянии';
+    } else {
+      // Для остальных вариантов
+      commentsContainer.style.display = 'block';
+      fotoGroup.classList.remove('d-none');
+      
+      if (selectedValue === '1') {
+        commentsField.value = 'Требуется устранить ...';
+      } else if (selectedValue === '2') {
+        commentsField.value = 'Не работает';
+      }
+    }
+
     // 2. Управляем видимостью поля для фото
     const shouldShowFoto = ['1', '2'].includes(selectedValue);
     fotoGroup.classList.toggle('d-none', !shouldShowFoto);
     document.getElementById('foto').required = false;
+
   }
   
   // Назначаем обработчики для всех radio-кнопок
