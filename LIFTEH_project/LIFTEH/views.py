@@ -706,8 +706,7 @@ def delete_problem(request, problem_id):
     
 # ------РАБОТА С КАРТАМИ----------
 def map_view(request):
-    # Получаем первые 3 адреса через ORM
-    addresses = Object.objects.values_list('address', flat=True)
+    addresses = Object.objects.values_list('address', flat=True).distinct()
     
     return render(request, 'map.html', {
         'addresses_json': json.dumps(list(addresses)),

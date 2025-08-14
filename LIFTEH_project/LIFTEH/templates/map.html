@@ -35,7 +35,6 @@
     <div class="loader" id="loader"><img src="/static/logo_lifteh.png" alt="Логотип организации"></div>
 
     <script src="https://api-maps.yandex.ru/2.1/?apikey={{ yandex_maps_api_key }}&lang=ru_RU&load=package.full" type="text/javascript"></script>
-    {% comment %} <script src="https://api-maps.yandex.ru/2.1/?apikey={{ yandex_maps_api_key }}&lang=ru_RU" type="text/javascript"></script> {% endcomment %}
 <script type="text/javascript">
     ymaps.ready(init);
     
@@ -45,14 +44,13 @@
             zoom: 7
         });
 
-        // Убираем лишние элементы управления (как у вас было)
-        myMap.controls.remove('rulerControl');
-        myMap.controls.remove('searchControl');
-        myMap.controls.remove('trafficControl');
-        myMap.controls.remove('typeSelector');
-        myMap.controls.remove('fullscreenControl');
-        myMap.controls.remove('geolocationControl');
-        myMap.controls.remove('copyright');
+        // Убираем лишние элементы управления
+        myMap.controls.remove('rulerControl'); // Размерность
+        myMap.controls.remove('searchControl'); // Поиск
+        myMap.controls.remove('trafficControl'); // Пробки
+        myMap.controls.remove('typeSelector'); //Слои карты
+        myMap.controls.remove('fullscreenControl'); // Во весь экран
+        myMap.controls.remove('geolocationControl'); // Геолокация на карте
 
         // Создаем кластеризатор
         var clusterer = new ymaps.Clusterer({
@@ -86,8 +84,8 @@
                                 '<path fill="#de4c15" d="M8 16s6-5.686 6-10A6 6 0 0 0 2 6c0 4.314 6 10 6 10zm0-7a3 3 0 1 1 0-6 3 3 0 0 1 0 6z"/>' +
                                 '</svg>'
                             ),
-                        iconImageSize: [30, 30],
-                        iconImageOffset: [-15, -15]
+                        iconImageSize: [35, 35],
+                        iconImageOffset: [-15, -35]
                     });
                     
                     placemarks.push(placemark); // Добавляем метку в массив
@@ -123,5 +121,10 @@
         });
     }
 </script>
+    <style>
+        .ymaps-2-1-79-map-copyrights-promo {display: none;}
+        .ymaps-2-1-79-zoom {display: none;} 
+        .ymaps-2-1-79-copyright {display: none;} 
+    </style>
 </body>
 </html>
