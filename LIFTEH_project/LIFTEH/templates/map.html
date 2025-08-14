@@ -1,0 +1,127 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Карта объектов</title>
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+        #map {
+            width: 100%;
+            height: 100%;
+        }
+        .loader {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 1000;
+            background: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.2);
+        }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+    <div class="loader" id="loader"><img src="/static/logo_lifteh.png" alt="Логотип организации"></div>
+
+    <script src="https://api-maps.yandex.ru/2.1/?apikey={{ yandex_maps_api_key }}&lang=ru_RU&load=package.full" type="text/javascript"></script>
+    {% comment %} <script src="https://api-maps.yandex.ru/2.1/?apikey={{ yandex_maps_api_key }}&lang=ru_RU" type="text/javascript"></script> {% endcomment %}
+<script type="text/javascript">
+    ymaps.ready(init);
+    
+    function init() {
+        var myMap = new ymaps.Map("map", {
+            center: [53.9, 27.5],
+            zoom: 7
+        });
+
+        // Убираем лишние элементы управления (как у вас было)
+        myMap.controls.remove('rulerControl');
+        myMap.controls.remove('searchControl');
+        myMap.controls.remove('trafficControl');
+        myMap.controls.remove('typeSelector');
+        myMap.controls.remove('fullscreenControl');
+        myMap.controls.remove('geolocationControl');
+        myMap.controls.remove('copyright');
+
+        // Создаем кластеризатор
+        var clusterer = new ymaps.Clusterer({
+            preset: 'islands#invertedOrangeClusterIcons', // стиль кластеров
+            clusterDisableClickZoom: true,
+            clusterOpenBalloonOnClick: true,
+            clusterBalloonContentLayout: 'cluster#balloonCarousel'
+        });
+
+        var addresses = {{ addresses_json|safe }};
+        var geocodedCount = 0;
+        var placemarks = []; // Массив для хранения меток
+        
+        function geocodeAddress(address, index) {
+            ymaps.geocode(address, {
+                results: 1
+            }).then(function (res) {
+                var firstGeoObject = res.geoObjects.get(0);
+                if (firstGeoObject) {
+                    var coords = firstGeoObject.geometry.getCoordinates();
+                    
+                    // Создаем метку
+                    var placemark = new ymaps.Placemark(coords, {
+                        hintContent: address,
+                        balloonContent: address
+                    }, {
+                        iconLayout: 'default#image',
+                        iconImageHref: 'data:image/svg+xml;charset=utf-8,' + 
+                            encodeURIComponent(
+                                '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">' +
+                                '<path fill="#de4c15" d="M8 16s6-5.686 6-10A6 6 0 0 0 2 6c0 4.314 6 10 6 10zm0-7a3 3 0 1 1 0-6 3 3 0 0 1 0 6z"/>' +
+                                '</svg>'
+                            ),
+                        iconImageSize: [30, 30],
+                        iconImageOffset: [-15, -15]
+                    });
+                    
+                    placemarks.push(placemark); // Добавляем метку в массив
+                    
+                    if (geocodedCount === 0) {
+                        myMap.setCenter(coords, 12);
+                    }
+                }
+                
+                geocodedCount++;
+                if (geocodedCount === addresses.length) {
+                    document.getElementById('loader').style.display = 'none';
+                    // Добавляем все метки в кластеризатор
+                    clusterer.add(placemarks);
+                    // Добавляем кластеризатор на карту
+                    myMap.geoObjects.add(clusterer);
+                }
+                
+            }, function (err) {
+                console.error('Ошибка геокодирования:', err);
+                geocodedCount++;
+                if (geocodedCount === addresses.length) {
+                    document.getElementById('loader').style.display = 'none';
+                    clusterer.add(placemarks);
+                    myMap.geoObjects.add(clusterer);
+                }
+            });
+        }
+        
+        // Обрабатываем все адреса
+        addresses.forEach(function(address, index) {
+            geocodeAddress(address, index);
+        });
+    }
+</script>
+</body>
+</html>

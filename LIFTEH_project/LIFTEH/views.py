@@ -20,11 +20,12 @@ from django.views.decorators.http import require_POST
 from django.contrib.auth.mixins import UserPassesTestMixin
 from django.views.generic import TemplateView
 from datetime import datetime
+from django.shortcuts import render
 import re
 import json
 from django.http import JsonResponse
 from django.template.loader import render_to_string
-from LIFTEH.models import Object, Avr, Service, Work, Diagnostic, Switch, Problem
+from LIFTEH.models import Object, Avr, Service, Work, Diagnostic, Switch, Problem, Object
 from LIFTEH.forms import ObjectForm, ServiceForm, AvrForm, ObjectAvrForm, DiagnosticForm
 
 class AdminRequiredMixin(UserPassesTestMixin):
@@ -702,3 +703,13 @@ def delete_problem(request, problem_id):
         return JsonResponse({'success': True})
     except Problem.DoesNotExist:
         return JsonResponse({'success': False, 'error': 'Problem not found'}, status=404)
+    
+# ------РАБОТА С КАРТАМИ----------
+def map_view(request):
+    # Получаем первые 3 адреса через ORM
+    addresses = Object.objects.values_list('address', flat=True)
+    
+    return render(request, 'map.html', {
+        'addresses_json': json.dumps(list(addresses)),
+        'yandex_maps_api_key': 'b0a03b93-14f2-4e5a-b38a-25ee1d5296e0',
+    })
