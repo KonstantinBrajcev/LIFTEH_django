@@ -28,7 +28,7 @@
                 center: [53.9, 27.5],
                 zoom: 7
             });
-
+            
             // Удаляем все стандартные элементы управления
             map.controls.remove('zoomControl');        // Кнопки zoom +/-
             map.controls.remove('geolocationControl'); // Кнопка геолокации
@@ -51,6 +51,7 @@
             var placemarks = [];
             var uniqueAddresses = new Set();
 
+
             // SVG иконка в формате data URL
             var customIconSvg = 'data:image/svg+xml;charset=utf-8,' + 
                 encodeURIComponent(
@@ -63,7 +64,6 @@
             objectsData.forEach(function(obj) {
                 if (obj.latitude && obj.longitude && !uniqueAddresses.has(obj.address)) {
                         uniqueAddresses.add(obj.address); // Добавляем адрес в множество уникальных адресов
-
                         var placemark = new ymaps.Placemark(
                             [obj.latitude, obj.longitude],
                             {
@@ -80,7 +80,6 @@
                                 iconImageHref: customIconSvg,
                                 iconImageSize: [30, 30],      // Размер иконки
                                 iconImageOffset: [-15, -35],  // Смещение (как в вашем примере)
-                                
                                 // Дополнительные настройки
                                 iconImageClipRect: [[0, 0], [35, 35]],
                                 balloonCloseButton: false
@@ -93,14 +92,19 @@
             if (placemarks.length > 0) {
                 clusterer.add(placemarks);
                 map.geoObjects.add(clusterer);
-                map.setBounds(clusterer.getBounds());
-                    }
+                map.setBounds(clusterer.getBounds());        
+            }
+
+            // Обработчик события клика на карте
+            map.events.add('click', function() {
+                // Закрываем все открытые баллоны
+                map.balloon.close();
+                clusterer.balloon.close(); // Закрываем баллон кластера, если он открыт
+            });
         });
     </script>
     <style>
-        .ymaps-2-1-79-copyright__content {
-            display: none;
-        }
+        .ymaps-2-1-79-copyright__content,
         .ymaps-2-1-79-map-copyrights-promo {
             display: none;
         }
