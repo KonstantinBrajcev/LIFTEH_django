@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html>
 <head>
@@ -40,30 +41,51 @@
 
             // Минимальная настройка - Яндекс сам выберет оптимальный layout
             var clusterer = new ymaps.Clusterer({
+                preset: 'islands#invertedOrangeClusterIcons',
                 clusterDisableClickZoom: true,
                 clusterOpenBalloonOnClick: true,
-                gridSize: 60
+                gridSize: 64
             });
 
             var objectsData = {{ objects_data|safe }};
             var placemarks = [];
+            var uniqueAddresses = new Set();
+
+            // SVG иконка в формате data URL
+            var customIconSvg = 'data:image/svg+xml;charset=utf-8,' + 
+                encodeURIComponent(
+                    '<svg xmlns="http://www.w3.org/2000/svg" width="35" height="35" fill="currentColor" class="bi bi-geo-alt-fill" viewBox="0 0 16 16">' +
+                    '<path fill="#de4c15" d="M8 16s6-5.686 6-10A6 6 0 0 0 2 6c0 4.314 6 10 6 10m0-7a3 3 0 1 1 0-6 3 3 0 0 1 0 6"/>' +
+                    '</svg>'
+                );
+
             
             objectsData.forEach(function(obj) {
-                if (obj.latitude && obj.longitude) {
-                    var placemark = new ymaps.Placemark(
-                        [obj.latitude, obj.longitude],
-                        {
-                            balloonContent: '<strong>' + obj.customer + '</strong><br>' +
-                                           'Адрес: ' + obj.address + '<br>' +
-                                           'Модель: ' + obj.model + '<br>' +
-                                           'Телефон: ' + obj.phone,
-                            // Важно добавить заголовок для кластера
-                            clusterCaption: obj.customer
-                        },
-                        {
-                            preset: 'islands#blueDotIcon'
-                        }
-                    );
+                if (obj.latitude && obj.longitude && !uniqueAddresses.has(obj.address)) {
+                        uniqueAddresses.add(obj.address); // Добавляем адрес в множество уникальных адресов
+
+                        var placemark = new ymaps.Placemark(
+                            [obj.latitude, obj.longitude],
+                            {
+                                balloonContent: '<strong>' + obj.customer + '</strong><br>' +
+                                            'Адрес: ' + obj.address + '<br>' +
+                                            'Модель: ' + obj.model + '<br>' +
+                                            'Телефон: ' + obj.phone,
+                                // Важно добавить заголовок для кластера
+                                clusterCaption: obj.customer
+                            },
+                            {
+                                // Кастомная иконка
+                                iconLayout: 'default#image',
+                                iconImageHref: customIconSvg,
+                                iconImageSize: [30, 30],      // Размер иконки
+                                iconImageOffset: [-15, -35],  // Смещение (как в вашем примере)
+                                
+                                // Дополнительные настройки
+                                iconImageClipRect: [[0, 0], [35, 35]],
+                                balloonCloseButton: false
+                            }
+                        );
                     placemarks.push(placemark);
                 }
             });
@@ -72,7 +94,7 @@
                 clusterer.add(placemarks);
                 map.geoObjects.add(clusterer);
                 map.setBounds(clusterer.getBounds());
-            }
+                    }
         });
     </script>
     <style>
