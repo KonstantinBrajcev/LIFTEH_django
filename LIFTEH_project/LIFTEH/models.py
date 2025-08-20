@@ -23,6 +23,8 @@ class Object(models.Model):
     M10 = models.DecimalField(max_digits=12, decimal_places=2, null=True)
     M11 = models.DecimalField(max_digits=12, decimal_places=2, null=True)
     M12 = models.DecimalField(max_digits=12, decimal_places=2, null=True)
+    latitude = models.FloatField(null=True, blank=True)
+    longitude = models.FloatField(null=True, blank=True)
 
 
 class Service(models.Model):
@@ -107,3 +109,5 @@ class Problem(models.Model):
     class Meta:
         verbose_name = "Задача"
         verbose_name_plural = "Задачи"
+
+

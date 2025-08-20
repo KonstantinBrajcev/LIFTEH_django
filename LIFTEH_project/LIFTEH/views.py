@@ -21,6 +21,7 @@ from django.contrib.auth.mixins import UserPassesTestMixin
 from django.views.generic import TemplateView
 from datetime import datetime
 from django.shortcuts import render
+from django.views.decorators.csrf import csrf_exempt
 import re
 import json
 from django.http import JsonResponse
@@ -705,10 +706,46 @@ def delete_problem(request, problem_id):
         return JsonResponse({'success': False, 'error': 'Problem not found'}, status=404)
     
 # ------РАБОТА С КАРТАМИ----------
-def map_view(request):
-    addresses = Object.objects.values_list('address', flat=True).distinct()
+# @csrf_exempt
+def get_objects(request):
+    """API endpoint для получения объектов с координатами"""
+    try:
+        objects = Object.objects.exclude(latitude__isnull=True).exclude(longitude__isnull=True)
+        
+        objects_data = []
+        for obj in objects:
+            objects_data.append({
+                'id': obj.id,
+                'customer': obj.customer,
+                'address': obj.address,
+                'latitude': float(obj.latitude) if obj.latitude else None,
+                'longitude': float(obj.longitude) if obj.longitude else None,
+                'model': obj.model,
+                'phone': obj.phone
+            })
+        
+        return JsonResponse(objects_data, safe=False)
     
-    return render(request, 'map.html', {
-        'addresses_json': json.dumps(list(addresses)),
-        'yandex_maps_api_key': 'b0a03b93-14f2-4e5a-b38a-25ee1d5296e0',
-    })
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+def map_view(request):
+    """Представление для отображения карты с данными в шаблоне"""
+    objects = Object.objects.exclude(latitude__isnull=True).exclude(longitude__isnull=True)
+    
+    objects_data = []
+    for obj in objects:
+        objects_data.append({
+            'id': obj.id,
+            'customer': obj.customer,
+            'address': obj.address,
+            'latitude': float(obj.latitude) if obj.latitude else None,
+            'longitude': float(obj.longitude) if obj.longitude else None,
+            'model': obj.model,
+            'phone': obj.phone
+        })
+    
+    context = {
+        'objects_data': json.dumps(objects_data)
+    }
+    return render(request, 'map.html', context)

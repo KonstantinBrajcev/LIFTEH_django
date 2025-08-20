@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth import views as auth_views
 from django.urls import path
-from LIFTEH.views import LoginView, ToView, HomeView, ChartsView, TasksView, DiagnosticView, SwitchView, map_view
+from LIFTEH.views import LoginView, ToView, HomeView, ChartsView, TasksView, DiagnosticView, SwitchView, map_view, get_objects
 from LIFTEH import views
 from django.conf import settings
 from django.conf.urls.static import static
@@ -49,6 +49,7 @@ urlpatterns = [
     path('tasks/', TasksView.as_view(), name='tasks'),
 
     path('map/', map_view, name='map'),
+    path('api/objects', get_objects, name='get_objects'),
 
     path('switch/', SwitchView.as_view(), name='switch'),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
