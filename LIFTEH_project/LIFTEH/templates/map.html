@@ -4,6 +4,7 @@
 <head>
     <meta charset="utf-8">
     <title>Карта объектов</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://api-maps.yandex.ru/2.1/?apikey=b0a03b93-14f2-4e5a-b38a-25ee1d5296e0&lang=ru_RU"></script>
     <style>
         html, body {
@@ -99,15 +100,17 @@
             map.events.add('click', function() {
                 // Закрываем все открытые баллоны
                 map.balloon.close();
-                clusterer.balloon.close(); // Закрываем баллон кластера, если он открыт
+                // Закрываем баллон кластера, если он открыт
+                clusterer.balloon.close(); 
             });
         });
-    </script>
-    <style>
-        .ymaps-2-1-79-copyright__content,
-        .ymaps-2-1-79-map-copyrights-promo {
-            display: none;
-        }
-    </style>
+</script>
+<style>
+    .ymaps-2-1-79-copyright__content,
+    .ymaps-2-1-79-map-copyrights-promo {
+        display: none;
+    }
+</style>
+
 </body>
 </html>
