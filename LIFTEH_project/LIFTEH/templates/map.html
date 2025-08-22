@@ -68,12 +68,22 @@
                         var placemark = new ymaps.Placemark(
                             [obj.latitude, obj.longitude],
                             {
-                                balloonContent: '<strong>' + obj.customer + '</strong><br>' +
-                                            'Адрес: ' + obj.address + '<br>' +
-                                            'Модель: ' + obj.model + '<br>' +
-                                            'Телефон: ' + obj.phone,
-                                // Важно добавить заголовок для кластера
-                                clusterCaption: obj.customer
+                            balloonContent: '<div style="border-radius: 5px;">' + 
+                                            '<div style="background-color: #de4c15; color: white; padding: 8px; padding: 5px; font-weight: bold;">' + 
+                                            obj.customer + '</div>' +
+                                            //---------ВЫВОД АДРЕСА---------
+                                            '<a href="https://yandex.ru/maps/?text=' + obj.address + '" target="_blank" style="text-decoration: none; color: inherit;">' +
+                                            '<img src="/static/ico/geo-alt.svg" alt="address" style="width: 16px; height: 16px; vertical-align: middle; margin: 5px;">' +
+                                            obj.address + '</a><br>' +
+                                            //---------ВЫВОД МОДЕЛИ---------
+                                            '<img src="/static/ico/gear.svg" alt="model" style="width: 16px; height: 16px; vertical-align: middle; margin: 5px;">' + 
+                                            obj.model + '<br>' +
+                                            //---------ВЫВОД ТЕЛЕФОНА-------
+                                            '<a href="tel:' + obj.phone + '" style="text-decoration: none; color: inherit;">' +
+                                            '<img src="/static/ico/telephone.svg" alt="phone" style="width: 16px; height: 16px; vertical-align: middle; margin: 5px;">' +
+                                            obj.phone + '</a></div>',
+
+                            clusterCaption: obj.customer
                             },
                             {
                                 // Кастомная иконка
@@ -106,10 +116,43 @@
         });
 </script>
 <style>
+    .ymaps-2-1-79-b-cluster-tabs__item-header,
+    .ymaps-2-1-79-b-cluster-content__header,
     .ymaps-2-1-79-copyright__content,
     .ymaps-2-1-79-map-copyrights-promo {
         display: none;
     }
+    .ymaps-2-1-79-balloon__content,
+    .ymaps-2-1-79-b-cluster-tabs__section_type_content,
+    .ymaps-2-1-79-b-cluster-tabs {
+        padding: 0px;
+    }
+    .ymaps-2-1-79-balloon__layout {
+        border-radius: 6px;
+    }
+    .ymaps-2-1-79-balloon {
+        box-shadow: none;
+        box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5), 0px 0px 10px 10px rgba(0, 0, 0, 0.3);
+    }
+    .ymaps-2-1-79-b-cluster-tabs__menu-item {
+           padding: 2px 3px 2px 3px; 
+    }
+    .ymaps-2-1-79-b-cluster-tabs__item-body {
+        padding-right: 0px;
+    }
+    ymaps-2-1-79-b-cluster-tabs ymaps-2-1-79-b-cluster-content {
+        width: none;
+    }
+    .ymaps-2-1-79-balloon__close-button {
+        height: 30px;
+    }
+    .ymaps-2-1-79-b-cluster-tabs__menu-item-text {
+            color: #333333ff;
+            transition: color 0.2s ease;
+        }
+        .ymaps-2-1-79-b-cluster-tabs__menu-item-text:hover {
+            color: #de4c15;
+        }
 </style>
 
 </body>
