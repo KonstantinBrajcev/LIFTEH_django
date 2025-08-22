@@ -25,6 +25,7 @@ class Object(models.Model):
     M12 = models.DecimalField(max_digits=12, decimal_places=2, null=True)
     latitude = models.FloatField(null=True, blank=True)
     longitude = models.FloatField(null=True, blank=True)
+    folder_id = models.CharField(max_length=50, default='', blank=True)
 
 
 class Service(models.Model):

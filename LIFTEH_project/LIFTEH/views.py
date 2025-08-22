@@ -714,6 +714,8 @@ def get_objects(request):
         
         objects_data = []
         for obj in objects:
+            manual_url = f"https://disk.yandex.ru/d/{obj.folder_id}" if obj.folder_id else None
+            
             objects_data.append({
                 'id': obj.id,
                 'customer': obj.customer,
@@ -721,7 +723,8 @@ def get_objects(request):
                 'latitude': float(obj.latitude) if obj.latitude else None,
                 'longitude': float(obj.longitude) if obj.longitude else None,
                 'model': obj.model,
-                'phone': obj.phone
+                'phone': obj.phone, 
+                'manual_url': manual_url
             })
         
         return JsonResponse(objects_data, safe=False)
@@ -735,6 +738,8 @@ def map_view(request):
     
     objects_data = []
     for obj in objects:
+        manual_url = f"https://disk.yandex.ru/d/{obj.folder_id}" if obj.folder_id else None
+        
         objects_data.append({
             'id': obj.id,
             'customer': obj.customer,
@@ -742,7 +747,9 @@ def map_view(request):
             'latitude': float(obj.latitude) if obj.latitude else None,
             'longitude': float(obj.longitude) if obj.longitude else None,
             'model': obj.model,
-            'phone': obj.phone
+            'phone': obj.phone,
+            'manual_url': manual_url
+            # https://disk.yandex.ru/d/tg3Dr7UiQwgvjg
         })
     
     context = {
