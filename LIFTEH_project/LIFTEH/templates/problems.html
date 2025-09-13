@@ -1,14 +1,13 @@
-{% comment %} {% extends 'base.html' %} {% endcomment %}
 {% load static %}
 
 {% block content %}
-<div class="card mb-4">
-    {% comment %} <div class="card"> {% endcomment %}
+<div class="card">
         <div class="card-header d-flex">
             <h3 class="mb-0">Задачи</h3>
         </div>
-        
+
         <div class="card-body" style="padding: 0px !important; min-height: 50px;">
+
             <!-- Форма добавления новой задачи -->
             <form method="post" id="addProblemForm" action="{% url 'add_problem' %}" class="mb-4">
                 {% csrf_token %}
@@ -86,7 +85,6 @@
                     </tr>
                 </table>
             </div>
-        {% comment %} </div> {% endcomment %}
     </div>
 </div>
 
@@ -139,7 +137,7 @@ function updateProblemStatus(problemId, isCompleted) {
     })
     .then(response => {
         console.log('Response status:', response.status);
-        
+
         // Проверяем, что ответ JSON
         const contentType = response.headers.get('content-type');
         if (!contentType || !contentType.includes('application/json')) {
@@ -147,7 +145,7 @@ function updateProblemStatus(problemId, isCompleted) {
                 throw new Error(`Invalid response: ${text}`);
             });
         }
-        
+
         if (!response.ok) {
             return response.json().then(err => { throw err; });
         }
@@ -166,7 +164,7 @@ function updateProblemStatus(problemId, isCompleted) {
         console.error('Error:', error);
         const checkbox = document.getElementById(`status${problemId}`);
         checkbox.checked = !isCompleted;  // Возвращаем предыдущее состояние
-        
+
         // Показываем понятное сообщение об ошибке
         let errorMessage = 'Ошибка при обновлении статуса';
         if (error.message.includes('Invalid response')) {
@@ -177,34 +175,35 @@ function updateProblemStatus(problemId, isCompleted) {
         alert(errorMessage);
     });
 }
+
 // Редактирование задачи
 document.addEventListener('DOMContentLoaded', function() {
-    
+
     const editModal = new bootstrap.Modal(document.getElementById('editModal'));
     const editForm = document.getElementById('editForm');
-    
+
     // Обработка клика по кнопке редактирования
     document.querySelectorAll('.edit-btn').forEach(btn => {
         btn.addEventListener('click', function() {
             const problemId = this.getAttribute('data-id');
             const problemName = this.getAttribute('data-name');
             const problemDate = this.getAttribute('data-date');
-            
+
             document.getElementById('editProblemId').value = problemId;
             document.getElementById('editProblemName').value = problemName;
             document.getElementById('editProblemDate').value = problemDate;
-            
+
             editModal.show();
         });
     });
-    
+
     // Отправка формы редактирования
     editForm.addEventListener('submit', function(e) {
         e.preventDefault();
-        
+
         const problemId = document.getElementById('editProblemId').value;
         const formData = new FormData(this);
-        
+
         fetch(`/problems/${problemId}/edit/`, {
             method: 'POST',
             body: formData,
@@ -225,13 +224,13 @@ document.addEventListener('DOMContentLoaded', function() {
             alert('Ошибка при сохранении изменений');
         });
     });
-    
+
     // Удаление задачи
     document.querySelectorAll('.delete-btn').forEach(btn => {
         btn.addEventListener('click', function() {
             if (confirm('Вы уверены, что хотите удалить эту задачу?')) {
                 const problemId = this.getAttribute('data-id');
-                
+
                 fetch(`/problems/${problemId}/delete/`, {
                     method: 'POST',
                     headers: {

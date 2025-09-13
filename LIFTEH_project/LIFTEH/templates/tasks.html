@@ -1,8 +1,5 @@
-{% comment %} {% extends "base.html" %} {% endcomment %}
-
 {% block content %}
 <div>
-    {% comment %} <h2 style="justify-self: center;">Задачи на текущий месяц</h2> {% endcomment %}
 
     {% if error %}
     <div class="alert alert-danger">
@@ -10,24 +7,15 @@
     </div>
     {% endif %}
 
-    {% comment %} <div class="alert alert-info">
-        <h4>Статистика:</h4>
-        <p><strong>Текущая дата:</strong> {{ now }}</p>
-        <p><strong>Период выборки:</strong> с {{ first_day }} по {{ last_day }}</p>
-        <p><strong>Объектов без ТО:</strong> {{ objects_without_service|length }}</p>
-        <p><strong>Невыполненных АВР:</strong> {{ avr_count }}</p>
-    </div> {% endcomment %}
-
             <div class="card mb-4">
-                {% comment %} <div class="card-header bg-warning"> {% endcomment %}
                 <div class="card-header">
                     <h4>Объекты без ТО ({{ objects_without_service|length }})</h4>
                 </div>
-                <div class="card-body">
+                <div class="card-body p-0">
                     {% if objects_without_service %}
-                    <table class="table table-hover">
-                        <thead>
-                            <tr>
+                    <table class="table-hover" style="width: 100%;">
+                        <thead class="table-light">
+                            <tr style="background-color: #de4c15; color: white;">
                                 <th style="text-align: center;">#</th>
                                 <th style="text-align: center;">Клиент</th>
                                 <th style="text-align: center;">Адрес</th>
@@ -51,8 +39,7 @@
                 </div>
             </div>
 
-            <div class="card" style="margin-bottom: 50px;">
-                {% comment %} <div class="card-header bg-danger text-white"> {% endcomment %}
+            <div class="card">
                 <div class="card-header">
                     <h4>Невыполненные АВР ({{ avr_count }})</h4>
                 </div>

@@ -1,9 +1,9 @@
-<div class="row gx-5" style="margin-bottom: 10px; margin-top: 15px;">
-  <div class="col" style="justify-items: center;">
+<div style="display:flex; margin: 5px; justify-content: space-around; flex-wrap: wrap; gap: 5px;">
+  <div style="justify-items: center;">
     <form method="GET" action="{% url 'to' %}#service">
       <div class="input-group" style="display: flex; align-items: center; width: 200px;">
         <label class="input-group-text" for="monthSelect" style="float: left;">Месяц</label>
-<select class="form-select" id="monthSelect" name="month" onchange="this.form.submit()">
+<select class="form-select" style="border-radius: 0px 5px 5px 0px;" id="monthSelect" name="month" onchange="this.form.submit()">
   <option value="1" {% if request.GET.month == '1' or not request.GET.month and current_month == 1 %}selected{% endif %}>Январь</option>
   <option value="2" {% if request.GET.month == '2' or not request.GET.month and current_month == 2 %}selected{% endif %}>Февраль</option>
   <option value="3" {% if request.GET.month == '3' or not request.GET.month and current_month == 3 %}selected{% endif %}>Март</option>
@@ -24,11 +24,11 @@
   </div>
 
   <!-- Форма выбора города -->
-  <div class="col" style="justify-items: center;">
+  <div style="justify-items: center;">
     <form method="GET" action="{% url 'to' %}#service">
-      <div class="input-group" style="width: 250px;">
+      <div class="input-group" style="width: 300px;">
         <label class="input-group-text" for="city">Город:</label>
-        <select class="form-select" name="city" id="city" onchange="this.form.submit()">
+        <select class="form-select" style="border-radius: 0px 5px 5px 0px;" name="city" id="city" onchange="this.form.submit()">
           <option value="">Все города</option>
           {% for city in cities %}
           <option value="{{ city }}" {% if city == selected_city %}selected{% endif %}>{{ city }}</option>
@@ -43,17 +43,17 @@
   </div>
 
 <!-- Форма выбора цветов -->
-<div class="col" style="justify-items: center;">
+<div style="justify-items: center;">
   <form method="GET" action="{% url 'to' %}#service" id="color-filter-form">
-    <div class="input-group" style="width: 250px;">
+    <div class="input-group" style="width:230px; justify-content: center;">
       <label class="input-group-text">Цвета:</label>
       <div class="dropdown">
         <button class="btn btn-outline-secondary dropdown-toggle" type="button" 
-                id="colorDropdown" data-bs-toggle="dropdown" 
-                aria-expanded="false">
+                id="colorDropdown" data-bs-toggle="dropdown" aria-expanded="false" 
+                style="width: 155px; color: black; border-radius: 0px 5px 5px 0px; border: var(--bs-border-width) solid var(--bs-border-color);">
           {% if selected_colors %}Выбрано: {{ selected_colors|length }}{% else %}Выберите цвета{% endif %}
         </button>
-        <div class="dropdown-menu p-3" aria-labelledby="colorDropdown">
+        <div class="dropdown-menu p-2" aria-labelledby="colorDropdown">
           <div class="form-check">
             <input class="form-check-input color-checkbox" type="checkbox" id="color-green" 
                    name="colors" value="green" 
@@ -86,8 +86,8 @@
   </form>
 </div>
 
-  <div class="col" style="text-align: center;">
-    <button type="button" class="btn btn-secondary" onclick="resetFilters()">Сбросить фильтры</button>
+  <div style="text-align: center;">
+    <button type="button" class="btn btn-secondary" onclick="resetFilters()">Сбросить</button>
   </div>
 </div>
 

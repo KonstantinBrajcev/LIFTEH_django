@@ -1,4 +1,4 @@
-<div class="card mb-4">
+<div class="card">
   <div class="card-header d-flex">
     <div>
       <h4>Дефектные акты</h4>
@@ -31,7 +31,7 @@
       {% if avr.result == 0 %} #ff000063    {# Зеленый #}
       {% elif avr.result == 1 %} #ffff0063  {# Желтый #}
       {% elif avr.result == 2 %} #00800063  {# Красный #}
-      {% else %} #80808063                    {# Серый (если result не задан) #}
+      {% else %} #80808063                  {# Серый (если result не задан) #}
       {% endif %};">
 
       {% comment %} <td style="text-align: center;">{{ avr.id }}</td> {% endcomment %}

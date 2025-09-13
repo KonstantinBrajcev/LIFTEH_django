@@ -1,13 +1,10 @@
-{% comment %} {% extends "base.html" %} {% endcomment %}
 {% load static %}
 
 {% block content %}
 
-
 <div>
-  {% comment %} <h2 style="justify-self:center;">Аналитика по обслуживанию</h2> {% endcomment %}
-  
     <div>
+
         <!-- График №1 по месяцам -->
         <div>
             <div class="card mb-4">
@@ -58,6 +55,7 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+
   // График №1 по месяцам
   const monthCtx = document.getElementById('monthChart').getContext('2d');
     new Chart(monthCtx, {

@@ -36,6 +36,51 @@ select[multiple] option:checked {
   height: 50px;
 }
 
+
+.map-header {
+  position: absolute;
+  top: 5px;
+  left: 5px;
+  z-index: 1000;
+  background-color: rgba(222, 76, 21, 1.0);
+  border-radius: 10px;
+  display: flex;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+}
+
+.nav-link.active {
+  font-weight: bold;
+}
+
+.map-header a[data-tooltip] {
+  position: relative;
+}
+
+.map-header a[data-tooltip]::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: -28px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #6c1b1bc2;
+  color: white;
+  padding: 5px 10px;
+  border-radius: 5px;
+  font-size: 14px;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.5s ease;
+  z-index: 1000;
+}
+
+.map-header a[data-tooltip]:hover::after {
+  opacity: 1;
+  visibility: visible;
+  bottom: -28px;
+}
+
+/* -------------------- */
+
 @media (max-width: 660px) {
   .delete {
     display: none;

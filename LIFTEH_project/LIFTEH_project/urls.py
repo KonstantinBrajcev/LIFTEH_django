@@ -14,7 +14,7 @@ urlpatterns = [
 
     path('login/', LoginView.as_view(), name='login'),
     path('logout/', auth_views.LogoutView.as_view(next_page='login'), name='logout'),
-    
+
     path('admin/', admin.site.urls),
 
     path('to/', ToView.as_view(), name='to'),
@@ -40,12 +40,16 @@ urlpatterns = [
 
     path('problems/', views.problems_view, name='problems'),
     path('problems/add/', views.add_problem, name='add_problem'),
-    path('problems/<int:problem_id>/update_status/', views.update_problem_status, name='update_problem_status'),
-    path('problems/<int:problem_id>/edit/', views.edit_problem, name='edit_problem'),
-    path('problems/<int:problem_id>/delete/', views.delete_problem, name='delete_problem'),
+    path('problems/<int:problem_id>/update_status/',
+         views.update_problem_status, name='update_problem_status'),
+    path('problems/<int:problem_id>/edit/',
+         views.edit_problem, name='edit_problem'),
+    path('problems/<int:problem_id>/delete/',
+         views.delete_problem, name='delete_problem'),
 
-#     path('charts/', ChartsView.as_view(), name='charts'),
-    path('tasks/', user_passes_test(lambda u: u.is_superuser)(TasksView.as_view()), name='tasks'),
+    path('charts/', ChartsView.as_view(), name='charts'),
+    path('tasks/', user_passes_test(lambda u: u.is_superuser)
+         (TasksView.as_view()), name='tasks'),
     path('tasks/', TasksView.as_view(), name='tasks'),
 
     path('map/', map_view, name='map'),

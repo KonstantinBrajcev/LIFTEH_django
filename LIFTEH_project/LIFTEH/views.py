@@ -28,11 +28,14 @@ from django.http import JsonResponse
 from django.template.loader import render_to_string
 from LIFTEH.models import Object, Avr, Service, Work, Diagnostic, Switch, Problem, Object
 from LIFTEH.forms import ObjectForm, ServiceForm, AvrForm, ObjectAvrForm, DiagnosticForm
+# from LIFTEH_project import LIFTEH_project
+
 
 class AdminRequiredMixin(UserPassesTestMixin):
     def test_func(self):
         return self.request.user.is_superuser
-    
+
+
 class HomeView(TemplateView):
     template_name = 'home.html'
 
@@ -62,14 +65,14 @@ class ToView(TemplateView):
         current_month = datetime.now().month
         month = int(self.request.GET.get('month', current_month))
         year = timezone.now().year
-        
+
         # Исправляем обработку города (None → пустая строка)
         selected_city = self.request.GET.get('city', '')
         if selected_city == 'None':  # Обрабатываем случай, когда city=None в URL
             selected_city = ''
-            
+
         selected_colors = self.request.GET.getlist('colors', ['all'])
-        
+
         # Если выбран "Все цвета" или ничего не выбрано, показываем все варианты
         if 'all' in selected_colors or not selected_colors:
             selected_colors = ['green', 'yellow', 'red', 'gray']
@@ -84,7 +87,7 @@ class ToView(TemplateView):
         # Собираем информацию о цветах
         service_records = {}
         color_mapping = {'green': 0, 'yellow': 1, 'red': 2, 'gray': None}
-        
+
         for obj in objects:
             service_records[obj.id] = obj.service_set.filter(
                 service_date__year=year,
@@ -93,16 +96,16 @@ class ToView(TemplateView):
 
         # Фильтрация по цветам (исправленная логика)
         filtered_objects = []
-        
+
         for obj in objects:
             service_record = service_records.get(obj.id)
-            
+
             # Для серого цвета (отсутствие записи)
             if 'gray' in selected_colors and service_record is None:
                 filtered_objects.append(obj)
             # Для других цветов (наличие записи с нужным результатом)
             elif service_record and any(
-                color in selected_colors 
+                color in selected_colors
                 and service_record.result == color_mapping.get(color)
                 for color in ['green', 'yellow', 'red']
             ):
@@ -113,16 +116,16 @@ class ToView(TemplateView):
             'current_month': current_month,
             'objects': filtered_objects,
             'service_records': service_records,
-            'cities': sorted({re.match(r'^(г\.п\.|ж/д ст\.|г\.|п\.|д\.)\s*[^,]+', obj.address).group(0).strip() 
-                          for obj in Object.objects.all() 
-                          if re.match(r'^(г\.п\.|ж/д ст\.|г\.|п\.|д\.)\s*[^,]+', obj.address)}),
+            'cities': sorted({re.match(r'^(г\.п\.|ж/д ст\.|г\.|п\.|д\.)\s*[^,]+', obj.address).group(0).strip()
+                              for obj in Object.objects.all()
+                              if re.match(r'^(г\.п\.|ж/д ст\.|г\.|п\.|д\.)\s*[^,]+', obj.address)}),
             'selected_city': selected_city,
             'selected_colors': selected_colors,
             'avrs': Avr.objects.filter(Q(result__isnull=True) | Q(result__in=[0, 1, 2])),
             'problems': Problem.objects.all().order_by('-created_date')
         })
-        
-        return context
+
+        # return context
         # Добавляем контекст из других представлений
         charts_view = ChartsView()
         charts_view.request = self.request
@@ -141,7 +144,6 @@ class ToView(TemplateView):
 
 # ----------- ЗАДАЧИ -----------
 
-
 class TasksView(AdminRequiredMixin, TemplateView):
     template_name = 'tasks.html'
 
@@ -149,6 +151,7 @@ class TasksView(AdminRequiredMixin, TemplateView):
         context = super().get_context_data(**kwargs)
         try:
             now = timezone.localtime(timezone.now())
+            current_month = now.month
             first_day = timezone.make_aware(
                 timezone.datetime(now.year, now.month, 1))
             last_day = timezone.make_aware(timezone.datetime(
@@ -156,7 +159,15 @@ class TasksView(AdminRequiredMixin, TemplateView):
                 timezone.datetime(now.year, now.month + 1, 1)
             )
 
-            # 1. Объекты без техобслуживания
+            # 1. Объекты, которые должны обслуживаться в текущем месяце
+            # но еще не обслужены
+            month_column = f"M{current_month}"
+
+            # Получаем объекты, которые должны обслуживаться в текущем месяце
+            objects_to_service = Object.objects.filter(
+                **{month_column + '__gt': 0})
+
+            # Получаем ID объектов, которые уже обслужены в этом месяце
             with connection.cursor() as cursor:
                 cursor.execute("""
                     SELECT DISTINCT object_id
@@ -165,8 +176,10 @@ class TasksView(AdminRequiredMixin, TemplateView):
                 """, [first_day, last_day])
                 serviced_ids = [row[0] for row in cursor.fetchall()]
 
+            # Исключаем уже обслуженные объекты
             objects_without_service = list(
-                Object.objects.exclude(id__in=serviced_ids).values())
+                objects_to_service.exclude(id__in=serviced_ids).values()
+            )
 
             # 2. Невыполненные АВР
             with connection.cursor() as cursor:
@@ -179,7 +192,7 @@ class TasksView(AdminRequiredMixin, TemplateView):
                         END as insert_date_str
                     FROM lifteh_avr a
                     JOIN lifteh_object o ON a.object_id = o.id
-                    WHERE a.result IS NULL
+                    WHERE a.result = 1
                     ORDER BY a.insert_date
                 """)
                 unfinished_avr_data = [
@@ -210,7 +223,6 @@ class TasksView(AdminRequiredMixin, TemplateView):
 
 # --------ДИАГНОСТИКА -----------
 
-
 class DiagnosticView(TemplateView):
     template_name = 'diagnostic.html'
 
@@ -235,7 +247,7 @@ def diagnostic_add(request):
             return redirect(reverse('to') + '#diagnostic')
     else:
         form = DiagnosticForm()
-    
+
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
         return render(request, 'diagnostic_add.html', {'form': form})
     return render(request, 'diagnostic_add.html', {'form': form})
@@ -258,7 +270,7 @@ def diagnostic_edit(request, pk):
                 }, status=400)
     else:
         form = DiagnosticForm(instance=diagnostic)
-    
+
     return render(request, 'diagnostic_edit.html', {
         'form': form,
         'diagnostic': diagnostic
@@ -277,7 +289,6 @@ def diagnostic_delete(request, pk):
 
 
 # ------ РАБОТА С ОБЪЕКТАМИ ------
-
 
 def objects_edit(request, pk):
     servicing = get_object_or_404(Object, pk=pk)
@@ -321,6 +332,7 @@ def object_delete(request, pk):
 
 
 # ------ РАБОТА С АВР ------
+
 @login_required
 def avr_add(request, pk):
     current_datetime = timezone.now()
@@ -377,7 +389,7 @@ def avr_edit(request, pk):
         avr.problem = request.POST.get('problem', '')
         # avr.work_id = request.POST.get('work_id', None)
         avr.work_id = request.POST.get('work_id', 0) or None
-                # Сохраняем результат (значение radio)
+        # Сохраняем результат (значение radio)
         avr.result = request.POST.get('result')
         avr.save()
 
@@ -508,8 +520,8 @@ class SwitchView(View):
         state.power = not state.power
         state.save()
         return JsonResponse({'power': state.power})
-    
-    
+
+
 # ---------- ГРАФИКИ ------------
 
 class ChartsView(AdminRequiredMixin, TemplateView):
@@ -623,9 +635,9 @@ class ChartsView(AdminRequiredMixin, TemplateView):
         })
         # context['canvas_width'] = len(context['customers']) * 30
         return context
-    
-# --------- РАБОТА С ПРОБЛЕМАМИ ----------
 
+
+# --------- РАБОТА С ПРОБЛЕМАМИ ----------
 def problems_view(request):
     problems = Problem.objects.all().order_by('-created_date')
     today = timezone.now().date()
@@ -634,12 +646,15 @@ def problems_view(request):
         'today': today
     })
 
+
 def add_problem(request):
     if request.method == 'POST':
         name = request.POST.get('name')
         if name and name.strip():
-            Problem.objects.create(name=name.strip(), created_date=timezone.now().date())
+            Problem.objects.create(
+                name=name.strip(), created_date=timezone.now().date())
     return redirect(reverse('to') + '#problems')
+
 
 @require_POST
 def update_problem_status(request, problem_id):
@@ -647,14 +662,14 @@ def update_problem_status(request, problem_id):
         # Логируем входящий запрос
         print(f"Incoming request: {request.method} {request.path}")
         print(f"Request body: {request.body}")
-        
+
         # Проверяем, что это JSON-запрос
         if request.content_type != 'application/json':
             return JsonResponse(
                 {'success': False, 'error': 'Content-Type must be application/json'},
                 status=400
             )
-        
+
         # Парсим JSON
         try:
             data = json.loads(request.body)
@@ -663,17 +678,17 @@ def update_problem_status(request, problem_id):
                 {'success': False, 'error': f'Invalid JSON: {str(e)}'},
                 status=400
             )
-        
+
         # Получаем задачу
         problem = Problem.objects.get(id=problem_id)
         problem.is_completed = data.get('is_completed', False)
         problem.save()
-        
+
         return JsonResponse({
             'success': True,
             'is_completed': problem.is_completed
         })
-        
+
     except Problem.DoesNotExist:
         return JsonResponse(
             {'success': False, 'error': 'Problem not found'},
@@ -684,7 +699,8 @@ def update_problem_status(request, problem_id):
             {'success': False, 'error': str(e)},
             status=500
         )
-    
+
+
 @require_POST
 def edit_problem(request, problem_id):
     try:
@@ -696,6 +712,7 @@ def edit_problem(request, problem_id):
     except Problem.DoesNotExist:
         return JsonResponse({'success': False, 'error': 'Problem not found'}, status=404)
 
+
 @require_POST
 def delete_problem(request, problem_id):
     try:
@@ -704,18 +721,19 @@ def delete_problem(request, problem_id):
         return JsonResponse({'success': True})
     except Problem.DoesNotExist:
         return JsonResponse({'success': False, 'error': 'Problem not found'}, status=404)
-    
+
+
 # ------РАБОТА С КАРТАМИ----------
-# @csrf_exempt
 def get_objects(request):
     """API endpoint для получения объектов с координатами"""
     try:
-        objects = Object.objects.exclude(latitude__isnull=True).exclude(longitude__isnull=True)
-        
+        objects = Object.objects.exclude(
+            latitude__isnull=True).exclude(longitude__isnull=True)
+
         objects_data = []
         for obj in objects:
             manual_url = f"https://disk.yandex.ru/d/{obj.folder_id}" if obj.folder_id else None
-            
+
             objects_data.append({
                 'id': obj.id,
                 'customer': obj.customer,
@@ -723,23 +741,25 @@ def get_objects(request):
                 'latitude': float(obj.latitude) if obj.latitude else None,
                 'longitude': float(obj.longitude) if obj.longitude else None,
                 'model': obj.model,
-                'phone': obj.phone, 
+                'phone': obj.phone,
                 'manual_url': manual_url
             })
-        
+
         return JsonResponse(objects_data, safe=False)
-    
+
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
 
+
 def map_view(request):
     """Представление для отображения карты с данными в шаблоне"""
-    objects = Object.objects.exclude(latitude__isnull=True).exclude(longitude__isnull=True)
-    
+    objects = Object.objects.exclude(
+        latitude__isnull=True).exclude(longitude__isnull=True)
+
     objects_data = []
     for obj in objects:
         manual_url = f"https://disk.yandex.ru/d/{obj.folder_id}" if obj.folder_id else None
-        
+
         objects_data.append({
             'id': obj.id,
             'customer': obj.customer,
@@ -751,7 +771,7 @@ def map_view(request):
             'manual_url': manual_url
             # https://disk.yandex.ru/d/tg3Dr7UiQwgvjg
         })
-    
+
     context = {
         'objects_data': json.dumps(objects_data)
     }

@@ -96,4 +96,3 @@ LOGOUT_REDIRECT_URL = 'login'
 LOGIN_URL = 'login'
 
 INTERNAL_IPS = ['127.0.0.1']
-

@@ -18,9 +18,54 @@
             width: 100%;
             height: 100%;
         }
+    .map-header {
+        position: absolute;
+        top: 5px;
+        left: 5px;
+        z-index: 1000;
+        background-color: rgba(222, 76, 21, 1.0);
+        border-radius: 10px;
+        display: flex;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+    }
+    .nav-link.active {
+      font-weight: bold;
+    }
+    .map-header a[data-tooltip] {
+      position: relative;
+    }
+    .map-header a[data-tooltip]::after {
+      content: attr(data-tooltip);
+      position: absolute;
+      bottom: -28px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #6c1b1bc2;
+      color: white;
+      padding: 5px 8px;
+      border-radius: 5px;
+      font-size: 14px;
+      font-family: sans-serif;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.5s ease;
+      z-index: 1000;
+    }
+    .map-header a[data-tooltip]:hover::after {
+      opacity: 1;
+      visibility: visible;
+      bottom: -30px;
+    }
     </style>
 </head>
 <body>
+    <!-- Шапка с кнопкой перехода к таблице -->
+    <div class="new map-header">
+        <a href="{% url 'to' %}" style="height: 64px;" data-tooltip="Таблица">
+            <img src="{% static 'logo_lifteh.png' %}" alt="Logo" style="height: 4em;">
+        </a>
+    </div>
+
     <div id="map"></div>
 
     <script>
@@ -29,7 +74,7 @@
                 center: [53.9, 27.5],
                 zoom: 7
             });
-            
+
             // Удаляем все стандартные элементы управления
             map.controls.remove('zoomControl');        // Кнопки zoom +/-
             map.controls.remove('geolocationControl'); // Кнопка геолокации
@@ -59,20 +104,23 @@
                     '<path fill="#de4c15" d="M8 16s6-5.686 6-10A6 6 0 0 0 2 6c0 4.314 6 10 6 10m0-7a3 3 0 1 1 0-6 3 3 0 0 1 0 6"/>' +
                     '</svg>'
                 );
-            
+
             objectsData.forEach(function(obj) {
                 if (obj.latitude && obj.longitude && !uniqueAddresses.has(obj.address)) {
-                        uniqueAddresses.add(obj.address); // Добавляем адрес в множество уникальных адресов
+                        // Добавляем адрес в множество уникальных адресов
+                        uniqueAddresses.add(obj.address); 
                         var placemark = new ymaps.Placemark(
                             [obj.latitude, obj.longitude],
                             {
                             balloonContent: '<div style="border-radius: 5px;">' + 
                                 '<div style="background-color: #de4c15; color: white; padding: 8px; padding: 5px; font-weight: bold;">' + 
                                 obj.customer + '</div>' +
+
                                 //---------ВЫВОД АДРЕСА---------
                                 '<a href="https://yandex.ru/maps/?text=' + obj.address + '" target="_blank" style="text-decoration: none; color: inherit; margin-right: 5px;">' +
                                 '<img src="/static/ico/geo-alt.svg" alt="address" style="width: 16px; height: 16px; vertical-align: middle; margin: 5px;">' +
                                 obj.address + '</a><br>' +
+
                                 //---------ВЫВОД МОДЕЛИ---------
                                 (function() {
                                     if (obj.manual_url) {
@@ -85,6 +133,7 @@
                                             obj.model + ' (нет руководства)</span><br>';
                                     }
                                 })() +
+
                                 //---------ВЫВОД ТЕЛЕФОНА-------
                                 '<a href="tel:' + obj.phone + '" style="text-decoration: none; color: inherit;">' +
                                 '<img src="/static/ico/telephone.svg" alt="phone" style="width: 16px; height: 16px; vertical-align: middle; margin: 5px;">' +
@@ -96,7 +145,8 @@
                                 iconLayout: 'default#image',
                                 iconImageHref: customIconSvg,
                                 iconImageSize: [30, 30],      // Размер иконки
-                                iconImageOffset: [-15, -35],  // Смещение (как в вашем примере)
+                                iconImageOffset: [-15, -35],  // Смещение
+
                                 // Дополнительные настройки
                                 iconImageClipRect: [[0, 0], [35, 35]],
                                 balloonCloseButton: false
@@ -109,7 +159,7 @@
             if (placemarks.length > 0) {
                 clusterer.add(placemarks);
                 map.geoObjects.add(clusterer);
-                map.setBounds(clusterer.getBounds());        
+                map.setBounds(clusterer.getBounds());
             }
 
             // Обработчик события клика на карте
@@ -142,7 +192,7 @@
         box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5), 0px 0px 10px 10px rgba(0, 0, 0, 0.3);
     }
     .ymaps-2-1-79-b-cluster-tabs__menu-item {
-           padding: 2px 3px 2px 3px; 
+           padding: 2px 3px 2px 3px;
     }
     .ymaps-2-1-79-b-cluster-tabs__item-body {
         padding-right: 0px;
@@ -166,6 +216,5 @@
         height: 200px !important;
     }
 </style>
-
 </body>
 </html>

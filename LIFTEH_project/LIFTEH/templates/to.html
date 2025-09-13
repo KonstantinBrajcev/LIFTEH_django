@@ -17,12 +17,55 @@
     <link href="{% static 'main.css' %}" rel="stylesheet">
 
 </head>
+  <style>
+    .map-header {
+        position: absolute;
+        top: 5px;
+        left: 5px;
+        z-index: 1000;
+        background-color: rgba(222, 76, 21, 1.0);
+        border-radius: 10px;
+        display: flex;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+    }
+    .nav-link.active {
+      font-weight: bold;
+    }
+    .map-header a[data-tooltip] {
+      position: relative;
+    }
+    .map-header a[data-tooltip]::after {
+      content: attr(data-tooltip);
+      position: absolute;
+      bottom: -28px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #6c1b1bc2;
+      color: white;
+      padding: 5px 8px;
+      border-radius: 5px;
+      font-size: 14px;
+      font-family: sans-serif;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.5s ease;
+      z-index: 1000;
+    }
+    .map-header a[data-tooltip]:hover::after {
+      opacity: 1;
+      visibility: visible;
+      bottom: -30px;
+    }
+  </style>
 <body>
 
-    <div class="d-flex justify-content-between " style="background-color: #de4c15;">
-            <div class="new">
-                <img src="{% static 'logo_lifteh.png' %}" alt="Logo" style="height: 3.5em; margin: 0px 20px;">
+    <div class="d-flex" style="background-color: #de4c15; margin-bottom: -15px; padding-left: 60px; justify-content: space-between;">
+            <div class="new map-header">
+                <a href="{% url 'map' %}" style="height: 64px;" data-tooltip="Карта">
+                  <img src="{% static 'logo_lifteh.png' %}" alt="Logo" style="height: 4em;">
+                </a>
             </div>
+
         {% if user.is_authenticated %}
           <div class="new" style="margin: 0px 20px;">
             <span class="fw">Пользователь: <strong>{{ user.first_name }} {{ user.last_name }}</strong></span>
@@ -34,7 +77,7 @@
         <div class="new" style="margin: 0px 20px;">
         <form action="{% url 'logout' %}" method="post">
           {% csrf_token %}
-          <button type="submit" class="btn btn-link p-0" style="transition: opacity 0.3s;">
+          <button type="submit" class="btn btn-link">
             <img src="{% static 'ico/box-arrow-in-right.svg' %}" alt="Выйти" 
                  style="height: 30px; width: 30px; opacity: 0.8; filter: invert(100%) brightness(2);"
                  onmouseover="this.style.opacity=1" 
@@ -48,53 +91,53 @@
 
 
     <div>
-        <ul class="nav nav-tabs" style="background-color: #de4c15;">
-            <li class="nav-item">
-                <a class="nav-link tab-button active" onclick="showTab('service')">Обслуживание</a>
+        <ul class="nav nav-tabs" style="background-color: #de4c15; padding-left: 70px; border-bottom: none; margin-bottom: -10px;">
+            <li class="nav-item" style="margin-bottom: 5px;">
+                <a class="nav-link tab-button active" onclick="showTab('service')">*Обслуживание*</a>
             </li>
-            <li class="nav-item">
-                <a class="nav-link tab-button" onclick="showTab('acts')">Акты</a>
+            <li class="nav-item" style="margin-left: -8px;">
+                <a class="nav-link tab-button" onclick="showTab('acts')">*Акты*</a>
             </li>
-            <li class="nav-item" hidden>
+            <li class="nav-item" style="margin-left: -8px;">
                 <a class="nav-link tab-button" onclick="showTab('diagnostic')">Диагностика</a>
             </li>
-            <li class="nav-item delete">
+            <li class="nav-item delete" style="margin-left: -8px;">
                 <a class="nav-link tab-button" onclick="showTab('problems')">Проблемы</a>
             </li>
 
 {% if user.is_superuser %}
-            <li class="nav-item delete" hidden>
-                <a class="nav-link tab-button" onclick="showTab('tasks')">Задачи</a>
+            <li class="nav-item delete" style="margin-left: -8px;">
+                <a class="nav-link tab-button" onclick="showTab('tasks')">*Задачи*</a>
             </li>
-            <li class="nav-item delete" hidden>
-                <a class="nav-link tab-button" onclick="showTab('charts')">Графики</a>
+            <li class="nav-item delete" style="margin-left: -8px;">
+                <a class="nav-link tab-button" onclick="showTab('charts')">*Графики*</a>
             </li>
 {% endif %}
 
         <ul>
     </div>
 
-    <div id="service" class="m-4 tab">
+    <div id="service" class="tab">
       {% include 'object_table.html' %}
     </div>
 
-    <div id="acts" class="m-4 tab">
+    <div id="acts" class="tab">
         {% include 'avr_table.html' %}
     </div>
 
-    <div id="charts" class="m-4 tab">
+    <div id="charts" class="tab">
         {% include 'charts.html' %}
     </div>
 
-    <div id="tasks" class="m-4 tab">
+    <div id="tasks" class="tab">
         {% include 'tasks.html' %}
     </div>
 
-    <div id="problems" class="m-4 tab">
+    <div id="problems" class="tab">
         {% include 'problems.html' %}
     </div>
 
-    <div id="diagnostic" class="m-4 tab">
+    <div id="diagnostic" class="tab">
         {% include 'diagnostic.html' %}
     </div>
 
