@@ -71,7 +71,7 @@
 
         {% if user.is_authenticated %}
           <div class="new" style="margin: 0px 20px;">
-            <span class="fw">Пользователь: <strong>{{ user.first_name }} {{ user.last_name }}</strong></span>
+            <span class="fw"><strong>{{ user.first_name }} {{ user.last_name }}</strong></span>
           </div>
         {% endif %}
 
@@ -131,7 +131,7 @@
 
                 </a>
             </li>
-            <li class="nav-item delete" style="margin-left: -8px;">
+            <li class="nav-item" style="margin-left: -8px;">
                 <a class="nav-link tab-button" onclick="showTab('problems')"
                 data-bs-toggle="tooltip" data-bs-placement="bottom" 
                 title="Проблемы">
@@ -144,7 +144,7 @@
             </li>
 
 {% if user.is_superuser %}
-            <li class="nav-item delete" style="margin-left: -8px;">
+            <li class="nav-item" style="margin-left: -8px;">
                 <a class="nav-link tab-button" onclick="showTab('tasks')"
                 data-bs-toggle="tooltip" data-bs-placement="bottom" 
                 title="Задачи">
@@ -156,7 +156,7 @@
                   </svg>
                 </a>
             </li>
-            <li class="nav-item delete" style="margin-left: -8px;">
+            <li class="nav-item" style="margin-left: -8px;">
                 <a class="nav-link tab-button" onclick="showTab('charts')"
                 data-bs-toggle="tooltip" data-bs-placement="bottom" 
                 title="Графики">
