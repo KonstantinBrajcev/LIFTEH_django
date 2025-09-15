@@ -4,14 +4,14 @@
     <div>
       <h4>Диагностики</h4>
     </div>
-
+{% if user.is_superuser %}
     <div class="col d-flex justify-content-end align-items-center">
       <button type="button" class="btn btn-primary delete" 
         onclick="loadModalForm('{% url 'diagnostic_add' %}', 'Добавить диагностику')">
           Добавить
       </button>
     </div>
-
+{% endif %}
   </div>
 
   <div class="card-body" style="padding: 0px; min-height: 50px;">

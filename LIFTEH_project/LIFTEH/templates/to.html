@@ -59,6 +59,30 @@
       visibility: visible;
       bottom: -30px;
     }
+    /* Стили для уведомлений */
+.alert-notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 9999;
+    min-width: 300px;
+    animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+.alert-dismissible .btn-close {
+    padding: 0.75rem 1.25rem;
+}
   </style>
 <body>
 
@@ -217,9 +241,7 @@
               <span class="visually-hidden">Загрузка...</span>
             </div>
           </div>
-
         </div>
-
       </div>
     </div>
   </div>
@@ -271,22 +293,32 @@ function loadAvrEditForm(pk) {
   .catch(error => console.error('Error:', error));
 }
 
+
 // ФУНКЦИЯ ОТКРЫТИЯ МОДАЛЬНОГО ОКНА
-function loadModalForm(url, title) {
+function loadModalForm(url, title, element) {
   const modal = new bootstrap.Modal(document.getElementById('objectModal'));
   document.getElementById('modalTitle').textContent = title;
+
+  // Получаем цвет из data-атрибута
+  const lastColor = element ? element.getAttribute('data-last-color') : null;
+
   fetch(url, {
       headers: {'X-Requested-With': 'XMLHttpRequest'}
   })
   .then(response => response.text())
   .then(html => {
       document.getElementById('modalFormContent').innerHTML = html;
-        // Добавляем обработчик после загрузки содержимого
-        const addBtn = document.getElementById('addWorkButton');
-        // console.log("Функция addWorkRow доступна:", typeof addWorkRow === 'function');
-        if (addBtn) {
+
+            // Устанавливаем начальный цвет
+      if (lastColor) {
+        document.querySelector('.modal-content').style.backgroundColor = lastColor;
+      }
+      // Добавляем обработчик после загрузки содержимого
+      const addBtn = document.getElementById('addWorkButton');
+      // console.log("Функция addWorkRow доступна:", typeof addWorkRow === 'function');
+      if (addBtn) {
             addBtn.addEventListener('click', addWorkRow);
-        }
+      }
       setupFormSubmit();
       // Добавляем обработчик для изменения цвета radio-кнопок
       setupResultRadioButtons();
@@ -294,6 +326,7 @@ function loadModalForm(url, title) {
   })
   .catch(error => console.error('Error:', error));
 }
+
 
 // ФУНКЦИЯ ДЛЯ НАСТРОЙКИ И ОТПРАВКИ ФОРМЫ
 function setupFormSubmit() {
@@ -328,8 +361,8 @@ function setupFormSubmit() {
     }
 }
 
-  // ФУНКЦИЯ ДЛЯ ПОДТВЕРЖДЕНИЯ УДАЛЕНИЯ
-  function confirmDelete(url, objectId) {
+// ФУНКЦИЯ ДЛЯ ПОДТВЕРЖДЕНИЯ УДАЛЕНИЯ
+function confirmDelete(url, objectId) {
     const modal = new bootstrap.Modal(document.getElementById('deleteConfirmModal'));
     document.getElementById('deleteConfirmText').textContent = 
       `Вы уверены, что хотите удалить запись #${objectId}?`;
@@ -337,6 +370,7 @@ function setupFormSubmit() {
     form.action = url;
     modal.show();
 }
+
 
 function showTab(tabName) {
     // Скрыть все вкладки
@@ -360,7 +394,8 @@ function showTab(tabName) {
         showTab('service');
     }
 
-  // ФУНКЦИЯ ДОБАВЛЕНИЯ РАБОТ В АВР 
+    
+// ФУНКЦИЯ ДОБАВЛЕНИЯ РАБОТ В АВР 
   let rowCounter = 1; // Счетчик для генерации уникальных ID
   function addWorkRow() {
     rowCounter++; // Добавьте эту строку
@@ -423,33 +458,35 @@ function setupResultRadioButtons() {
 
   if (!modalContent || !fotoGroup || !commentsContainer) return;
   
-  // Функция для определения цвета последней записи
-  function getLastServiceClass() {
-    const serviceRows = document.querySelectorAll('table tr[class*="table-"]');
-    if (serviceRows.length === 0) return null;
-    
-    const lastRow = serviceRows[serviceRows.length - 1];
+// Функция для определения цвета последней записи
+function getLastServiceClass() {
+  // Ищем таблицу обслуживания в загруженной форме модального окна
+  const modalContent = document.getElementById('modalFormContent');
+  if (!modalContent) return null;
+  const serviceRows = modalContent.querySelectorAll('tr.table-success, tr.table-warning, tr.table-danger');
+  if (serviceRows.length === 0) return null;
+  const lastRow = serviceRows[0];
     if (lastRow.classList.contains('table-success')) return '#d4edda'; // Зеленый
     if (lastRow.classList.contains('table-warning')) return '#fff3cd'; // Желтый
     if (lastRow.classList.contains('table-danger')) return '#f8d7da';  // Красный
-    return null;
-  }
+  return null;
+}
 
   // Устанавливаем начальный цвет модального окна
-  const lastColor = getLastServiceClass();
+const lastColor = getLastServiceClass();
   if (lastColor) {
     modalContent.style.backgroundColor = lastColor;
   }
 
-  function updateUI() {
+function updateUI() {
     const selectedValue = document.querySelector('input[name="result"]:checked')?.value;
     if (!selectedValue) return;
     
     // 1. Обновляем фон модального окна
     const newColor = {
-      '0': '#8fdfa1ff', // Зеленый
-      '1': '#c7b372ff', // Желтый
-      '2': '#e9757fff'  // Красный
+      '0': '#d4edda', // Зеленый
+      '1': '#fff3cd', // Желтый
+      '2': '#f8d7da'  // Красный
     }[selectedValue];
     
     if (newColor) {
@@ -480,15 +517,40 @@ function setupResultRadioButtons() {
     fotoGroup.classList.toggle('d-none', !shouldShowFoto);
     document.getElementById('foto').required = false;
 
-  }
+}
   
   // Назначаем обработчики для всех radio-кнопок
   document.querySelectorAll('input[name="result"]').forEach(radio => {
     radio.addEventListener('change', updateUI);
   });
-  
-  // Инициализируем состояние при загрузке
-  updateUI();
+}
+
+function loadProblemModalForm(url, title) {
+    const modal = new bootstrap.Modal(document.getElementById('objectModal'));
+    document.getElementById('modalTitle').textContent = title;
+    
+    // Очищаем предыдущее содержимое
+    document.getElementById('modalFormContent').innerHTML = 
+        '<div class="text-center py-4"><div class="spinner-border" role="status"><span class="visually-hidden">Загрузка...</span></div></div>';
+    
+    fetch(url, {
+        headers: {'X-Requested-With': 'XMLHttpRequest'}
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        return response.text();
+    })
+    .then(html => {
+        document.getElementById('modalFormContent').innerHTML = html;
+        modal.show();
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        document.getElementById('modalFormContent').innerHTML = 
+            '<div class="alert alert-danger">Ошибка загрузки формы</div>';
+    });
 }
 </script>
 

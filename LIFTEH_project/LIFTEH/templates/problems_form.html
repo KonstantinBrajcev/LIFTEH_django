@@ -1,0 +1,102 @@
+<!-- templates/problems_form.html -->
+<form method="post" action="{% url 'add_problem' %}" id="problemForm">
+    {% csrf_token %}
+    
+    <div class="form-floating mb-3">
+        <input type="text" class="form-control" id="problemName" name="name" 
+               placeholder="Введите задачу" required maxlength="200"
+               oninput="validateProblemForm()">
+        <label for="problemName">Наименование задачи</label>
+        <div class="invalid-feedback">Пожалуйста, введите название задачи</div>
+    </div>
+    
+    <div class="d-flex justify-content-end">
+        <button type="button" class="btn btn-secondary me-2" data-bs-dismiss="modal">Отмена</button>
+        <button type="submit" class="btn btn-primary" id="submitProblemBtn">Добавить</button>
+    </div>
+</form>
+
+<script>
+// Функция валидации формы
+function validateProblemForm() {
+    const nameInput = document.getElementById('problemName');
+    const submitBtn = document.getElementById('submitProblemBtn');
+    const isValid = nameInput.value.trim().length > 0;
+    
+    if (isValid) {
+        nameInput.classList.remove('is-invalid');
+        nameInput.classList.add('is-valid');
+    } else {
+        nameInput.classList.remove('is-valid');
+        nameInput.classList.add('is-invalid');
+    }
+    
+    return isValid;
+}
+
+// Обработчик отправки формы
+document.getElementById('problemForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    if (!validateProblemForm()) {
+        alert('Пожалуйста, введите название задачи');
+        return false;
+    }
+    
+    const form = e.target;
+    const submitBtn = form.querySelector('button[type="submit"]');
+    const originalText = submitBtn.innerHTML;
+    submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status"></span> Добавление...';
+    submitBtn.disabled = true;
+    
+    const formData = new FormData(form);
+    
+    console.log('Submitting problem form to:', form.action);
+    console.log('Form data:', Object.fromEntries(formData.entries()));
+    
+    fetch(form.action, {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRFToken': form.querySelector('[name=csrfmiddlewaretoken]').value
+        }
+    })
+    .then(response => {
+        console.log('Response status:', response.status);
+        if (!response.ok) {
+            throw new Error('Network response was not ok: ' + response.status);
+        }
+        return response.json();
+    })
+    .then(data => {
+        console.log('Response data:', data);
+        if (data.success) {
+            // Закрываем модальное окно
+            const modal = bootstrap.Modal.getInstance(document.getElementById('objectModal'));
+            if (modal) {
+                modal.hide();
+            }
+            // Обновляем страницу
+            window.location.reload();
+        } else {
+            alert('Ошибка: ' + (data.error || 'Неизвестная ошибка'));
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Ошибка при добавлении задачи: ' + error.message);
+    })
+    .finally(() => {
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
+    });
+    
+    return false;
+});
+
+// Инициализация валидации при загрузке
+document.addEventListener('DOMContentLoaded', function() {
+    validateProblemForm();
+});
+</script>

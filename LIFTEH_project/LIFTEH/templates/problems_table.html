@@ -1,0 +1,213 @@
+<!-- templates/problems_table.html -->
+<table class="table-hover" style="width: 100%;">
+    <thead class="table-light">
+        <tr style="background-color: #de4c15; color: white;">
+            <th style="width: 5%; text-align: center;">№</th>
+            <th style="width: 75%; text-align: center;">Задача</th>
+            <th style="width: 10%; text-align: center;">Создано</th>
+            {% if user.is_superuser %}
+            <th style="width: 10%;"></th>
+            {% endif %}
+        </tr>
+    </thead>
+    <tbody>
+        {% for problem in problems %}
+        <tr id="problem-row-{{ problem.id }}">
+            <td style="text-align: center;"><strong>{{ problem.id }}</strong></td>
+            <td id="problem-name-{{ problem.id }}">{{ problem.name }}</td>
+            <td style="text-align: center;" id="problem-date-{{ problem.id }}">{{ problem.created_date|date:"d.m.Y" }}</td>
+            {% if user.is_superuser %}
+            <td class="text-end" style="width: 10%; text-wrap: nowrap;">
+              <div class="btn-group" style="gap: 2px;">
+                <button class="btn btn-sm btn-secondary edit-btn" style="padding: 5px 10px;"
+                        data-id="{{ problem.id }}"
+                        data-name="{{ problem.name }}"
+                        data-date="{{ problem.created_date|date:'Y-m-d' }}">
+                    &#9998;
+                </button>
+                <button class="btn btn-sm btn-danger delete-btn" style="padding: 5px 10px;"
+                        data-id="{{ problem.id }}"
+                        data-name="{{ problem.name }}">
+                    <strong>Х</strong>
+                </button>
+              </div>
+            </td>
+            {% endif %}
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="5" class="text-center">Нет задач</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+
+    <tr style="background-color: #f0f0f0; font-weight: bold;">
+        <td colspan="2" style="text-align: right;">Итого:</td>
+        <td style="text-align: center;">{{ problems|length }}</td>
+        {% if user.is_superuser %}
+        <td></td>
+        {% endif %}
+    </tr>
+</table>
+
+<script>
+// Функция для загрузки формы редактирования
+function loadEditProblemForm(problemId, problemName, problemDate) {
+    const modal = new bootstrap.Modal(document.getElementById('objectModal'));
+    document.getElementById('modalTitle').textContent = 'Редактировать задачу';
+    
+    // Очищаем предыдущее содержимое
+    document.getElementById('modalFormContent').innerHTML = 
+        '<div class="text-center py-4"><div class="spinner-border" role="status"><span class="visually-hidden">Загрузка...</span></div></div>';
+    
+    // Показываем модальное окно сразу
+    modal.show();
+    
+    fetch(`/problems/${problemId}/edit/`, {
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'Accept': 'text/html' // Явно указываем, что ожидаем HTML
+        }
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`Network response was not ok: ${response.status} ${response.statusText}`);
+        }
+        return response.text();
+    })
+    .then(html => {
+        document.getElementById('modalFormContent').innerHTML = html;
+    })
+    .catch(error => {
+        console.error('Error loading edit form:', error);
+        document.getElementById('modalFormContent').innerHTML = 
+            '<div class="alert alert-danger">Ошибка загрузки формы редактирования: ' + error.message + '</div>';
+    });
+}
+
+// Функция для удаления проблемы
+function deleteProblem(problemId, problemName) {
+    if (!confirm(`Вы уверены, что хотите удалить задачу "${problemName}"?`)) {
+        return;
+    }
+    
+    const deleteBtn = document.querySelector(`.delete-btn[data-id="${problemId}"]`);
+    const originalHtml = deleteBtn.innerHTML;
+    deleteBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status"></span>';
+    deleteBtn.disabled = true;
+    
+    fetch(`/problems/${problemId}/delete/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}',
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.success) {
+            // Удаляем строку из таблицы
+            const row = document.getElementById(`problem-row-${problemId}`);
+            if (row) {
+                row.remove();
+                // Обновляем счетчик
+                updateProblemsCount();
+            }
+            // Показываем уведомление об успехе
+            showNotification('Задача удалена', 'success');
+        } else {
+            throw new Error(data.error || 'Неизвестная ошибка');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Ошибка при удалении задачи: ' + error.message);
+    })
+    .finally(() => {
+        deleteBtn.innerHTML = originalHtml;
+        deleteBtn.disabled = false;
+    });
+}
+
+// Функция для обновления счетчика задач
+function updateProblemsCount() {
+    const rows = document.querySelectorAll('tbody tr:not([style*="display: none"])');
+    const countElement = document.querySelector('tr[style*="background-color: #f0f0f0"] td:nth-child(2)');
+    if (countElement) {
+        countElement.textContent = rows.length;
+    }
+}
+
+// Функция для показа уведомлений
+function showNotification(message, type = 'success') {
+    // Создаем элемент уведомления
+    const notification = document.createElement('div');
+    notification.className = `alert alert-${type} alert-dismissible fade show`;
+    notification.style.position = 'fixed';
+    notification.style.top = '20px';
+    notification.style.right = '20px';
+    notification.style.zIndex = '9999';
+    notification.style.minWidth = '300px';
+    notification.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    // Автоматически скрываем через 3 секунды
+    setTimeout(() => {
+        if (notification.parentNode) {
+            notification.remove();
+        }
+    }, 3000);
+}
+
+// Обработчики событий после загрузки DOM
+document.addEventListener('DOMContentLoaded', function() {
+    // Обработчики для кнопок редактирования
+    document.querySelectorAll('.edit-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const problemId = this.getAttribute('data-id');
+            const problemName = this.getAttribute('data-name');
+            const problemDate = this.getAttribute('data-date');
+            loadEditProblemForm(problemId, problemName, problemDate);
+        });
+    });
+    
+    // Обработчики для кнопок удаления
+    document.querySelectorAll('.delete-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const problemId = this.getAttribute('data-id');
+            const problemName = this.getAttribute('data-name');
+            deleteProblem(problemId, problemName);
+        });
+    });
+});
+
+// Функция для перепривязки обработчиков после AJAX обновлений
+function attachProblemEventHandlers() {
+    document.querySelectorAll('.edit-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const problemId = this.getAttribute('data-id');
+            const problemName = this.getAttribute('data-name');
+            const problemDate = this.getAttribute('data-date');
+            loadEditProblemForm(problemId, problemName, problemDate);
+        });
+    });
+    
+    document.querySelectorAll('.delete-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const problemId = this.getAttribute('data-id');
+            const problemName = this.getAttribute('data-name');
+            deleteProblem(problemId, problemName);
+        });
+    });
+}
+</script>
