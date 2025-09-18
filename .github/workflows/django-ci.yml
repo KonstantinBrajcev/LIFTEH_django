@@ -33,4 +33,6 @@ jobs:
         DEBUG: "True"
         DATABASE_URL: "sqlite:///db.sqlite3"
       run: |
-        python manage.py test
+        # python manage.py test
+        # Создаем временную тестовую БД вместо использования существующей
+        python manage.py test --testrunner="django.test.runner.DiscoverRunner"

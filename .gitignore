@@ -23,6 +23,8 @@ LIFTEH_project/LIFTEH_project/settings_local.py
 services_foto/
 
 # DataBase files
+*.sqlite3
+*.db
 db.sqlite3
 LIFTEH_project/db.sqlite3
 
@@ -32,3 +34,4 @@ LIFTEH_project/LIFTEH_v1
 LIFTEH_project/LIFTEH_v2
 LIFTEH_project/get-pip.py
 LIFTEH_project/db.sqlite3
+LIFTEH_project/pass.py
