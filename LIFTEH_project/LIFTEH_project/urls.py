@@ -7,8 +7,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib.auth import views as auth_views
 from django.contrib.auth.decorators import user_passes_test
-# from . import alternative_views
-# from django.urls import include
+
 
 urlpatterns = [
     path('', HomeView.as_view(), name='home'),

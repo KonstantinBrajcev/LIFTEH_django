@@ -2,18 +2,17 @@ from django.http import JsonResponse
 from django.utils import timezone
 from datetime import datetime
 from django.contrib.auth import authenticate, login
-from django.contrib.auth.decorators import login_required, user_passes_test
+from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from django.urls import reverse
 from django.http import HttpResponse
-from django.views.generic import TemplateView, ListView, CreateView
+from django.views.generic import TemplateView
 from django.views import View
 from django.db import models, connection
 from django.db.models import Sum, FloatField, F, Q
 from django.db.models.functions import Coalesce
-from django.utils.timezone import now
 from django.utils import timezone
 from django.contrib import messages
 from django.views.decorators.http import require_POST
@@ -21,18 +20,12 @@ from django.contrib.auth.mixins import UserPassesTestMixin
 from django.views.generic import TemplateView
 from datetime import datetime
 from django.shortcuts import render
-from django.middleware.csrf import get_token
 import requests
-from django.views.decorators.csrf import csrf_exempt
-from bs4 import BeautifulSoup
-import logging
 import re
 import json
 from django.http import JsonResponse
-from django.template.loader import render_to_string
 from LIFTEH.models import Object, Avr, Service, Work, Diagnostic, Problem, Object
 from LIFTEH.forms import ObjectForm, ServiceForm, AvrForm, ObjectAvrForm, DiagnosticForm
-# from LIFTEH_project import LIFTEH_project
 
 
 class AdminRequiredMixin(UserPassesTestMixin):
