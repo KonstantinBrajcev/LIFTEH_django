@@ -20,7 +20,6 @@ from django.contrib.auth.mixins import UserPassesTestMixin
 from django.views.generic import TemplateView
 from datetime import datetime
 from django.shortcuts import render
-import requests
 import re
 import json
 from django.http import JsonResponse
@@ -503,6 +502,7 @@ def service_add(request, object_id):
 
 # ---------- ГРАФИКИ ------------
 
+
 class ChartsView(AdminRequiredMixin, TemplateView):
     template_name = 'charts.html'
 
@@ -620,35 +620,36 @@ class ChartsView(AdminRequiredMixin, TemplateView):
 def problems_view(request):
     problems = Problem.objects.all().order_by('-created_date')
     today = timezone.now().date()
-    
+
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
         # Если это AJAX запрос, возвращаем только таблицу
         return render(request, 'problems_table.html', {
             'problems': problems,
             'today': today
         })
-    
+
     return render(request, 'problems.html', {
         'problems': problems,
         'today': today
     })
 
+
 def add_problem(request):
     print(f"Add problem called. Method: {request.method}")
     print(f"Headers: {dict(request.headers)}")
-    
+
     if request.method == 'POST':
         # Обработка отправки формы
         name = request.POST.get('name')
         print(f"Received name: '{name}'")
-        
+
         if name and name.strip():
             problem = Problem.objects.create(
-                name=name.strip(), 
+                name=name.strip(),
                 created_date=timezone.now().date()
             )
             print(f"Created problem: {problem.id} - {problem.name}")
-            
+
             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
                 print("Returning JSON success response")
                 return JsonResponse({'success': True})
@@ -656,20 +657,19 @@ def add_problem(request):
                 return redirect(reverse('to') + '#problems')
         else:
             print("Name is empty or invalid")
-            
+
             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
                 print("Returning JSON error response")
                 return JsonResponse({'success': False, 'error': 'Неверные данные: название задачи не может быть пустым'})
-    
+
     elif request.method == 'GET':
         # Показать форму (для AJAX запроса)
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
             print("Returning form HTML")
             return render(request, 'problems_form.html')
-    
+
     # Для не-AJAX запросов или ошибок
     return redirect(reverse('to') + '#problems')
-
 
 
 @require_POST
@@ -719,41 +719,41 @@ def update_problem_status(request, problem_id):
 
 def edit_problem(request, problem_id):
     print(f"Edit problem called. ID: {problem_id}, Method: {request.method}")
-    
+
     try:
         problem = Problem.objects.get(id=problem_id)
     except Problem.DoesNotExist:
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
             return JsonResponse({'success': False, 'error': 'Задача не найдена'})
         return redirect(reverse('to') + '#problems')
-    
+
     if request.method == 'POST':
         # Обработка сохранения изменений
         name = request.POST.get('name')
         created_date = request.POST.get('created_date')
-        
+
         print(f"Received data - name: '{name}', date: '{created_date}'")
-        
+
         if name and name.strip() and created_date:
             problem.name = name.strip()
             try:
                 problem.created_date = created_date
                 problem.save()
-                
+
                 print(f"Updated problem: {problem.id} - {problem.name}")
-                
+
                 if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
                     return JsonResponse({'success': True})
                 else:
                     return redirect(reverse('to') + '#problems')
-                    
+
             except ValueError:
                 print("Invalid date format")
                 if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
                     return JsonResponse({'success': False, 'error': 'Неверный формат даты'})
         else:
             print("Invalid data received")
-            
+
     elif request.method == 'GET':
         # Показать форму редактирования - РАЗРЕШАЕМ GET запросы
         print(f"Returning edit form for problem {problem_id}")
@@ -766,36 +766,37 @@ def edit_problem(request, problem_id):
             return render(request, 'edit_problem_form.html', {
                 'problem': problem
             })
-    
+
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
         return JsonResponse({'success': False, 'error': 'Неверные данные'})
-    
+
     return redirect(reverse('to') + '#problems')
+
 
 @require_POST
 def delete_problem(request, problem_id):
     print(f"Delete problem called. ID: {problem_id}, Method: {request.method}")
-    
+
     if request.method == 'POST':
         try:
             problem = Problem.objects.get(id=problem_id)
             problem_name = problem.name
             problem.delete()
             print(f"Deleted problem: {problem_id} - {problem_name}")
-            
+
             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
                 return JsonResponse({'success': True, 'message': 'Задача удалена'})
             else:
                 return redirect(reverse('to') + '#problems')
-                
+
         except Problem.DoesNotExist:
             print(f"Problem {problem_id} not found")
             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
                 return JsonResponse({'success': False, 'error': 'Задача не найдена'})
-    
+
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
         return JsonResponse({'success': False, 'error': 'Неверный метод запроса'})
-    
+
     return redirect(reverse('to') + '#problems')
 
 
