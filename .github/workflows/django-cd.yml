@@ -30,7 +30,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements-server.txt
 
-      - name: Copy project to server (excluding database)
+      - name: Copy project to server
         uses: appleboy/scp-action@v1
         with:
           host: ${{ secrets.SSH_HOST }}
@@ -41,6 +41,19 @@ jobs:
           rm: true
           overwrite: true
           
+      - name: Remove database file if copied
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd ${{ secrets.PROJECT_PATH }}/LIFTEH_project
+            # Проверяем и удаляем только если файл существует
+            if [ -f "db.sqlite3" ]; then
+              rm -f db.sqlite3
+              echo "База данных удалена (сохранена старая версия)"
+            fi
 
       - name: Prepare server (migrations + static)
         uses: appleboy/ssh-action@v1
