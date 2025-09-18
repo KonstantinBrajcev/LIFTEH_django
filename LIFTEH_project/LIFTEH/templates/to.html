@@ -101,7 +101,7 @@
 
 
         {% if user.is_authenticated %}
-        <div class="new" style="margin: 0px 20px;">
+        <div class="new" style="margin: 0px 0px;">
         <form action="{% url 'logout' %}" method="post">
           {% csrf_token %}
           <button type="submit" class="btn btn-link">

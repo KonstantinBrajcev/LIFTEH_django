@@ -6,7 +6,7 @@
 
     <div class="col d-flex justify-content-end align-items-center">
       {% if user.is_superuser %}
-      <button type="button" class="btn btn-primary delete"
+      <button type="button" class="btn btn-primary"
               onclick="loadModalForm('{% url 'object_add' %}', 'Добавить объект')">
         Добавить
       </button>
@@ -94,9 +94,9 @@
 
       <!-- Строка с суммой -->
       <tr style="background-color: #f0f0f0; font-weight: bold;">
-          <td colspan="2" style="text-align: right;">Итого:</td>
-          <td style="text-align: center;">
-            {{ objects|length }}
+          <td colspan="2"></td>
+          <td style="text-align: right; padding: 0px 10px;">
+            Итого: {{ objects|length }}
           </td>
           <td class="delete"></td>
       </tr>

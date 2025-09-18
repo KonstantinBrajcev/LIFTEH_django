@@ -43,7 +43,9 @@
 
     <tr style="background-color: #f0f0f0; font-weight: bold;">
         <td colspan="2" style="text-align: right;">Итого:</td>
-        <td style="text-align: center;">{{ problems|length }}</td>
+        <td style="text-align: left; padding: 0px 10px;">
+            {{ problems|length }}
+        </td>
         {% if user.is_superuser %}
         <td></td>
         {% endif %}

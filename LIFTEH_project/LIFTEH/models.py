@@ -110,5 +110,3 @@ class Problem(models.Model):
     class Meta:
         verbose_name = "Задача"
         verbose_name_plural = "Задачи"
-
-

@@ -21,7 +21,11 @@ from django.contrib.auth.mixins import UserPassesTestMixin
 from django.views.generic import TemplateView
 from datetime import datetime
 from django.shortcuts import render
+from django.middleware.csrf import get_token
+import requests
 from django.views.decorators.csrf import csrf_exempt
+from bs4 import BeautifulSoup
+import logging
 import re
 import json
 from django.http import JsonResponse
