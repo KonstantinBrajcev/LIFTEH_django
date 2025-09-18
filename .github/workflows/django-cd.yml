@@ -40,19 +40,7 @@ jobs:
           target: "${{ secrets.PROJECT_PATH }}"
           rm: true
           overwrite: true
-
-      - name: Remove database file from server if it was copied
-        uses: appleboy/ssh-action@v1
-        with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USERNAME }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          script: |
-            cd ${{ secrets.PROJECT_PATH }}/LIFTEH_project
-            if [ -f "db.sqlite3" ]; then
-              echo "Удаляем скопированную БД"
-              rm -f db.sqlite3 *.sqlite3
-            fi
+          
 
       - name: Prepare server (migrations + static)
         uses: appleboy/ssh-action@v1
