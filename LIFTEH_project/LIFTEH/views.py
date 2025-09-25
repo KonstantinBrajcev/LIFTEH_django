@@ -803,8 +803,33 @@ def delete_problem(request, problem_id):
 def get_objects(request):
     """API endpoint для получения объектов с координатами"""
     try:
+        # Получаем параметр фильтра из запроса
+        filter_type = request.GET.get('filter', 'all')
+        current_month = timezone.now().month
+        current_year = timezone.now().year
+        
         objects = Object.objects.exclude(
             latitude__isnull=True).exclude(longitude__isnull=True)
+
+        # Фильтрация по типу
+        if filter_type == 'without_marks':
+            # Объекты без записей осмотра в текущем месяце
+            objects_with_service = Service.objects.filter(
+                service_date__year=current_year,
+                service_date__month=current_month
+            ).values_list('object_id', flat=True)
+            
+            objects = objects.exclude(id__in=objects_with_service)
+            
+        elif filter_type == 'all':
+            # Все объекты с заполненными месячными полями
+            month_fields = ['M1', 'M2', 'M3', 'M4', 'M5', 'M6', 
+                          'M7', 'M8', 'M9', 'M10', 'M11', 'M12']
+            
+            # Создаем условия для проверки, что поле текущего месяца не NULL
+            current_month_field = f'M{current_month}'
+            if hasattr(Object, current_month_field):
+                objects = objects.exclude(**{f'{current_month_field}__isnull': True})
 
         objects_data = []
         for obj in objects:
@@ -845,7 +870,6 @@ def map_view(request):
             'model': obj.model,
             'phone': obj.phone,
             'manual_url': manual_url
-            # https://disk.yandex.ru/d/tg3Dr7UiQwgvjg
         })
 
     context = {
