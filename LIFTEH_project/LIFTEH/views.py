@@ -808,7 +808,7 @@ def get_objects(request):
         filter_type = request.GET.get('filter', 'all')
         current_month = timezone.now().month
         current_year = timezone.now().year
-        
+
         objects = Object.objects.exclude(
             latitude__isnull=True).exclude(longitude__isnull=True)
 
@@ -819,22 +819,27 @@ def get_objects(request):
                 service_date__year=current_year,
                 service_date__month=current_month
             ).values_list('object_id', flat=True)
-            
+
             objects = objects.exclude(id__in=objects_with_service)
-            
+
         elif filter_type == 'all':
             # Все объекты с заполненными месячными полями
-            month_fields = ['M1', 'M2', 'M3', 'M4', 'M5', 'M6', 
-                          'M7', 'M8', 'M9', 'M10', 'M11', 'M12']
-            
+            month_fields = ['M1', 'M2', 'M3', 'M4', 'M5', 'M6',
+                            'M7', 'M8', 'M9', 'M10', 'M11', 'M12']
+
             # Создаем условия для проверки, что поле текущего месяца не NULL
             current_month_field = f'M{current_month}'
             if hasattr(Object, current_month_field):
-                objects = objects.exclude(**{f'{current_month_field}__isnull': True})
+                objects = objects.exclude(
+                    **{f'{current_month_field}__isnull': True})
 
         objects_data = []
         for obj in objects:
             manual_url = f"https://disk.yandex.ru/d/{obj.folder_id}" if obj.folder_id else None
+
+            # Получаем последний осмотр для этого объекта
+            last_service = Service.objects.filter(
+                object=obj).order_by('-service_date').first()
 
             objects_data.append({
                 'id': obj.id,
@@ -844,7 +849,9 @@ def get_objects(request):
                 'longitude': float(obj.longitude) if obj.longitude else None,
                 'model': obj.model,
                 'phone': obj.phone,
-                'manual_url': manual_url
+                'manual_url': manual_url,
+                'last_service_date': last_service.service_date.strftime('%d.%m.%Y') if last_service else None,
+                'last_service_comments': last_service.comments if last_service else None
             })
 
         return JsonResponse(objects_data, safe=False)
@@ -862,6 +869,10 @@ def map_view(request):
     for obj in objects:
         manual_url = f"https://disk.yandex.ru/d/{obj.folder_id}" if obj.folder_id else None
 
+        # Получаем последний осмотр для этого объекта
+        last_service = Service.objects.filter(
+            object=obj).order_by('-service_date').first()
+
         objects_data.append({
             'id': obj.id,
             'customer': obj.customer,
@@ -870,7 +881,9 @@ def map_view(request):
             'longitude': float(obj.longitude) if obj.longitude else None,
             'model': obj.model,
             'phone': obj.phone,
-            'manual_url': manual_url
+            'manual_url': manual_url,
+            'last_service_date': last_service.service_date.strftime('%d.%m.%Y') if last_service else None,
+            'last_service_comments': last_service.comments if last_service else None
         })
 
     context = {
