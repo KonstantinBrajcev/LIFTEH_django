@@ -501,8 +501,6 @@ def service_add(request, object_id):
     })
 
 # ---------- ГРАФИКИ ------------
-
-
 class ChartsView(AdminRequiredMixin, TemplateView):
     template_name = 'charts.html'
 
@@ -571,17 +569,21 @@ class ChartsView(AdminRequiredMixin, TemplateView):
             for obj in customer_objects:
                 for month in months:
                     month_value = getattr(obj, month)
-                    if month_value is not None:
+                    if month_value is not None and float(month_value) > 0:
                         total_sum += float(month_value)
                         total_non_null_months += 1
 
             # Рассчитываем среднее значение (избегаем деления на 0)
-            avg_value = total_sum / total_non_null_months if total_non_null_months > 0 else 0
-
-            customers_avg.append({
-                'customer': customer_name,
-                'avg_value': round(avg_value, 2)  # Округляем до 2 знаков
-            })
+            # Исключаем заказчиков, у которых все значения NULL или 0
+            if total_non_null_months > 0:
+                avg_value = total_sum / total_non_null_months
+                
+                # Добавляем только если среднее значение больше 0
+                if avg_value > 0:
+                    customers_avg.append({
+                        'customer': customer_name,
+                        'avg_value': round(avg_value, 2)  # Округляем до 2 знаков
+                    })
 
         # Сортируем по убыванию среднего значения
         customers_avg.sort(key=lambda x: x['avg_value'], reverse=True)
