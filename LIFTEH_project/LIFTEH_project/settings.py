@@ -3,15 +3,36 @@ from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# Безопасность - лучше вынести в переменные окружения
-SECRET_KEY = 'django-insecure-03alwk0(#3q^7&9v0i_!s+*bp-_)tspc7wsrrx1@gf02c-!3c('
+# Определяем среду выполнения
+PRODUCTION = os.getenv('DJANGO_PRODUCTION', 'False').lower() == 'true'
 
-# Дебаг по умолчанию False для безопасности
-DEBUG = True
+if PRODUCTION:
+    SECRET_KEY = os.getenv('DJANGO_SECRET_KEY')
+    DEBUG = False
+    ALLOWED_HOSTS = ['jelezo.by', '178.159.242.118', 'www.jelezo.by']
 
-# Пустые хосты по умолчанию (переопределяются в local/prod)
-ALLOWED_HOSTS = []
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
 
+    STATICFILES_DIRS = []
+else:
+    # Настройки для разработки
+    SECRET_KEY = 'django-insecure-03alwk0(#3q^7&9v0i_!s+*bp-_)tspc7wsrrx1@gf02c-!3c('
+    DEBUG = True
+    ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
+
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db_dev.sqlite3',
+        }
+    }
+
+# Общие настройки (одинаковые для всех сред)
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -30,10 +51,6 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-]
-
-AUTHENTICATION_BACKENDS = [
-    'django.contrib.auth.backends.ModelBackend',
 ]
 
 ROOT_URLCONF = 'LIFTEH_project.urls'
@@ -56,13 +73,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'LIFTEH_project.wsgi.application'
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db_dev.sqlite3',  # Другое имя для разработки
-    }
-}
-
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
@@ -78,42 +88,22 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-LANGUAGE_CODE = 'ru-ru'  # Изменено на русский
+LANGUAGE_CODE = 'ru-ru'
 TIME_ZONE = 'Europe/Moscow'
 USE_I18N = True
 USE_TZ = True
 
-# Статические файлы
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
-# if DEBUG:
-#     STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
-# else:
-#     STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-
-# Медиа файлы (если нужны)
-# MEDIA_URL = '/media/'
-# MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 LOGOUT_REDIRECT_URL = 'login'
 LOGIN_URL = 'login'
 
-INTERNAL_IPS = ['127.0.0.1']
-
-# Игнорировать эти файлы при collectstatic
 STATICFILES_IGNORE_PATTERNS = [
-    'ico/*',  # Пропускаем все иконки
+    'ico/*',
     '*.scss',
     '*.less',
     '*.map'
 ]
-
-try:
-    from .settings_local import *  # Для разработки
-except ImportError:
-    try:
-        from .settings_prod import *  # Для продакшена
-    except ImportError:
-        pass
