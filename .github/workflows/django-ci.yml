@@ -28,7 +28,7 @@ jobs:
       - name: Run tests
         working-directory: ./LIFTEH_project
         env:
-          DJANGO_SETTINGS_MODULE: LIFTEH_project.settings # Использует settings.py
+          DJANGO_SETTINGS_MODULE: LIFTEH_project.settings
           SECRET_KEY: "django-insecure-test-key"
           DEBUG: "True"
           DATABASE_URL: "sqlite:///db.sqlite3"

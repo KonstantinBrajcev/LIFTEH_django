@@ -10,14 +10,14 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Verify settings_prod.py exists
+      - name: Verify settings.py exists
         working-directory: ./LIFTEH_project/LIFTEH_project
         run: |
-          if [ ! -f "settings_prod.py" ]; then
-            echo "::error::settings_prod.py not found in repository!"
+          if [ ! -f "settings.py" ]; then
+            echo "::error::settings.py not found in repository!"
             exit 1
           fi
-          echo "settings_prod.py found and valid"
+          echo "settings.py found and valid"
 
       - name: Set up Python 3.8
         uses: actions/setup-python@v5
