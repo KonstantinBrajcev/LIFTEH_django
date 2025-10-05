@@ -115,3 +115,15 @@ jobs:
             nohup gunicorn --bind 0.0.0.0:8001 --workers 3 --timeout 120 LIFTEH_project.wsgi:application > gunicorn.log 2>&1 &
             sleep 3
             pgrep -af gunicorn || echo "Gunicorn не запустился"
+      - name: Verify static files
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd ${{ secrets.PROJECT_PATH }}/LIFTEH_project
+            echo "Проверка статических файлов:"
+            find staticfiles/ -type f -name "*.css" -o -name "*.js" | head -10
+            echo "Размер папки staticfiles:"
+            du -sh staticfiles/
