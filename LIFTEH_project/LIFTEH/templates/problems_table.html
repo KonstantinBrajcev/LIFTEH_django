@@ -1,5 +1,5 @@
 <!-- templates/problems_table.html -->
-<table class="table table-hover table-sm" style="width: 100%;">
+<table class="table table-hover table-sm" style="width: 100%; margin-bottom: 0px;">
     <thead class="table-light">
         <tr>
             <th style="width: 5%; text-align: center; background-color: #de4c15; color: white;">№</th>
@@ -43,7 +43,7 @@
 
     <tr style="background-color: #f0f0f0; font-weight: bold;">
         <td colspan="2" style="text-align: right;">Итого:</td>
-        <td style="text-align: left; padding: 0px 10px;">
+        <td style="text-align: left; padding: 0px 10px; align-content: center;">
             {{ problems|length }}
         </td>
         {% if user.is_superuser %}
