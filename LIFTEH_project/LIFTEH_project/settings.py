@@ -11,9 +11,8 @@ YANDEX_MAPS_API_KEY = os.getenv(
     'YANDEX_MAPS_API_KEY', 'b0a03b93-14f2-4e5a-b38a-25ee1d5296e0')
 SECRET_KEY = 'django-insecure-03alwk0(#3q^7&9v0i_!s+*bp-_)tspc7wsrrx1@gf02c-!3c('
 
+# Настройки для продакшена
 if PRODUCTION:
-    # Настройки для продакшена
-    # SECRET_KEY = os.getenv('DJANGO_SECRET_KEY')
     DEBUG = False
     ALLOWED_HOSTS = ['jelezo.by', '178.159.242.118', 'www.jelezo.by']
 
@@ -25,9 +24,9 @@ if PRODUCTION:
     }
 
     STATICFILES_DIRS = []
+
+# Настройки для разработки
 else:
-    # Настройки для разработки
-    # SECRET_KEY = 'django-insecure-03alwk0(#3q^7&9v0i_!s+*bp-_)tspc7wsrrx1@gf02c-!3c('
     DEBUG = True
     ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
 
