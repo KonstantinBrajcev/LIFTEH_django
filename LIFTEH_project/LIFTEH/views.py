@@ -1,6 +1,7 @@
 from django.http import JsonResponse
 from django.utils import timezone
 from datetime import datetime
+from django.conf import settings
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.shortcuts import render, get_object_or_404, redirect
@@ -501,6 +502,8 @@ def service_add(request, object_id):
     })
 
 # ---------- ГРАФИКИ ------------
+
+
 class ChartsView(AdminRequiredMixin, TemplateView):
     template_name = 'charts.html'
 
@@ -577,12 +580,13 @@ class ChartsView(AdminRequiredMixin, TemplateView):
             # Исключаем заказчиков, у которых все значения NULL или 0
             if total_non_null_months > 0:
                 avg_value = total_sum / total_non_null_months
-                
+
                 # Добавляем только если среднее значение больше 0
                 if avg_value > 0:
                     customers_avg.append({
                         'customer': customer_name,
-                        'avg_value': round(avg_value, 2)  # Округляем до 2 знаков
+                        # Округляем до 2 знаков
+                        'avg_value': round(avg_value, 2)
                     })
 
         # Сортируем по убыванию среднего значения
@@ -889,6 +893,7 @@ def map_view(request):
         })
 
     context = {
-        'objects_data': json.dumps(objects_data)
+        'objects_data': json.dumps(objects_data),
+        'yandex_maps_api_key': settings.YANDEX_MAPS_API_KEY
     }
     return render(request, 'map.html', context)
