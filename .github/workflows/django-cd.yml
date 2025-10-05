@@ -53,6 +53,9 @@ jobs:
             export DJANGO_PRODUCTION=true
             export DJANGO_SETTINGS_MODULE=LIFTEH_project.settings
 
+            # Обновляем зависимости
+            pip install -r requirements-server.txt
+
             # ⚠️ Удаляем db.sqlite3 если он пришел из репозитория
             if [ -f "db.sqlite3" ]; then
               # Проверяем размер файла - если маленький, значит это пустая БД из разработки
@@ -67,19 +70,25 @@ jobs:
 
             # Если БД нет - создаем через миграции
             if [ ! -f "db.sqlite3" ]; then
-              echo "Создаем новую БД через миграции..."
               python manage.py makemigrations
               python manage.py migrate --no-input
-              # Создаем суперпользователя
-              # python manage.py createsuperuser --noinput --email admin@example.com || true
             else
-              echo "Применяем миграции к существующей БД..."
               python manage.py makemigrations
               python manage.py migrate --no-input
             fi
 
-            # Сбор статики
-            python manage.py collectstatic --no-input --clear
+            # Сбор статики с проверкой
+            echo "Собираем статические файлы..."
+            python manage.py collectstatic --no-input --clear -v 3
+
+            # Проверяем собранные статические файлы
+            if [ -d "staticfiles" ]; then
+              echo "Статические файлы собраны в:"
+              ls -la staticfiles/
+              du -sh staticfiles/
+            else
+              echo "ОШИБКА: Папка staticfiles не создана!"
+            fi
 
       - name: Restart Gunicorn
         uses: appleboy/ssh-action@v1
