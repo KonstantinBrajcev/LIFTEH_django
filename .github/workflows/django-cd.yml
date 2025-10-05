@@ -52,19 +52,9 @@ jobs:
             source ~/myenv/bin/activate
             export DJANGO_PRODUCTION=true
             export DJANGO_SETTINGS_MODULE=LIFTEH_project.settings
-
-            # Создаем пустую БД если её нет
-            if [ ! -f "db.sqlite3" ]; then
-              python manage.py makemigrations
-              python manage.py migrate --no-input
-              python manage.py collectstatic --no-input
-              echo "Создана новая база данных"
-            else
-              python manage.py makemigrations
-              python manage.py migrate --no-input
-              python manage.py collectstatic --no-input
-              echo "Миграции применены к существующей БД"
-            fi
+            pip install -r requirements-server.txt
+            python manage.py makemigrations
+            python manage.py migrate --no-input
 
       - name: Restart Gunicorn
         uses: appleboy/ssh-action@v1
@@ -80,7 +70,6 @@ jobs:
             PIDS=$(pgrep -f gunicorn)
             MY_PID=$$
             MY_PPID=$(ps -o ppid= -p $$ | tr -d ' ')
-
             if [ -n "$PIDS" ]; then
               for pid in $PIDS; do
                 if [ "$pid" = "$MY_PID" ] || [ "$pid" = "$MY_PPID" ]; then
