@@ -30,7 +30,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements-server.txt
 
-      - name: Copy project to server
+      - name: Copy project to server (без перезаписи БД)
         uses: appleboy/scp-action@v1
         with:
           host: ${{ secrets.SSH_HOST }}
@@ -38,7 +38,7 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           source: "LIFTEH_project/"
           target: "${{ secrets.PROJECT_PATH }}"
-          rm: true
+          rm: false # ⚠️ Важно: НЕ удалять существующие файлы
           overwrite: true
 
       - name: Prepare server (migrations + static)
@@ -52,9 +52,34 @@ jobs:
             source ~/myenv/bin/activate
             export DJANGO_PRODUCTION=true
             export DJANGO_SETTINGS_MODULE=LIFTEH_project.settings
-            pip install -r requirements-server.txt
-            python manage.py makemigrations
-            python manage.py migrate --no-input
+
+            # ⚠️ Удаляем db.sqlite3 если он пришел из репозитория (разработки)
+            if [ -f "db.sqlite3" ]; then
+              # Проверяем размер файла - если маленький, значит это пустая БД из разработки
+              FILE_SIZE=$(stat -f%z "db.sqlite3" 2>/dev/null || stat -c%s "db.sqlite3" 2>/dev/null)
+              if [ "$FILE_SIZE" -lt 50000 ]; then  # Если файл меньше 50KB - это пустая БД
+                echo "Удаляем пустую БД из разработки..."
+                rm -f db.sqlite3
+              else
+                echo "Сохраняем существующую БД на сервере (размер: $FILE_SIZE байт)"
+              fi
+            fi
+
+            # Если БД нет - создаем через миграции
+            if [ ! -f "db.sqlite3" ]; then
+              echo "Создаем новую БД через миграции..."
+              python manage.py makemigrations
+              python manage.py migrate --no-input
+              # Создаем суперпользователя если нужно
+              # python manage.py createsuperuser --noinput --email admin@example.com || true
+            else
+              echo "Применяем миграции к существующей БД..."
+              python manage.py makemigrations
+              python manage.py migrate --no-input
+            fi
+
+            # Сбор статики
+            python manage.py collectstatic --no-input --clear
 
       - name: Restart Gunicorn
         uses: appleboy/ssh-action@v1
@@ -64,7 +89,7 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             source ~/myenv/bin/activate
-            cd ~/www/jelezo.by/LIFTEH_project || exit 1
+            cd ${{ secrets.PROJECT_PATH }}/LIFTEH_project || exit 1
             export DJANGO_PRODUCTION=true
             export DJANGO_SETTINGS_MODULE=LIFTEH_project.settings
             PIDS=$(pgrep -f gunicorn)

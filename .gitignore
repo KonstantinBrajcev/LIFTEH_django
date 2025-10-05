@@ -23,9 +23,8 @@ LIFTEH_project/LIFTEH_project/settings_local.py
 services_foto/
 
 # DataBase files
-*.sqlite3
-*.db
 db.sqlite3
+db_dev.sqlite3
 LIFTEH_project/db.sqlite3
 
 # Other files
