@@ -59,7 +59,7 @@ WSGI_APPLICATION = 'LIFTEH_project.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'NAME': BASE_DIR / 'db_dev.sqlite3',  # Другое имя для разработки
     }
 }
 
