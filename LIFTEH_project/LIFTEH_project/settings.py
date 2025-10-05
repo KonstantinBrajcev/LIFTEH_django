@@ -7,7 +7,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 PRODUCTION = os.getenv('DJANGO_PRODUCTION', 'False').lower() == 'true'
 
 if PRODUCTION:
-    SECRET_KEY = os.getenv('DJANGO_SECRET_KEY')
+    # Настройки для продакшена
+    SECRET_KEY = 'django-insecure-03alwk0(#3q^7&9v0i_!s+*bp-_)tspc7wsrrx1@gf02c-!3c('
+    # SECRET_KEY = os.getenv('DJANGO_SECRET_KEY')
     DEBUG = False
     ALLOWED_HOSTS = ['jelezo.by', '178.159.242.118', 'www.jelezo.by']
 
