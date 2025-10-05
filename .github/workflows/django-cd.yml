@@ -14,15 +14,13 @@ jobs:
         working-directory: ./LIFTEH_project/LIFTEH_project
         run: |
           if [ ! -f "settings_prod.py" ]; then
-            echo "::error::settings_prod.py not found in repository!"
             exit 1
           fi
-          echo "settings_prod.py found and valid"
 
       - name: Set up Python 3.8
         uses: actions/setup-python@v5
         with:
-          python-version: '3.8'
+          python-version: "3.8"
 
       - name: Install dependencies
         working-directory: ./LIFTEH_project
@@ -30,7 +28,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements-server.txt
 
-      - name: Copy project to server
+      - name: Copy project to server (исключая db.sqlite3)
         uses: appleboy/scp-action@v1
         with:
           host: ${{ secrets.SSH_HOST }}
@@ -40,7 +38,6 @@ jobs:
           target: "${{ secrets.PROJECT_PATH }}"
           rm: true
           overwrite: true
-          
 
       - name: Prepare server (migrations + static)
         uses: appleboy/ssh-action@v1
@@ -49,22 +46,25 @@ jobs:
           username: ${{ secrets.SSH_USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            echo "Начинаем подготовку сервера"
             cd ${{ secrets.PROJECT_PATH }}/LIFTEH_project
             source ~/myenv/bin/activate
             export DJANGO_SETTINGS_MODULE=LIFTEH_project.settings_prod
-            echo "Активирована виртуальная среда"
-                
-            echo "Установка зависимостей"
-            pip install -r requirements-server.txt
-  
-            echo "Применение миграций"
-            python manage.py makemigrations
-            python manage.py migrate --no-input
-  
-            echo "Сбор статических файлов"
-            # python manage.py collectstatic --no-input --clear
-  
+
+            # Создаем пустую БД если её нет
+            if [ ! -f "db.sqlite3" ]; then
+              python manage.py makemigrations
+              python manage.py migrate --no-input
+              echo "Создана новая база данных"
+            else
+              # Только применяем миграции к существующей БД
+              python manage.py makemigrations
+              python manage.py migrate --no-input
+              echo "Миграции применены к существующей БД"
+            fi
+
+            # Сбор статики
+            python manage.py collectstatic --no-input
+
       - name: Restart Gunicorn
         uses: appleboy/ssh-action@v1
         with:
@@ -72,39 +72,21 @@ jobs:
           username: ${{ secrets.SSH_USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            # set +e  # отключаем прерывание по ошибке
             source ~/myenv/bin/activate
-            echo "Виртуальная среда активирована"
-
             cd ~/www/jelezo.by/LIFTEH_project || exit 1
-            echo "Зашли в папку"
-
             export DJANGO_SETTINGS_MODULE=LIFTEH_project.settings_prod
-            echo "Экспортировали настройки"
-
             PIDS=$(pgrep -f gunicorn)
             MY_PID=$$
             MY_PPID=$(ps -o ppid= -p $$ | tr -d ' ')
-
             if [ -n "$PIDS" ]; then
-              echo "Gunicorn процессы найдены: $PIDS"
               for pid in $PIDS; do
                 if [ "$pid" = "$MY_PID" ] || [ "$pid" = "$MY_PPID" ]; then
-                  echo "Пропускаем свой PID: $pid"
                   continue
                 fi
-                echo "Пробуем завершить процесс $pid"
                 kill "$pid" 2>/dev/null || echo "Процесс $pid уже завершён"
               done
             else
-              echo "Gunicorn не запущен — ничего не делаем"
             fi
-
-            echo "Запускаем Gunicorn в фоне через nohup"
             nohup gunicorn --bind 0.0.0.0:8001 --workers 3 --timeout 120 LIFTEH_project.wsgi:application > gunicorn.log 2>&1 &
             sleep 3
-
-            echo "Проверка запущенных процессов:"
             pgrep -af gunicorn || echo "Gunicorn не запустился"
-            echo "Деплой завершён"
-            # exit 0
