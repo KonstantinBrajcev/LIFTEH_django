@@ -53,7 +53,7 @@ jobs:
             export DJANGO_PRODUCTION=true
             export DJANGO_SETTINGS_MODULE=LIFTEH_project.settings
 
-            # ⚠️ Удаляем db.sqlite3 если он пришел из репозитория (разработки)
+            # ⚠️ Удаляем db.sqlite3 если он пришел из репозитория
             if [ -f "db.sqlite3" ]; then
               # Проверяем размер файла - если маленький, значит это пустая БД из разработки
               FILE_SIZE=$(stat -f%z "db.sqlite3" 2>/dev/null || stat -c%s "db.sqlite3" 2>/dev/null)
@@ -70,7 +70,7 @@ jobs:
               echo "Создаем новую БД через миграции..."
               python manage.py makemigrations
               python manage.py migrate --no-input
-              # Создаем суперпользователя если нужно
+              # Создаем суперпользователя
               # python manage.py createsuperuser --noinput --email admin@example.com || true
             else
               echo "Применяем миграции к существующей БД..."
