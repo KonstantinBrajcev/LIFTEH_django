@@ -1,3 +1,6 @@
+import requests
+import re
+import json
 from django.http import JsonResponse
 from django.utils import timezone
 from datetime import datetime
@@ -21,8 +24,6 @@ from django.contrib.auth.mixins import UserPassesTestMixin
 from django.views.generic import TemplateView
 from datetime import datetime
 from django.shortcuts import render
-import re
-import json
 from django.http import JsonResponse
 from LIFTEH.models import Object, Avr, Service, Work, Diagnostic, Problem, Object
 from LIFTEH.forms import ObjectForm, ServiceForm, AvrForm, ObjectAvrForm, DiagnosticForm
@@ -894,6 +895,59 @@ def map_view(request):
 
     context = {
         'objects_data': json.dumps(objects_data),
-        'yandex_maps_api_key': settings.YANDEX_MAPS_API_KEY
+        'YANDEX_MAPS_API_KEY': settings.YANDEX_MAPS_API_KEY
     }
     return render(request, 'map.html', context)
+
+
+# ------ API ТРЕКЕРОВ --------
+def get_tracker_locations(request):
+    """API endpoint для получения текущих координат трекеров"""
+    try:
+        # Авторизация в API
+        auth_url = "http://monitoring.truck-control.info/api/login"
+        auth_data = {
+            "login": settings.TRACKER_API_LOGIN,
+            "password": settings.TRACKER_API_PASSWORD
+        }
+
+        # Получаем токен
+        auth_response = requests.post(auth_url, json=auth_data)
+        if auth_response.status_code != 200:
+            return JsonResponse({'error': 'Ошибка авторизации в API'}, status=500)
+
+        auth_result = auth_response.json()
+        if auth_result.get('status') != 'ok':
+            return JsonResponse({'error': 'Неверные учетные данные API'}, status=500)
+
+        token = auth_result['data']['token']
+
+        # Получаем данные трекеров
+        tracker_url = f"http://monitoring.truck-control.info/api/get_last_data?token={token}"
+        tracker_response = requests.post(tracker_url)
+
+        if tracker_response.status_code != 200:
+            return JsonResponse({'error': 'Ошибка получения данных трекеров'}, status=500)
+
+        tracker_data = tracker_response.json()
+
+        # Форматируем данные для карты
+        formatted_trackers = []
+        for tracker in tracker_data:
+            if tracker.get('valid') == 1 and tracker.get('xcoord') and tracker.get('ycoord'):
+                formatted_trackers.append({
+                    'tracker_id': tracker.get('trackerid'),
+                    'car_id': tracker.get('CarID', f"Трекер {tracker.get('trackerid')}"),
+                    'driver_name': tracker.get('DriverName'),
+                    'latitude': float(tracker['xcoord']),
+                    'longitude': float(tracker['ycoord']),
+                    'speed': tracker.get('speed', 0),
+                    'satellites': tracker.get('satcount', 0),
+                    'last_update': datetime.fromtimestamp(tracker.get('unixtime_coord', 0)).strftime('%d.%m.%Y %H:%M:%S'),
+                    'mileage': round(tracker.get('milage_db', 0), 2)
+                })
+
+        return JsonResponse(formatted_trackers, safe=False)
+
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)

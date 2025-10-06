@@ -55,5 +55,7 @@ urlpatterns = [
     path('map/', map_view, name='map'),
     path('api/objects', get_objects, name='get_objects'),
     path('get-objects/', views.get_objects, name='get_objects'),
+    path('get-tracker-locations/', views.get_tracker_locations,
+         name='get_tracker_locations'),
 
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
