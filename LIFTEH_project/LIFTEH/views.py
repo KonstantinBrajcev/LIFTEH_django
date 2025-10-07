@@ -895,7 +895,7 @@ def map_view(request):
 
     context = {
         'objects_data': json.dumps(objects_data),
-        'YANDEX_MAPS_API_KEY': settings.YANDEX_MAPS_API_KEY
+        'YANDEX_MAPS_API_KEY': 'b0a03b93-14f2-4e5a-b38a-25ee1d5296e0'
     }
     return render(request, 'map.html', context)
 
