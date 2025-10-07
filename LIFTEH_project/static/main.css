@@ -142,18 +142,19 @@ select[multiple] option:checked {
   text-align: center;
 }
 
-/* ПОДСВЕТКА ПРИ НАВЕДЕНИИ */
-/* .filter-toggle-btn:hover {
-  background-color: rgba(222, 76, 21, 1.0);
-  transform: translateY(-2px);
-} */
-
 .filter-button {
   position: absolute;
   top: 20px;
   left: 80px;
   z-index: 1000;
 }
+
+/* ПОДСВЕТКА ПРИ НАВЕДЕНИИ */
+/* .filter-toggle-btn:hover {
+  background-color: rgba(222, 76, 21, 1.0);
+  transform: translateY(-2px);
+} */
+
 
 .filter-toggle-btn.active-all,
 .filter-toggle-btn.active,
@@ -166,17 +167,6 @@ select[multiple] option:checked {
 .objects-btn.active-without-marks,
 .transport-btn.active-no-transport {
   background-color: rgba(222, 76, 21, 0.9);
-}
-
-/* Добавляем стили для второй кнопки */
-.filter-buttons {
-  position: absolute;
-  top: 5px;
-  left: 80px;
-  z-index: 1000;
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
 }
 
 
