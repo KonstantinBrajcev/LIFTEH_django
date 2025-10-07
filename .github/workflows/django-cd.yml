@@ -79,7 +79,7 @@ jobs:
 
             # Сбор статики с проверкой
             echo "Собираем статические файлы..."
-            python manage.py collectstatic --no-input --clear -v 3
+            python manage.py collectstatic --noinput --clear
 
             # Проверяем собранные статические файлы
             if [ -d "staticfiles" ]; then

@@ -41,12 +41,11 @@ else:
         }
     }
 
-    # Для разработки - пути к статическим файлам
     STATICFILES_DIRS = [
         os.path.join(BASE_DIR, 'static'),
     ]
 
-# Общие настройки (одинаковые для всех сред)
+# Общие настройки
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -114,38 +113,14 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
-# WhiteNoise настройки для лучшего обслуживания статики
+# РЕШЕНИЕ: Используем простую StaticFilesStorage без манифеста
 if PRODUCTION:
-    STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.ManifestStaticFilesStorage'
-
-    # Критически важные настройки для решения проблемы с бинарными файлами
-    WHITENOISE_IGNORE_PATTERNS = (
-        # Игнорировать бинарные файлы при сжатии
-        '*.pdf', '*.doc', '*.docx', '*.xls', '*.xlsx',
-        '*.zip', '*.rar', '*.7z', '*.tar', '*.gz',
-        '*.jpg', '*.jpeg', '*.png', '*.gif', '*.bmp', '*.ico', '*.svg',
-        '*.mp4', '*.avi', '*.mov', '*.mkv',
-        '*.mp3', '*.wav', '*.ogg', '*.flac',
-        '*.woff', '*.woff2', '*.ttf', '*.eot',
-    )
-
-    # Дополнительные настройки WhiteNoise для стабильности
-    WHITENOISE_USE_FINDERS = True
-    WHITENOISE_MANIFEST_STRICT = False
-    WHITENOISE_ALLOW_ALL_ORIGINS = True
+    STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 LOGOUT_REDIRECT_URL = 'login'
 LOGIN_URL = 'login'
-
-# Паттерны для игнорирования при сборе статических файлов
-STATICFILES_IGNORE_PATTERNS = [
-    'ico/*',
-    '*.scss',
-    '*.less',
-    '*.map'
-]
 
 # Дополнительная настройка для разработки
 if not PRODUCTION:
