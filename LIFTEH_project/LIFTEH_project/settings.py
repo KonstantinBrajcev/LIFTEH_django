@@ -10,6 +10,7 @@ PRODUCTION = os.getenv('DJANGO_PRODUCTION', 'False').lower() == 'true'
 YANDEX_MAPS_API_KEY = os.getenv(
     'YANDEX_MAPS_API_KEY', 'b0a03b93-14f2-4e5a-b38a-25ee1d5296e0')
 SECRET_KEY = 'django-insecure-03alwk0(#3q^7&9v0i_!s+*bp-_)tspc7wsrrx1@gf02c-!3c('
+
 # Настройки для API мониторинга автомобилей
 TRACKER_API_LOGIN = 'NOVASTARTEH'
 TRACKER_API_PASSWORD = 'NSTbelNST'
@@ -117,14 +118,35 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 if PRODUCTION:
     STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
+    # Критически важные настройки для решения проблемы с бинарными файлами
+    WHITENOISE_IGNORE_PATTERNS = (
+        # Игнорировать бинарные файлы при сжатии
+        '*.pdf', '*.doc', '*.docx', '*.xls', '*.xlsx',
+        '*.zip', '*.rar', '*.7z', '*.tar', '*.gz',
+        '*.jpg', '*.jpeg', '*.png', '*.gif', '*.bmp', '*.ico', '*.svg',
+        '*.mp4', '*.avi', '*.mov', '*.mkv',
+        '*.mp3', '*.wav', '*.ogg', '*.flac',
+        '*.woff', '*.woff2', '*.ttf', '*.eot',
+    )
+
+    # Дополнительные настройки WhiteNoise для стабильности
+    WHITENOISE_USE_FINDERS = True
+    WHITENOISE_MANIFEST_STRICT = False
+    WHITENOISE_ALLOW_ALL_ORIGINS = True
+
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 LOGOUT_REDIRECT_URL = 'login'
 LOGIN_URL = 'login'
 
+# Паттерны для игнорирования при сборе статических файлов
 STATICFILES_IGNORE_PATTERNS = [
     'ico/*',
     '*.scss',
     '*.less',
     '*.map'
 ]
+
+# Дополнительная настройка для разработки
+if not PRODUCTION:
+    STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
