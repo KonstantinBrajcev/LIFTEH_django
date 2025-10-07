@@ -126,12 +126,12 @@ select[multiple] option:checked {
   padding: 0.75rem 1.25rem;
 }
 
-/* Стиль кнопки фильтра КАРТЫ */
+/* Стиль КНОПОК фильтра КАРТЫ */
 .filter-toggle-btn {
   background-color: rgba(222, 76, 21, 0.9);
   color: white;
   border: none;
-  padding: 7px 12px;
+  padding: 7px 10px;
   border-radius: 5px;
   cursor: pointer;
   font-size: 14px;
@@ -142,15 +142,17 @@ select[multiple] option:checked {
   text-align: center;
 }
 
-.filter-button {
+.filter-buttons {
   position: absolute;
-  top: 20px;
+  top: 5px;
   left: 80px;
   z-index: 1000;
+  display: grid;
+  gap: 5px;
 }
 
-/* ПОДСВЕТКА ПРИ НАВЕДЕНИИ */
-/* .filter-toggle-btn:hover {
+/* ПОДСВЕТКА ПРИ НАВЕДЕНИИ
+.filter-toggle-btn:hover {
   background-color: rgba(222, 76, 21, 1.0);
   transform: translateY(-2px);
 } */
