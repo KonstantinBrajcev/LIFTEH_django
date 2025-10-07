@@ -142,15 +142,6 @@ select[multiple] option:checked {
   text-align: center;
 }
 
-.filter-buttons {
-  position: absolute;
-  top: 5px;
-  left: 80px;
-  z-index: 1000;
-  display: grid;
-  gap: 5px;
-}
-
 /* ПОДСВЕТКА ПРИ НАВЕДЕНИИ
 .filter-toggle-btn:hover {
   background-color: rgba(222, 76, 21, 1.0);
