@@ -116,7 +116,7 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 # WhiteNoise настройки для лучшего обслуживания статики
 if PRODUCTION:
-    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+    STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.ManifestStaticFilesStorage'
 
     # Критически важные настройки для решения проблемы с бинарными файлами
     WHITENOISE_IGNORE_PATTERNS = (
