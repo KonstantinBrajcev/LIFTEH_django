@@ -50,7 +50,7 @@ urlpatterns = [
     path('charts/', ChartsView.as_view(), name='charts'),
     path('tasks/', user_passes_test(lambda u: u.is_superuser)
          (TasksView.as_view()), name='tasks'),
-    path('tasks/', TasksView.as_view(), name='tasks'),
+#     path('tasks/', TasksView.as_view(), name='tasks'),
 
     path('map/', map_view, name='map'),
     path('api/objects', get_objects, name='get_objects'),
