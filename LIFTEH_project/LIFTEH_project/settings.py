@@ -19,15 +19,12 @@ TRACKER_API_PASSWORD = 'NSTbelNST'
 if PRODUCTION:
     DEBUG = False
     ALLOWED_HOSTS = ['jelezo.by', '178.159.242.118', 'www.jelezo.by']
-
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
             'NAME': BASE_DIR / 'db.sqlite3',
         }
     }
-
-    STATICFILES_DIRS = []
 
 # Настройки для разработки
 else:
@@ -41,9 +38,9 @@ else:
         }
     }
 
-    STATICFILES_DIRS = [
-        os.path.join(BASE_DIR, 'static'),
-    ]
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'static'),
+]
 
 # Общие настройки
 INSTALLED_APPS = [
