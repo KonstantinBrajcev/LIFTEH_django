@@ -3,133 +3,125 @@
 <html>
 <head>
 
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LIFTEH</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/css/bootstrap.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.10.2/dist/umd/popper.min.js"></script>
-    <link rel="icon" href="{% static 'favicon.ico' %}" type="image/x-icon">
-    <link rel="apple-touch-icon" href="/logo_lifteh.png">
-    <link rel="apple-touch-icon" sizes="192x192" href="/logo_lifteh.png">
-    <link rel="apple-touch-icon" sizes="512x512" href="/logo_lifteh.png">
-    <link href="{% static 'main.css' %}" rel="stylesheet">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LIFTEH</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.10.2/dist/umd/popper.min.js"></script>
+  <link rel="icon" href="{% static 'favicon.ico' %}" type="image/x-icon">
+  <link rel="apple-touch-icon" href="/logo_lifteh.png">
+  <link rel="apple-touch-icon" sizes="192x192" href="/logo_lifteh.png">
+  <link rel="apple-touch-icon" sizes="512x512" href="/logo_lifteh.png">
+  <link href="{% static 'main.css' %}" rel="stylesheet">
 
 </head>
 <body>
 
-    <div class="d-flex" style="background-color: #de4c15; margin-bottom: -15px; padding-left: 60px; justify-content: space-between;">
-            <div class="new map-header">
-                <a href="{% url 'map' %}" style="height: 64px;" data-tooltip="Карта">
-                  <img src="{% static 'logo_lifteh.png' %}" alt="Logo" style="height: 4em;">
-                </a>
-            </div>
+<div class="d-flex" style="background-color: #de4c15; margin-bottom: -15px; padding-left: 60px; justify-content: space-between;">
+    <div class="new map-header">
+      <a href="{% url 'map' %}" style="height: 64px;" data-tooltip="Карта">
+        <img src="{% static 'logo_lifteh.png' %}" alt="Logo" style="height: 4em;">
+      </a>
+    </div>
 
-        {% if user.is_authenticated %}
-          <div class="new" style="margin: 0px 20px;">
-            <span class="fw"><strong>{{ user.first_name }} {{ user.last_name }}</strong></span>
-          </div>
-        {% endif %}
+    {% if user.is_authenticated %}
+    <div class="new" style="margin: 0px 20px;">
+      <span class="fw"><strong>{{ user.first_name }} {{ user.last_name }}</strong></span>
+    </div>
+    {% endif %}
 
 
-        {% if user.is_authenticated %}
-        <div class="new" style="margin: 0px 0px;">
-        <form action="{% url 'logout' %}" method="post">
-          {% csrf_token %}
-          <button type="submit" class="btn btn-link">
-            <img src="{% static 'ico/box-arrow-in-right.svg' %}" alt="Выйти" 
-                 style="height: 30px; width: 30px; opacity: 0.8; filter: invert(100%) brightness(2);"
-                 onmouseover="this.style.opacity=1" 
-                 onmouseout="this.style.opacity=0.8">
-          </button>
-        </form>
-      </div>
+    {% if user.is_authenticated %}
+    <div class="new" style="margin: 0px 0px;">
+      <form action="{% url 'logout' %}" method="post">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-link">
+          <img src="{% static 'ico/box-arrow-in-right.svg' %}" alt="Выйти" 
+                style="height: 30px; width: 30px; opacity: 0.8; filter: invert(100%) brightness(2);"
+                onmouseover="this.style.opacity=1" 
+                onmouseout="this.style.opacity=0.8">
+        </button>
+      </form>
+    </div>
+    {% endif %}
+</div>
+
+
+<div>
+    <ul class="nav nav-tabs" style="background-color: #de4c15; padding-left: 70px; border-bottom: none; margin-bottom: -10px;">
+      <li class="nav-item" style="margin-bottom: 5px;">
+        <a class="nav-link tab-button active" onclick="showTab('service')"
+          data-bs-toggle="tooltip" data-bs-placement="bottom"
+          title="Обслуживание">
+
+            {% comment %} КАРТИНКА ОБЬЕКТОВ {% endcomment %}
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-tools" viewBox="0 0 16 16">
+            <path d="M1 0 0 1l2.2 3.081a1 1 0 0 0 .815.419h.07a1 1 0 0 1 .708.293l2.675 2.675-2.617 2.654A3.003 3.003 0 0 0 0 13a3 3 0 1 0 5.878-.851l2.654-2.617.968.968-.305.914a1 1 0 0 0 .242 1.023l3.27 3.27a.997.997 0 0 0 1.414 0l1.586-1.586a.997.997 0 0 0 0-1.414l-3.27-3.27a1 1 0 0 0-1.023-.242L10.5 9.5l-.96-.96 2.68-2.643A3.005 3.005 0 0 0 16 3q0-.405-.102-.777l-2.14 2.141L12 4l-.364-1.757L13.777.102a3 3 0 0 0-3.675 3.68L7.462 6.46 4.793 3.793a1 1 0 0 1-.293-.707v-.071a1 1 0 0 0-.419-.814zm9.646 10.646a.5.5 0 0 1 .708 0l2.914 2.915a.5.5 0 0 1-.707.707l-2.915-2.914a.5.5 0 0 1 0-.708M3 11l.471.242.529.026.287.445.445.287.026.529L5 13l-.242.471-.026.529-.445.287-.287.445-.529.026L3 15l-.471-.242L2 14.732l-.287-.445L1.268 14l-.026-.529L1 13l.242-.471.026-.529.445-.287.287-.445.529-.026z"/>
+            </svg>
+
+        </a>
+      </li>
+      <li class="nav-item" style="margin-left: -8px;">
+        <a class="nav-link tab-button" onclick="showTab('acts')"
+          data-bs-toggle="tooltip" data-bs-placement="bottom" 
+          title="Акты">
+        
+          {% comment %} КАРТИНКА АКТОВ {% endcomment %}
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-files" viewBox="0 0 16 16">
+            <path d="M13 0H6a2 2 0 0 0-2 2 2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h7a2 2 0 0 0 2-2 2 2 0 0 0 2-2V2a2 2 0 0 0-2-2m0 13V4a2 2 0 0 0-2-2H5a1 1 0 0 1 1-1h7a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1M3 4a1 1 0 0 1 1-1h7a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z"/>
+          </svg>
+        </a>
+      </li>
+      <li class="nav-item" style="margin-left: -8px;">
+        <a class="nav-link tab-button" onclick="showTab('problems')"
+          data-bs-toggle="tooltip" data-bs-placement="bottom" 
+          title="Проблемы">
+
+          {% comment %} КНОПКА ПРОБЛЕМЫ {% endcomment %}
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-ui-checks" viewBox="0 0 16 16">
+            <path d="M7 2.5a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-7a.5.5 0 0 1-.5-.5zM2 1a2 2 0 0 0-2 2v2a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2V3a2 2 0 0 0-2-2zm0 8a2 2 0 0 0-2 2v2a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2v-2a2 2 0 0 0-2-2zm.854-3.646a.5.5 0 0 1-.708 0l-1-1a.5.5 0 1 1 .708-.708l.646.647 1.646-1.647a.5.5 0 1 1 .708.708zm0 8a.5.5 0 0 1-.708 0l-1-1a.5.5 0 0 1 .708-.708l.646.647 1.646-1.647a.5.5 0 0 1 .708.708zM7 10.5a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-7a.5.5 0 0 1-.5-.5zm0-5a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5m0 8a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5"/>
+          </svg>
+        </a>
+      </li>
+      {% if user.is_superuser %}
+      <li class="nav-item" style="margin-left: -8px;">
+          <a class="nav-link tab-button" onclick="showTab('diagnostic')"
+            data-bs-toggle="tooltip" data-bs-placement="bottom" 
+            title="Диагностика">
+
+            {% comment %} КНОПКА ДИАГНОСТИКИ {% endcomment %}
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-gear" viewBox="0 0 16 16">
+              <path d="M8 4.754a3.246 3.246 0 1 0 0 6.492 3.246 3.246 0 0 0 0-6.492M5.754 8a2.246 2.246 0 1 1 4.492 0 2.246 2.246 0 0 1-4.492 0"/>
+              <path d="M9.796 1.343c-.527-1.79-3.065-1.79-3.592 0l-.094.319a.873.873 0 0 1-1.255.52l-.292-.16c-1.64-.892-3.433.902-2.54 2.541l.159.292a.873.873 0 0 1-.52 1.255l-.319.094c-1.79.527-1.79 3.065 0 3.592l.319.094a.873.873 0 0 1 .52 1.255l-.16.292c-.892 1.64.901 3.434 2.541 2.54l.292-.159a.873.873 0 0 1 1.255.52l.094.319c.527 1.79 3.065 1.79 3.592 0l.094-.319a.873.873 0 0 1 1.255-.52l.292.16c1.64.893 3.434-.902 2.54-2.541l-.159-.292a.873.873 0 0 1 .52-1.255l.319-.094c1.79-.527 1.79-3.065 0-3.592l-.319-.094a.873.873 0 0 1-.52-1.255l.16-.292c.893-1.64-.902-3.433-2.541-2.54l-.292.159a.873.873 0 0 1-1.255-.52zm-2.633.283c.246-.835 1.428-.835 1.674 0l.094.319a1.873 1.873 0 0 0 2.693 1.115l.291-.16c.764-.415 1.6.42 1.184 1.185l-.159.292a1.873 1.873 0 0 0 1.116 2.692l.318.094c.835.246.835 1.428 0 1.674l-.319.094a1.873 1.873 0 0 0-1.115 2.693l.16.291c.415.764-.42 1.6-1.185 1.184l-.291-.159a1.873 1.873 0 0 0-2.693 1.116l-.094.318c-.246.835-1.428.835-1.674 0l-.094-.319a1.873 1.873 0 0 0-2.692-1.115l-.292.16c-.764.415-1.6-.42-1.184-1.185l.159-.291A1.873 1.873 0 0 0 1.945 8.93l-.319-.094c-.835-.246-.835-1.428 0-1.674l.319-.094A1.873 1.873 0 0 0 3.06 4.377l-.16-.292c-.415-.764.42-1.6 1.185-1.184l.292.159a1.873 1.873 0 0 0 2.692-1.115z"/>
+            </svg>
+          </a>
+      </li>
+      <li class="nav-item" style="margin-left: -8px;">
+        <a class="nav-link tab-button" onclick="showTab('tasks')"
+          data-bs-toggle="tooltip" data-bs-placement="bottom" 
+          title="Задачи">
+
+          {% comment %} КНОПКА ЗАДАЧИ {% endcomment %}
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-key" viewBox="0 0 16 16">
+            <path d="M0 8a4 4 0 0 1 7.465-2H14a.5.5 0 0 1 .354.146l1.5 1.5a.5.5 0 0 1 0 .708l-1.5 1.5a.5.5 0 0 1-.708 0L13 9.207l-.646.647a.5.5 0 0 1-.708 0L11 9.207l-.646.647a.5.5 0 0 1-.708 0L9 9.207l-.646.647A.5.5 0 0 1 8 10h-.535A4 4 0 0 1 0 8m4-3a3 3 0 1 0 2.712 4.285A.5.5 0 0 1 7.163 9h.63l.853-.854a.5.5 0 0 1 .708 0l.646.647.646-.647a.5.5 0 0 1 .708 0l.646.647.646-.647a.5.5 0 0 1 .708 0l.646.647.793-.793-1-1h-6.63a.5.5 0 0 1-.451-.285A3 3 0 0 0 4 5"/>
+            <path d="M4 8a1 1 0 1 1-2 0 1 1 0 0 1 2 0"/>
+          </svg>
+        </a>
+      </li>
+      <li class="nav-item" style="margin-left: -8px;">
+        <a class="nav-link tab-button" onclick="showTab('charts')"
+          data-bs-toggle="tooltip" data-bs-placement="bottom" 
+          title="Графики">
+
+          {% comment %} КАРТИНКА ГРАФИКА {% endcomment %}
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-graph-up" viewBox="0 0 16 16">
+            <path fill-rule="evenodd" d="M0 0h1v15h15v1H0zm14.817 3.113a.5.5 0 0 1 .07.704l-4.5 5.5a.5.5 0 0 1-.74.037L7.06 6.767l-3.656 5.027a.5.5 0 0 1-.808-.588l4-5.5a.5.5 0 0 1 .758-.06l2.609 2.61 4.15-5.073a.5.5 0 0 1 .704-.07"/>
+          </svg>
+        </a>
+      </li>
       {% endif %}
-
-    </div>
-
-
-    <div>
-        <ul class="nav nav-tabs" style="background-color: #de4c15; padding-left: 70px; border-bottom: none; margin-bottom: -10px;">
-            <li class="nav-item" style="margin-bottom: 5px;">
-                <a class="nav-link tab-button active" onclick="showTab('service')"
-                data-bs-toggle="tooltip" data-bs-placement="bottom"
-                title="Обслуживание">
-
-                  {% comment %} КАРТИНКА ОБЬЕКТОВ {% endcomment %}
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-tools" viewBox="0 0 16 16">
-                  <path d="M1 0 0 1l2.2 3.081a1 1 0 0 0 .815.419h.07a1 1 0 0 1 .708.293l2.675 2.675-2.617 2.654A3.003 3.003 0 0 0 0 13a3 3 0 1 0 5.878-.851l2.654-2.617.968.968-.305.914a1 1 0 0 0 .242 1.023l3.27 3.27a.997.997 0 0 0 1.414 0l1.586-1.586a.997.997 0 0 0 0-1.414l-3.27-3.27a1 1 0 0 0-1.023-.242L10.5 9.5l-.96-.96 2.68-2.643A3.005 3.005 0 0 0 16 3q0-.405-.102-.777l-2.14 2.141L12 4l-.364-1.757L13.777.102a3 3 0 0 0-3.675 3.68L7.462 6.46 4.793 3.793a1 1 0 0 1-.293-.707v-.071a1 1 0 0 0-.419-.814zm9.646 10.646a.5.5 0 0 1 .708 0l2.914 2.915a.5.5 0 0 1-.707.707l-2.915-2.914a.5.5 0 0 1 0-.708M3 11l.471.242.529.026.287.445.445.287.026.529L5 13l-.242.471-.026.529-.445.287-.287.445-.529.026L3 15l-.471-.242L2 14.732l-.287-.445L1.268 14l-.026-.529L1 13l.242-.471.026-.529.445-.287.287-.445.529-.026z"/>
-                  </svg>
-
-                </a>
-            </li>
-            <li class="nav-item" style="margin-left: -8px;">
-              <a class="nav-link tab-button" onclick="showTab('acts')"
-              data-bs-toggle="tooltip" data-bs-placement="bottom" 
-              title="Акты">
-              
-              {% comment %} КАРТИНКА АКТОВ {% endcomment %}
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-files" viewBox="0 0 16 16">
-                <path d="M13 0H6a2 2 0 0 0-2 2 2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h7a2 2 0 0 0 2-2 2 2 0 0 0 2-2V2a2 2 0 0 0-2-2m0 13V4a2 2 0 0 0-2-2H5a1 1 0 0 1 1-1h7a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1M3 4a1 1 0 0 1 1-1h7a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z"/>
-              </svg>
-            </a>
-          </li>
-          
-          {% if user.is_superuser %}
-            <li class="nav-item" style="margin-left: -8px;">
-                <a class="nav-link tab-button" onclick="showTab('diagnostic')"
-                data-bs-toggle="tooltip" data-bs-placement="bottom" 
-                title="Диагностика">
-
-                  {% comment %} КНОПКА ДИАГНОСТИКИ {% endcomment %}
-                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-gear" viewBox="0 0 16 16">
-                  <path d="M8 4.754a3.246 3.246 0 1 0 0 6.492 3.246 3.246 0 0 0 0-6.492M5.754 8a2.246 2.246 0 1 1 4.492 0 2.246 2.246 0 0 1-4.492 0"/>
-                  <path d="M9.796 1.343c-.527-1.79-3.065-1.79-3.592 0l-.094.319a.873.873 0 0 1-1.255.52l-.292-.16c-1.64-.892-3.433.902-2.54 2.541l.159.292a.873.873 0 0 1-.52 1.255l-.319.094c-1.79.527-1.79 3.065 0 3.592l.319.094a.873.873 0 0 1 .52 1.255l-.16.292c-.892 1.64.901 3.434 2.541 2.54l.292-.159a.873.873 0 0 1 1.255.52l.094.319c.527 1.79 3.065 1.79 3.592 0l.094-.319a.873.873 0 0 1 1.255-.52l.292.16c1.64.893 3.434-.902 2.54-2.541l-.159-.292a.873.873 0 0 1 .52-1.255l.319-.094c1.79-.527 1.79-3.065 0-3.592l-.319-.094a.873.873 0 0 1-.52-1.255l.16-.292c.893-1.64-.902-3.433-2.541-2.54l-.292.159a.873.873 0 0 1-1.255-.52zm-2.633.283c.246-.835 1.428-.835 1.674 0l.094.319a1.873 1.873 0 0 0 2.693 1.115l.291-.16c.764-.415 1.6.42 1.184 1.185l-.159.292a1.873 1.873 0 0 0 1.116 2.692l.318.094c.835.246.835 1.428 0 1.674l-.319.094a1.873 1.873 0 0 0-1.115 2.693l.16.291c.415.764-.42 1.6-1.185 1.184l-.291-.159a1.873 1.873 0 0 0-2.693 1.116l-.094.318c-.246.835-1.428.835-1.674 0l-.094-.319a1.873 1.873 0 0 0-2.692-1.115l-.292.16c-.764.415-1.6-.42-1.184-1.185l.159-.291A1.873 1.873 0 0 0 1.945 8.93l-.319-.094c-.835-.246-.835-1.428 0-1.674l.319-.094A1.873 1.873 0 0 0 3.06 4.377l-.16-.292c-.415-.764.42-1.6 1.185-1.184l.292.159a1.873 1.873 0 0 0 2.692-1.115z"/>
-                  </svg>
-
-                </a>
-            </li>
-            {% endif %}
-            <li class="nav-item" style="margin-left: -8px;">
-                <a class="nav-link tab-button" onclick="showTab('problems')"
-                data-bs-toggle="tooltip" data-bs-placement="bottom" 
-                title="Проблемы">
-
-                  {% comment %} КНОПКА ПРОБЛЕМЫ {% endcomment %}
-                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-ui-checks" viewBox="0 0 16 16">
-                  <path d="M7 2.5a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-7a.5.5 0 0 1-.5-.5zM2 1a2 2 0 0 0-2 2v2a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2V3a2 2 0 0 0-2-2zm0 8a2 2 0 0 0-2 2v2a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2v-2a2 2 0 0 0-2-2zm.854-3.646a.5.5 0 0 1-.708 0l-1-1a.5.5 0 1 1 .708-.708l.646.647 1.646-1.647a.5.5 0 1 1 .708.708zm0 8a.5.5 0 0 1-.708 0l-1-1a.5.5 0 0 1 .708-.708l.646.647 1.646-1.647a.5.5 0 0 1 .708.708zM7 10.5a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-7a.5.5 0 0 1-.5-.5zm0-5a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5m0 8a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5"/>
-                  </svg>
-                </a>
-            </li>
-
-{% if user.is_superuser %}
-            <li class="nav-item" style="margin-left: -8px;">
-                <a class="nav-link tab-button" onclick="showTab('tasks')"
-                data-bs-toggle="tooltip" data-bs-placement="bottom" 
-                title="Задачи">
-
-                  {% comment %} КНОПКА ЗАДАЧИ {% endcomment %}
-                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-key" viewBox="0 0 16 16">
-                  <path d="M0 8a4 4 0 0 1 7.465-2H14a.5.5 0 0 1 .354.146l1.5 1.5a.5.5 0 0 1 0 .708l-1.5 1.5a.5.5 0 0 1-.708 0L13 9.207l-.646.647a.5.5 0 0 1-.708 0L11 9.207l-.646.647a.5.5 0 0 1-.708 0L9 9.207l-.646.647A.5.5 0 0 1 8 10h-.535A4 4 0 0 1 0 8m4-3a3 3 0 1 0 2.712 4.285A.5.5 0 0 1 7.163 9h.63l.853-.854a.5.5 0 0 1 .708 0l.646.647.646-.647a.5.5 0 0 1 .708 0l.646.647.646-.647a.5.5 0 0 1 .708 0l.646.647.793-.793-1-1h-6.63a.5.5 0 0 1-.451-.285A3 3 0 0 0 4 5"/>
-                  <path d="M4 8a1 1 0 1 1-2 0 1 1 0 0 1 2 0"/>
-                  </svg>
-                </a>
-            </li>
-            <li class="nav-item" style="margin-left: -8px;">
-                <a class="nav-link tab-button" onclick="showTab('charts')"
-                data-bs-toggle="tooltip" data-bs-placement="bottom" 
-                title="Графики">
-
-                  {% comment %} КАРТИНКА ГРАФИКА {% endcomment %}
-                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-graph-up" viewBox="0 0 16 16">
-                  <path fill-rule="evenodd" d="M0 0h1v15h15v1H0zm14.817 3.113a.5.5 0 0 1 .07.704l-4.5 5.5a.5.5 0 0 1-.74.037L7.06 6.767l-3.656 5.027a.5.5 0 0 1-.808-.588l4-5.5a.5.5 0 0 1 .758-.06l2.609 2.61 4.15-5.073a.5.5 0 0 1 .704-.07"/>
-                  </svg>
-
-                </a>
-            </li>
-{% endif %}
-
-        <ul>
-    </div>
+    <ul>
+</div>
 
     <div id="service" class="tab">
       {% include 'object_table.html' %}
@@ -204,293 +196,7 @@
   </div>
 
 
-<script>
-  // ---- ФУНКЦИЯ ДЛЯ ЗАГРУЗКИ ФОРМЫ РЕДАКТИРОВАНИЯ AVR ----
-function loadAvrEditForm(pk) {
-  const modal = new bootstrap.Modal(document.getElementById('objectModal'));
-  const url = `/avr/edit/${pk}/`;
-
-  fetch(url, {
-    headers: { 'X-Requested-With': 'XMLHttpRequest' }
-  })
-    .then(response => response.text())
-    .then(html => {
-      document.getElementById('modalTitle').textContent = 'Редактирование АВР';
-      document.getElementById('modalFormContent').innerHTML = html;
-      // Устанавливаем action формы
-      const form = document.querySelector('#objectModal form');
-      if (form) {
-        form.action = url;
-      }
-      modal.show();
-    })
-    .catch(error => console.error('Error:', error));
-}
-
-
-// ---- ФУНКЦИЯ ОТКРЫТИЯ МОДАЛЬНОГО ОКНА ----
-function loadModalForm(url, title, element) {
-  const modal = new bootstrap.Modal(document.getElementById('objectModal'));
-  document.getElementById('modalTitle').textContent = title;
-
-  // Получаем цвет из data-атрибута
-  const lastColor = element ? element.getAttribute('data-last-color') : null;
-
-  fetch(url, {
-    headers: { 'X-Requested-With': 'XMLHttpRequest' }
-  })
-    .then(response => response.text())
-    .then(html => {
-      document.getElementById('modalFormContent').innerHTML = html;
-
-      // Устанавливаем начальный цвет
-      if (lastColor) {
-        document.querySelector('.modal-content').style.backgroundColor = lastColor;
-      }
-      // Добавляем обработчик после загрузки содержимого
-      const addBtn = document.getElementById('addWorkButton');
-      // console.log("Функция addWorkRow доступна:", typeof addWorkRow === 'function');
-      if (addBtn) {
-        addBtn.addEventListener('click', addWorkRow);
-      }
-      setupFormSubmit();
-      // Добавляем обработчик для изменения цвета radio-кнопок
-      setupResultRadioButtons();
-      modal.show();
-    })
-    .catch(error => console.error('Error:', error));
-}
-
-
-// ---- ФУНКЦИЯ ДЛЯ НАСТРОЙКИ И ОТПРАВКИ ФОРМЫ ----
-function setupFormSubmit() {
-  const form = document.querySelector('#objectModal form');
-  if (form) {
-    form.addEventListener('submit', function (e) {
-      e.preventDefault();
-      const submitBtn = form.querySelector('button[type="submit"]');
-      const originalText = submitBtn.innerHTML;
-      submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status"></span> Сохранение...';
-      submitBtn.disabled = true;
-
-      fetch(form.action, {
-        method: 'POST',
-        body: new FormData(form),
-        headers: {
-          'X-CSRFToken': form.querySelector('[name=csrfmiddlewaretoken]').value,
-          'X-Requested-With': 'XMLHttpRequest'
-        }
-      })
-        .then(response => {
-          if (response.ok) { window.location.reload(); }
-          else {
-            return response.text().then(html => {
-              document.getElementById('modalFormContent').innerHTML = html;
-              setupFormSubmit();
-            });
-          }
-        })
-        .finally(() => {
-          submitBtn.innerHTML = originalText;
-          submitBtn.disabled = false;
-        });
-    });
-  }
-}
-
-// ---- ФУНКЦИЯ ДЛЯ ПОДТВЕРЖДЕНИЯ УДАЛЕНИЯ ----
-function confirmDelete(url, objectId) {
-  const modal = new bootstrap.Modal(document.getElementById('deleteConfirmModal'));
-  document.getElementById('deleteConfirmText').textContent =
-    `Вы уверены, что хотите удалить запись #${objectId}?`;
-  const form = document.getElementById('deleteForm');
-  form.action = url;
-  modal.show();
-}
-
-
-function showTab(tabName) {
-  // Скрыть все вкладки
-  const tabs = document.querySelectorAll('.tab');
-  tabs.forEach(tab => { tab.style.display = 'none'; });
-  // Удалить класс active у всех кнопок
-  const buttons = document.querySelectorAll('.tab-button');
-  buttons.forEach(button => {
-    button.classList.remove('active');
-  });
-  // Показать выбранную вкладку
-  document.getElementById(tabName).style.display = 'block';
-  document.querySelector(`.tab-button[onclick="showTab('${tabName}')"]`).classList.add('active');
-  window.history.pushState(null, null, `#${tabName}`);
-}
-// Показать первую вкладку по умолчанию
-const hash = window.location.hash.substring(1);
-if (hash) {
-  showTab(hash);
-} else {
-  showTab('service');
-}
-
-
-// ---- ФУНКЦИЯ ДОБАВЛЕНИЯ РАБОТ В АВР ----
-let rowCounter = 1; // Счетчик для генерации уникальных ID
-function addWorkRow() {
-  rowCounter++; // Добавьте эту строку
-  const container = document.getElementById('work-rows');
-  if (!container) {
-    console.error("Элемент work-rows не найден");
-    return;
-  }
-  const newRow = document.createElement('div');
-  newRow.className = 'work-row';
-  newRow.style.display = 'flex';
-  newRow.style.gap = '10px';
-  newRow.style.alignItems = 'center';
-  newRow.style.marginBottom = '10px';
-  // Генерируем уникальные ID с использованием счетчика
-  const workId = `workname-field-${rowCounter}`;
-  const unitId = `unit-field-${rowCounter}`;
-  const quantityId = `quantity-field-${rowCounter}`;
-
-  newRow.innerHTML = `
-            <div class="form-floating" style="flex: 1; min-width: 200px;">
-                <input class="form-control" type="text" id="${workId}" name="workname" maxlength="100" required>
-                <label class="form-label" for="${workId}">Наименование работ:</label>
-            </div>
-            
-            <div class="form-floating" style="width: 100px;">
-              <select class="form-select" id="${unitId}" name="unit" required>
-                <option value="шт.">шт.</option>
-                <option value="комп.">комп.</option>
-                <option value="л.">л.</option>
-                <option value="кг.">кг.</option>
-                <option value="м.">м.</option>
-              </select>
-              <label class="form-label" for="${unitId}">Ед. изм.:</label>
-            </div>
-
-            <div class="form-floating" style="width: 100px;">
-                <input class="form-control" type="number" id="${quantityId}" name="quantity" min="1" value="1" required>
-                <label class="form-label" for="${quantityId}">Кол-во:</label>
-            </div>
-        <button type="button" class="btn btn-danger remove-work"
-          style="align-self: stretch; display: flex; align-items: center; justify-content: center;">
-          <strong>X</strong>
-        </button>
-    `;
-  container.appendChild(newRow);
-  // Добавляем обработчик удаления строки
-  newRow.querySelector('.remove-work').addEventListener('click', function () {
-    container.removeChild(newRow);
-  });
-}
-
-
-// ---- ОБЪЕДИНЕННАЯ ФУНКЦИЯ ДЛЯ RADIO-КНОПОК ----
-function setupResultRadioButtons() {
-  const modalContent = document.querySelector('.modal-content');
-  const fotoGroup = document.getElementById('foto-group');
-  const commentsContainer = document.getElementById('comments-container');
-  const commentsField = document.getElementById('comments');
-
-  if (!modalContent || !fotoGroup || !commentsContainer) return;
-
-  // Функция для определения цвета последней записи
-  function getLastServiceClass() {
-    // Ищем таблицу обслуживания в загруженной форме модального окна
-    const modalContent = document.getElementById('modalFormContent');
-    if (!modalContent) return null;
-    const serviceRows = modalContent.querySelectorAll('tr.table-success, tr.table-warning, tr.table-danger');
-    if (serviceRows.length === 0) return null;
-    const lastRow = serviceRows[0];
-    if (lastRow.classList.contains('table-success')) return '#d4edda'; // Зеленый
-    if (lastRow.classList.contains('table-warning')) return '#fff3cd'; // Желтый
-    if (lastRow.classList.contains('table-danger')) return '#f8d7da';  // Красный
-    return null;
-  }
-
-  // Устанавливаем начальный цвет модального окна
-  const lastColor = getLastServiceClass();
-  if (lastColor) {
-    modalContent.style.backgroundColor = lastColor;
-  }
-
-  function updateUI() {
-    const selectedValue = document.querySelector('input[name="result"]:checked')?.value;
-    if (!selectedValue) return;
-
-    // 1. Обновляем фон модального окна
-    const newColor = {
-      '0': '#d4edda', // Зеленый
-      '1': '#fff3cd', // Желтый
-      '2': '#f8d7da'  // Красный
-    }[selectedValue];
-
-    if (newColor) {
-      modalContent.style.backgroundColor = newColor;
-      modalContent.style.transition = 'background-color 0.3s ease';
-    }
-
-    // 2. Управляем видимостью полей
-    if (selectedValue === '0') {
-      // Для "В исправном состоянии"
-      commentsContainer.style.display = 'none';
-      fotoGroup.classList.add('d-none');
-      commentsField.value = 'В исправном состоянии';
-    } else {
-      // Для остальных вариантов
-      commentsContainer.style.display = 'block';
-      fotoGroup.classList.remove('d-none');
-
-      if (selectedValue === '1') {
-        commentsField.value = 'Требуется устранить ...';
-      } else if (selectedValue === '2') {
-        commentsField.value = 'Не работает';
-      }
-    }
-
-    // 2. Управляем видимостью поля для фото
-    const shouldShowFoto = ['1', '2'].includes(selectedValue);
-    fotoGroup.classList.toggle('d-none', !shouldShowFoto);
-    document.getElementById('foto').required = false;
-
-  }
-
-  // Назначаем обработчики для всех radio-кнопок
-  document.querySelectorAll('input[name="result"]').forEach(radio => {
-    radio.addEventListener('change', updateUI);
-  });
-}
-
-// ---- ФУНКЦИЯ ЗАГРУЗКИ ПРОБЛЕМ В МОДАЛЬНОЕ ОКНО ----
-function loadProblemModalForm(url, title) {
-  const modal = new bootstrap.Modal(document.getElementById('objectModal'));
-  document.getElementById('modalTitle').textContent = title;
-
-  // Очищаем предыдущее содержимое
-  document.getElementById('modalFormContent').innerHTML =
-    '<div class="text-center py-4"><div class="spinner-border" role="status"><span class="visually-hidden">Загрузка...</span></div></div>';
-
-  fetch(url, {
-    headers: { 'X-Requested-With': 'XMLHttpRequest' }
-  })
-    .then(response => {
-      if (!response.ok) {
-        throw new Error('Network response was not ok');
-      }
-      return response.text();
-    })
-    .then(html => {
-      document.getElementById('modalFormContent').innerHTML = html;
-      modal.show();
-    })
-    .catch(error => {
-      console.error('Error:', error);
-      document.getElementById('modalFormContent').innerHTML =
-        '<div class="alert alert-danger">Ошибка загрузки формы</div>';
-    });
-}
-</script>
+<script src="{% static 'js/to.js' %}"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
 </body>

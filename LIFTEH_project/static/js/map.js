@@ -15,8 +15,14 @@ const objectsFilterStates = {
     without_marks: {
         text: "БЕЗ ОТМЕТОК",
         filter: "without_marks",
-        next: "all",
+        next: "without_all",
         className: "active-without-marks"
+    },
+    without_all: {
+        text: "БЕЗ ОБЬЕКТОВ",
+        filter: "without_all",
+        next: "all",
+        className: "without-all"
     }
 };
 
@@ -78,7 +84,8 @@ function loadObjects() {
     const showBuildings = currentObjectsState.filter === "all" || currentObjectsState.filter === "without_marks";
     const showTransport = currentTransportState.filter === "transport";
 
-    if (showBuildings) {
+    // Исправляем условие: если выбран режим "without_all" - не показываем здания
+    if (currentObjectsState.filter !== "without_all" && showBuildings) {
         loadBuildings(currentObjectsState.filter);
     }
 
@@ -87,7 +94,7 @@ function loadObjects() {
     }
 
     // Если ничего не выбрано, показываем пустую карту Беларуси
-    if (!showBuildings && !showTransport) {
+    if ((currentObjectsState.filter === "without_all" && !showTransport) || (!showBuildings && !showTransport)) {
         setBelarusBounds();
     }
 }
@@ -115,9 +122,7 @@ function loadBuildings(filterType) {
                 }
             });
 
-            if (placemarks.length > 0) {
-                clusterer.add(placemarks);
-            }
+            if (placemarks.length > 0) {clusterer.add(placemarks);}
 
             // Если транспорт не показан, устанавливаем границы
             if (currentTransportState.filter === "no_transport") {
@@ -194,7 +199,7 @@ function createBuildingPlacemark(obj, customIconSvg) {
             iconLayout: 'default#image',
             iconImageHref: customIconSvg,
             iconImageSize: [30, 30],
-            iconImageOffset: [-15, -35],
+            iconImageOffset: [-15, -30],
             balloonCloseButton: false
         }
     );
