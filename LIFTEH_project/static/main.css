@@ -15,6 +15,12 @@ html {
   flex-wrap: nowrap;
 }
 
+.table-hover tr:hover {
+  filter: brightness(0.8) !important;
+}
+.table-sm>:not(caption)>*>* {
+  padding: 0 0;
+}
 .nav-link.active {
   font-weight: bold;
 }

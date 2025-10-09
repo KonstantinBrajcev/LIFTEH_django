@@ -1,11 +1,4 @@
 {% load static %}
-
-<style>
-  .table-hover tr:hover {
-      filter: brightness(0.8) !important;
-  }
-</style>
-
 <div class="card">
   <div class="card-header d-flex">
     <h4>Объекты ТО</h4>
@@ -55,11 +48,11 @@
             </a>
           </td>
           <td style="text-align: center;">
-            <a href="tel:{{ object.phone }}" style="text-decoration: none; color: inherit;">
+            <a href="tel:{{ object.phone }}" style="text-decoration: none; color: inherit; text-wrap-mode: nowrap;">
               <img src="{% static 'ico/telephone.svg' %}" alt="phone" class="delete" style="width: 16px; height: 16px; vertical-align: middle;">
               {{ object.phone }}<br>
             </a>
-            {{ object.name }}
+            {% comment %} {{ object.name }} {% endcomment %}
           </td>
 
           <td style="text-align: end;">
@@ -106,8 +99,6 @@
           </td>
           <td class="delete"></td>
       </tr>
-      
-
   </table>
 </div>
 </div>

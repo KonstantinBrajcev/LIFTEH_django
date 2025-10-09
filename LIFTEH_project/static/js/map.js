@@ -44,6 +44,52 @@ const transportFilterStates = {
 let currentObjectsState = objectsFilterStates.all;
 let currentTransportState = transportFilterStates.transport;
 
+// Функция для создания балуна метки с кнопками
+function createPlacemarkBalloon(object) {
+    const balloonContent = `
+        <div class="balloon-content">
+            <h4>${object.customer || 'Заказчик не указан'}</h4>
+            <p><strong>Адрес:</strong> ${object.address || 'Не указан'}</p>
+            <p><strong>Телефон:</strong> ${object.phone || 'Не указан'}</p>
+            <div class="balloon-buttons">
+                <button class="btn btn-primary btn-sm" onclick="openServiceModal(${object.id})">
+                    Добавить ТО
+                </button>
+                <button class="btn btn-success btn-sm" onclick="openAvrModal(${object.id})">
+                    Добавить АВР
+                </button>
+            </div>
+        </div>
+    `;
+    return balloonContent;
+}
+
+// Функция для открытия модального окна ТО
+function openServiceModal(objectId) {
+    const url = `/service/add/${objectId}/`;
+    const title = 'Добавление обслуживания';
+    
+    // Используем функцию из to.js
+    if (typeof loadModalForm === 'function') {
+        loadModalForm(url, title);
+    } else {
+        console.error('Функция loadModalForm не найдена');
+    }
+}
+
+// Функция для открытия модального окна АВР
+function openAvrModal(objectId) {
+    const url = `/avr/add/${objectId}/`;
+    const title = 'Добавление АВР';
+    
+    // Используем функцию из to.js
+    if (typeof loadModalForm === 'function') {
+        loadModalForm(url, title);
+    } else {
+        console.error('Функция loadModalForm не найдена');
+    }
+}
+
 function initMap() {
     if (map) {
         map.destroy();
@@ -80,21 +126,25 @@ function loadObjects() {
     clearCarPlacemarks();
     clearBuildingPlacemarks();
 
-    // Определяем какие данные загружать на основе обеих кнопок
-    const showBuildings = currentObjectsState.filter === "all" || currentObjectsState.filter === "without_marks";
     const showTransport = currentTransportState.filter === "transport";
-
-    // Исправляем условие: если выбран режим "without_all" - не показываем здания
-    if (currentObjectsState.filter !== "without_all" && showBuildings) {
-        loadBuildings(currentObjectsState.filter);
+    
+    // Загружаем объекты в зависимости от состояния
+    switch (currentObjectsState.filter) {
+        case "all":
+            loadBuildings("all");
+            break;
+        case "without_marks":
+            loadBuildings("without_marks");
+            break;
+        case "without_all":
+            // Ничего не загружаем - объекты скрыты
+            break;
     }
 
-    if (showTransport) {
-        loadCars();
-    }
+    if (showTransport) {loadCars();}
 
-    // Если ничего не выбрано, показываем пустую карту Беларуси
-    if ((currentObjectsState.filter === "without_all" && !showTransport) || (!showBuildings && !showTransport)) {
+    // Если нет ни объектов, ни транспорта - показываем пустую карту
+    if (currentObjectsState.filter === "without_all" && !showTransport) {
         setBelarusBounds();
     }
 }
@@ -103,6 +153,7 @@ function loadBuildings(filterType) {
     fetch(`/get-objects/?filter=${filterType}`)
         .then(response => response.json())
         .then(objectsData => {
+            console.log('Полученные объекты:', objectsData); // ДЛЯ ОТЛАДКИ
             const placemarks = [];
             const uniqueAddresses = new Set();
 
@@ -294,25 +345,10 @@ function toggleTransportFilter() {
     loadObjects();
 }
 
-ymaps.ready(function () {
-    initMap();
-
-    // Обработчики для кнопок
-    document.getElementById('objectsToggle').addEventListener('click', toggleObjectsFilter);
-    document.getElementById('transportToggle').addEventListener('click', toggleTransportFilter);
-
-    map.events.add('click', function () {
-        map.balloon.close();
-        if (clusterer.balloon) {
-            clusterer.balloon.close();
-        }
-    });
-});
-
-// Остальные функции остаются без изменений
+// Обновленная функция создания балуна для зданий с кнопками
 function createBuildingBalloonContent(obj) {
-    return '<div style="border-radius: 5px;">' +
-        '<div style="background-color: #de4c15; color: white; padding: 8px; padding: 5px; font-weight: bold;">' +
+    return '<div style="border-radius: 5px; min-width: 250px;">' +
+        '<div style="background-color: #de4c15; color: white; padding: 8px; font-weight: bold;">' +
         obj.customer + '</div>' +
         '<a href="https://yandex.ru/maps/?text=' + obj.address + '" target="_blank" style="text-decoration: none; color: inherit; margin-right: 5px; color: #666;">' +
         '<img src="/static/ico/geo-alt.svg" alt="address" style="width: 16px; height: 16px; vertical-align: middle; margin: 5px;">' +
@@ -328,6 +364,13 @@ function createBuildingBalloonContent(obj) {
         '<img src="/static/ico/telephone.svg" alt="phone" style="width: 16px; height: 16px; vertical-align: middle; margin: 5px;">' +
         obj.phone + '</a><br>' +
         createServiceInfo(obj) +
+        // Добавляем кнопки в балун
+        '<div class="balloon-buttons" style="display: flex; gap: 5px; justify-content: center;">' +
+        '<button class="btn btn-primary btn-sm" onclick="openServiceModal(' + obj.id + '); event.stopPropagation();">' +
+        'Добавить ТО</button>' +
+        '<button class="btn btn-success btn-sm" onclick="openAvrModal(' + obj.id + '); event.stopPropagation();">' +
+        'Добавить АВР</button>' +
+        '</div>' +
         '</div>';
 }
 
@@ -392,3 +435,19 @@ function createServiceInfo(obj) {
     serviceHtml += '</div>';
     return serviceHtml;
 }
+
+// Инициализация карты
+ymaps.ready(function () {
+    initMap();
+
+    // Обработчики для кнопок
+    document.getElementById('objectsToggle').addEventListener('click', toggleObjectsFilter);
+    document.getElementById('transportToggle').addEventListener('click', toggleTransportFilter);
+
+    map.events.add('click', function () {
+        map.balloon.close();
+        if (clusterer.balloon) {
+            clusterer.balloon.close();
+        }
+    });
+});
