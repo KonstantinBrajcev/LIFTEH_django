@@ -68,7 +68,7 @@ function createPlacemarkBalloon(object) {
 function openServiceModal(objectId) {
     const url = `/service/add/${objectId}/`;
     const title = 'Добавление обслуживания';
-    
+
     // Используем функцию из to.js
     if (typeof loadModalForm === 'function') {
         loadModalForm(url, title);
@@ -81,7 +81,7 @@ function openServiceModal(objectId) {
 function openAvrModal(objectId) {
     const url = `/avr/add/${objectId}/`;
     const title = 'Добавление АВР';
-    
+
     // Используем функцию из to.js
     if (typeof loadModalForm === 'function') {
         loadModalForm(url, title);
@@ -127,7 +127,7 @@ function loadObjects() {
     clearBuildingPlacemarks();
 
     const showTransport = currentTransportState.filter === "transport";
-    
+
     // Загружаем объекты в зависимости от состояния
     switch (currentObjectsState.filter) {
         case "all":
@@ -141,7 +141,7 @@ function loadObjects() {
             break;
     }
 
-    if (showTransport) {loadCars();}
+    if (showTransport) { loadCars(); }
 
     // Если нет ни объектов, ни транспорта - показываем пустую карту
     if (currentObjectsState.filter === "without_all" && !showTransport) {
@@ -173,7 +173,7 @@ function loadBuildings(filterType) {
                 }
             });
 
-            if (placemarks.length > 0) {clusterer.add(placemarks);}
+            if (placemarks.length > 0) { clusterer.add(placemarks); }
 
             // Если транспорт не показан, устанавливаем границы
             if (currentTransportState.filter === "no_transport") {
@@ -203,7 +203,7 @@ function loadCars() {
                 return;
             }
 
-            const validTrackers = trackersData.filter(tracker => 
+            const validTrackers = trackersData.filter(tracker =>
                 tracker.latitude && tracker.longitude
             );
 
@@ -303,7 +303,7 @@ function startAutoUpdate() {
                 .then(trackersData => {
                     if (!trackersData.error) {
                         trackersData.forEach(tracker => {
-                            const existingPlacemark = carPlacemarks.find(p => 
+                            const existingPlacemark = carPlacemarks.find(p =>
                                 p.properties.get('balloonContent').includes(tracker.car_id)
                             );
                             if (existingPlacemark) {
@@ -350,18 +350,19 @@ function createBuildingBalloonContent(obj) {
     return '<div style="border-radius: 5px; min-width: 250px;">' +
         '<div style="background-color: #de4c15; color: white; padding: 8px; font-weight: bold;">' +
         obj.customer + '</div>' +
-        '<a href="https://yandex.ru/maps/?text=' + obj.address + '" target="_blank" style="text-decoration: none; color: inherit; margin-right: 5px; color: #666;">' +
-        '<img src="/static/ico/geo-alt.svg" alt="address" style="width: 16px; height: 16px; vertical-align: middle; margin: 5px;">' +
+        '<a href="https://yandex.ru/maps/?text=' + obj.address +
+        '" target="_blank" style="text-decoration: none; color: inherit; margin-right: 5px; color: #666;">' +
+        '<img src="/static/ico/geo-alt.svg" style="width: 16px; height: 16px; vertical-align: middle; margin: 5px;">' +
         obj.address + '</a><br>' +
         (obj.manual_url ?
             '<a href="' + obj.manual_url + '" target="_blank" style="text-decoration: none; color: inherit; cursor: pointer;" onclick="event.stopPropagation();">' +
-            '<img src="/static/ico/gear.svg" alt="model" style="width: 16px; height: 16px; vertical-align: middle; margin: 5px;">' +
+            '<img src="/static/ico/gear.svg" style="width: 16px; height: 16px; vertical-align: middle; margin: 5px;">' +
             obj.model + '</a><br>' :
             '<span style="color: #666;">' +
-            '<img src="/static/ico/gear.svg" alt="model" style="width: 16px; height: 16px; vertical-align: middle; margin: 5px; opacity: 0.5;">' +
-            obj.model + ' (нет руководства)</span><br>') +
+            '<img src="/static/ico/gear.svg" style="width: 16px; height: 16px; vertical-align: middle; margin: 5px; opacity: 0.5;">' +
+            obj.model + ' (*)</span><br>') +
         '<a href="tel:' + obj.phone + '" style="text-decoration: none; color: inherit; color: #666;">' +
-        '<img src="/static/ico/telephone.svg" alt="phone" style="width: 16px; height: 16px; vertical-align: middle; margin: 5px;">' +
+        '<img src="/static/ico/telephone.svg" style="width: 16px; height: 16px; vertical-align: middle; margin: 5px;">' +
         obj.phone + '</a><br>' +
         createServiceInfo(obj) +
         // Добавляем кнопки в балун
@@ -381,35 +382,35 @@ function createCarBalloonContent(tracker) {
         '<div style="background-color: #007bff; color: white; padding: 8px; font-weight: bold;">' + tracker.car_id + '</div>' +
         '<div style="padding: 8px;">' +
         '<div style="margin-bottom: 4px;">' +
-        '<img src="/static/ico/car-front-fill.svg" alt="auto" style="width: 16px; height: 16px; vertical-align: middle; margin-right: 5px;">' +
+        '<img src="/static/ico/car-front-fill.svg" style="width: 16px; height: 16px; vertical-align: middle; margin-right: 5px;">' +
         '<strong>Автомобиль:</strong> ' + (tracker.tracker_id == 1801661 ? 'VW Crafter' : 'MB Sprinter') +
         '</div>' +
         '<div style="margin-bottom: 4px;">' +
-        '<img src="/static/ico/nvme.svg" alt="number" style="width: 16px; height: 16px; vertical-align: middle; margin-right: 5px;">' +
+        '<img src="/static/ico/nvme.svg" style="width: 16px; height: 16px; vertical-align: middle; margin-right: 5px;">' +
         '<strong>Гос номер:</strong> ' + (tracker.tracker_id == 1801661 ? 'AH 2456-3' : '1256 MB-3') +
         '</div>' +
         '<div style="margin-bottom: 4px;">' +
-        '<img src="/static/ico/person.svg" alt="driver" style="width: 16px; height: 16px; vertical-align: middle; margin-right: 5px;">' +
+        '<img src="/static/ico/person.svg" style="width: 16px; height: 16px; vertical-align: middle; margin-right: 5px;">' +
         '<strong>Водитель:</strong> ' + tracker.driver_name +
         '</div>' +
         '<div style="margin-bottom: 4px;">' +
-        '<img src="/static/ico/speedometer.svg" alt="speed" style="width: 16px; height: 16px; vertical-align: middle; margin-right: 5px;">' +
+        '<img src="/static/ico/speedometer.svg" style="width: 16px; height: 16px; vertical-align: middle; margin-right: 5px;">' +
         '<strong>Скорость:</strong> ' + tracker.speed + ' км/ч' +
         '</div>' +
         '<div style="margin-bottom: 4px;">' +
-        '<img src="/static/ico/radar.svg" alt="satellites" style="width: 16px; height: 16px; vertical-align: middle; margin-right: 5px;">' +
+        '<img src="/static/ico/radar.svg" style="width: 16px; height: 16px; vertical-align: middle; margin-right: 5px;">' +
         '<strong>Спутники:</strong> ' + tracker.satellites +
         '</div>' +
         '<div style="margin-bottom: 4px;">' +
-        '<img src="/static/ico/123.svg" alt="mileage" style="width: 16px; height: 16px; vertical-align: middle; margin-right: 5px;">' +
+        '<img src="/static/ico/123.svg" style="width: 16px; height: 16px; vertical-align: middle; margin-right: 5px;">' +
         '<strong>Пробег:</strong> ' + tracker.mileage + ' км' +
         '</div>' +
         '<div style="margin-bottom: 4px;">' +
-        '<img src="/static/ico/recycle.svg" alt="mileage" style="width: 16px; height: 16px; vertical-align: middle; margin-right: 5px;">' +
+        '<img src="/static/ico/recycle.svg" style="width: 16px; height: 16px; vertical-align: middle; margin-right: 5px;">' +
         '<strong>Дата обновления:</strong> ' + (date || '--.--.----') +
         '</div>' +
         '<div style="margin-bottom: 4px;">' +
-        '<img src="/static/ico/recycle.svg" alt="mileage" style="width: 16px; height: 16px; vertical-align: middle; margin-right: 5px;">' +
+        '<img src="/static/ico/recycle.svg" style="width: 16px; height: 16px; vertical-align: middle; margin-right: 5px;">' +
         '<strong>Время обновления:</strong> ' + (time || '--:--:--') +
         '</div>' +
         '</div></div>';
@@ -420,12 +421,12 @@ function createServiceInfo(obj) {
     serviceHtml += '<div style="font-weight: bold; color: #de4c15; margin-left: 5px; text-align: left;">Последнее ТО</div>';
     if (obj.last_service_date) {
         serviceHtml += '<div style="display: flex; align-items: center;">';
-        serviceHtml += '<img src="/static/ico/calendar.svg" alt="date" style="width: 16px; height: 16px; vertical-align: middle; margin: 5px;">';
+        serviceHtml += '<img src="/static/ico/calendar.svg" style="width: 16px; height: 16px; vertical-align: middle; margin: 5px;">';
         serviceHtml += '<span style="font-size: 14px; color: #666;">' + obj.last_service_date + '</span>';
         serviceHtml += '</div>';
         if (obj.last_service_comments) {
             serviceHtml += '<div style="display: flex; align-items: center;">';
-            serviceHtml += '<img src="/static/ico/chat-left-text.svg" alt="comments" style="width: 16px; height: 16px; vertical-align: middle; margin: 5px;">';
+            serviceHtml += '<img src="/static/ico/chat-left-text.svg" style="width: 16px; height: 16px; vertical-align: middle; margin: 5px;">';
             serviceHtml += '<span style="font-size: 14px; color: #666;">' + obj.last_service_comments + '</span>';
             serviceHtml += '</div>';
         }
