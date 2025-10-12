@@ -106,16 +106,51 @@ function showTab(tabName) {
   // Скрыть все вкладки
   const tabs = document.querySelectorAll('.tab');
   tabs.forEach(tab => { tab.style.display = 'none'; });
+
   // Удалить класс active у всех кнопок
   const buttons = document.querySelectorAll('.tab-button');
   buttons.forEach(button => {
     button.classList.remove('active');
   });
+
   // Показать выбранную вкладку
   document.getElementById(tabName).style.display = 'block';
   document.querySelector(`.tab-button[onclick="showTab('${tabName}')"]`).classList.add('active');
   window.history.pushState(null, null, `#${tabName}`);
+
+  // Если переключаемся на вкладку с графиками
+  if (tabName === 'charts') {
+    // Даем время на отображение вкладки
+    setTimeout(() => {
+      if (window.initChartsOnTabShow) {
+        window.initChartsOnTabShow();
+      } else {
+        console.warn('Charts initialization function not found');
+        // Резервная инициализация
+        if (window.chartData && typeof initializeCharts === 'function') {
+          setTimeout(initializeCharts, 300);
+        }
+      }
+    }, 200);
+  }
 }
+
+// Функция для инициализации графиков (резервная)
+function initializeChartsFallback() {
+  console.log('Using fallback charts initialization');
+  const monthChartEl = document.getElementById('monthChart');
+  const customerChartEl = document.getElementById('customerChart');
+  const avgChartEl = document.getElementById('avgChart');
+
+  if ((monthChartEl || customerChartEl || avgChartEl) && window.chartData) {
+    console.log('Charts elements found, initializing...');
+    // Если функция initializeCharts существует в глобальной области
+    if (typeof initializeCharts === 'function') {
+      initializeCharts();
+    }
+  }
+}
+
 // Показать первую вкладку по умолчанию
 const hash = window.location.hash.substring(1);
 if (hash) {
@@ -123,6 +158,21 @@ if (hash) {
 } else {
   showTab('service');
 }
+
+// Инициализация при загрузке страницы
+document.addEventListener('DOMContentLoaded', function () {
+  // Проверяем, активна ли вкладка с графиками при загрузке
+  const activeTab = document.querySelector('.tab-button.active');
+  if (activeTab && activeTab.getAttribute('onclick').includes('charts')) {
+    setTimeout(() => {
+      if (window.initChartsOnTabShow) {
+        window.initChartsOnTabShow();
+      } else {
+        initializeChartsFallback();
+      }
+    }, 1000);
+  }
+});
 
 
 // ---- ФУНКЦИЯ ДОБАВЛЕНИЯ РАБОТ В АВР ----

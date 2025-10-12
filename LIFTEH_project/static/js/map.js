@@ -5,44 +5,52 @@ let buildingPlacemarks = [];
 let updateInterval;
 
 // Состояния кнопок
+// Упрощенные состояния (можно оставить старые, они будут работать)
 const objectsFilterStates = {
-    all: {
-        text: "ВСЕ ОБЪЕКТЫ",
-        filter: "all",
-        next: "without_marks",
-        className: "active-all"
-    },
-    without_marks: {
-        text: "БЕЗ ОТМЕТОК",
-        filter: "without_marks",
-        next: "without_all",
-        className: "active-without-marks"
-    },
-    without_all: {
-        text: "БЕЗ ОБЬЕКТОВ",
-        filter: "without_all",
-        next: "all",
-        className: "without-all"
-    }
+    all: "all",
+    without_marks: "without_marks"
 };
 
 const transportFilterStates = {
-    transport: {
-        text: "ТРАНСПОРТ",
-        filter: "transport",
-        next: "no_transport",
-        className: "active-transport"
-    },
-    no_transport: {
-        text: "БЕЗ ТРАНСПОРТА",
-        filter: "no_transport",
-        next: "transport",
-        className: "active-no-transport"
-    }
+    transport: "transport",
+    no_transport: "no_transport"
 };
 
 let currentObjectsState = objectsFilterStates.all;
 let currentTransportState = transportFilterStates.transport;
+
+// Удалите старые функции переключения и добавьте новые:
+
+function toggleObjectsFilter() {
+    const switchElement = document.getElementById('objectsSwitch');
+    const isChecked = switchElement.checked;
+
+    if (isChecked) {
+        currentObjectsState = objectsFilterStates.all;
+    } else {
+        currentObjectsState = objectsFilterStates.without_marks;
+    }
+
+    loadObjects();
+}
+
+function toggleTransportFilter() {
+    const switchElement = document.getElementById('transportSwitch');
+    const isChecked = switchElement.checked;
+
+    // Останавливаем автообновление при выключении транспорта
+    if (!isChecked && updateInterval) {
+        clearInterval(updateInterval);
+    }
+
+    if (isChecked) {
+        currentTransportState = transportFilterStates.transport;
+    } else {
+        currentTransportState = transportFilterStates.no_transport;
+    }
+
+    loadObjects();
+}
 
 // Функция для создания балуна метки с кнопками
 function createPlacemarkBalloon(object) {
@@ -126,25 +134,29 @@ function loadObjects() {
     clearCarPlacemarks();
     clearBuildingPlacemarks();
 
-    const showTransport = currentTransportState.filter === "transport";
+    const showTransport = currentTransportState === "transport"; // Убрали .filter
 
     // Загружаем объекты в зависимости от состояния
-    switch (currentObjectsState.filter) {
+    switch (currentObjectsState) { // Убрали .filter
         case "all":
             loadBuildings("all");
             break;
         case "without_marks":
             loadBuildings("without_marks");
             break;
-        case "without_all":
-            // Ничего не загружаем - объекты скрыты
-            break;
     }
 
-    if (showTransport) { loadCars(); }
+    if (showTransport) {
+        loadCars();
+    } else {
+        // Если транспорт скрыт, устанавливаем границы только по объектам
+        if (buildingPlacemarks.length > 0) {
+            setBelarusBounds();
+        }
+    }
 
     // Если нет ни объектов, ни транспорта - показываем пустую карту
-    if (currentObjectsState.filter === "without_all" && !showTransport) {
+    if (currentObjectsState === "without_all" && !showTransport) {
         setBelarusBounds();
     }
 }
@@ -176,7 +188,7 @@ function loadBuildings(filterType) {
             if (placemarks.length > 0) { clusterer.add(placemarks); }
 
             // Если транспорт не показан, устанавливаем границы
-            if (currentTransportState.filter === "no_transport") {
+            if (currentTransportState === "no_transport") {
                 setBelarusBounds();
             }
         })
@@ -223,7 +235,7 @@ function loadCars() {
             setBelarusBounds();
 
             // Запускаем автоматическое обновление если транспорт показан
-            if (currentTransportState.filter === "transport") {
+            if (currentTransportState === "transport") {
                 startAutoUpdate();
             }
         })
@@ -297,7 +309,7 @@ function startAutoUpdate() {
     }
 
     updateInterval = setInterval(() => {
-        if (currentTransportState.filter === "transport") {
+        if (currentTransportState === "transport") { // Убрали .filter
             fetch('/get-tracker-locations/')
                 .then(response => response.json())
                 .then(trackersData => {
@@ -320,27 +332,34 @@ function startAutoUpdate() {
 }
 
 // Функции переключения кнопок
+// ОСТАВЬТЕ ТОЛЬКО ЭТИ НОВЫЕ ФУНКЦИИ:
 function toggleObjectsFilter() {
-    currentObjectsState = objectsFilterStates[currentObjectsState.next];
+    const switchElement = document.getElementById('objectsSwitch');
+    const isChecked = switchElement.checked;
 
-    const button = document.getElementById('objectsToggle');
-    button.textContent = currentObjectsState.text;
-    button.className = 'filter-toggle-btn objects-btn ' + currentObjectsState.className;
+    if (isChecked) {
+        currentObjectsState = objectsFilterStates.all;
+    } else {
+        currentObjectsState = objectsFilterStates.without_marks;
+    }
 
     loadObjects();
 }
 
 function toggleTransportFilter() {
+    const switchElement = document.getElementById('transportSwitch');
+    const isChecked = switchElement.checked;
+
     // Останавливаем автообновление при выключении транспорта
-    if (currentTransportState.filter === "transport" && updateInterval) {
+    if (!isChecked && updateInterval) {
         clearInterval(updateInterval);
     }
 
-    currentTransportState = transportFilterStates[currentTransportState.next];
-
-    const button = document.getElementById('transportToggle');
-    button.textContent = currentTransportState.text;
-    button.className = 'filter-toggle-btn transport-btn ' + currentTransportState.className;
+    if (isChecked) {
+        currentTransportState = transportFilterStates.transport;
+    } else {
+        currentTransportState = transportFilterStates.no_transport;
+    }
 
     loadObjects();
 }
@@ -441,9 +460,13 @@ function createServiceInfo(obj) {
 ymaps.ready(function () {
     initMap();
 
-    // Обработчики для кнопок
-    document.getElementById('objectsToggle').addEventListener('click', toggleObjectsFilter);
-    document.getElementById('transportToggle').addEventListener('click', toggleTransportFilter);
+    // // Обработчики для кнопок
+    // document.getElementById('objectsToggle').addEventListener('click', toggleObjectsFilter);
+    // document.getElementById('transportToggle').addEventListener('click', toggleTransportFilter);
+
+    // Обработчики для переключателей
+    document.getElementById('objectsSwitch').addEventListener('change', toggleObjectsFilter);
+    document.getElementById('transportSwitch').addEventListener('change', toggleTransportFilter);
 
     map.events.add('click', function () {
         map.balloon.close();

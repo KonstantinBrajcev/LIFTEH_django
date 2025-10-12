@@ -829,16 +829,16 @@ def get_objects(request):
 
             objects = objects.exclude(id__in=objects_with_service)
 
-        elif filter_type == 'all':
-            # Все объекты с заполненными месячными полями
-            month_fields = ['M1', 'M2', 'M3', 'M4', 'M5', 'M6',
-                            'M7', 'M8', 'M9', 'M10', 'M11', 'M12']
+        # elif filter_type == 'all':
+        #     # Все объекты с заполненными месячными полями
+        #     month_fields = ['M1', 'M2', 'M3', 'M4', 'M5', 'M6',
+        #                     'M7', 'M8', 'M9', 'M10', 'M11', 'M12']
 
-            # Создаем условия для проверки, что поле текущего месяца не NULL
-            current_month_field = f'M{current_month}'
-            if hasattr(Object, current_month_field):
-                objects = objects.exclude(
-                    **{f'{current_month_field}__isnull': True})
+        #     # Создаем условия для проверки, что поле текущего месяца не NULL
+        #     current_month_field = f'M{current_month}'
+        #     if hasattr(Object, current_month_field):
+        #         objects = objects.exclude(
+        #             **{f'{current_month_field}__isnull': True})
 
         objects_data = []
         for obj in objects:
@@ -869,32 +869,32 @@ def get_objects(request):
 
 def map_view(request):
     """Представление для отображения карты с данными в шаблоне"""
-    objects = Object.objects.exclude(
-        latitude__isnull=True).exclude(longitude__isnull=True)
+    # objects = Object.objects.exclude(
+    #     latitude__isnull=True).exclude(longitude__isnull=True)
 
-    objects_data = []
-    for obj in objects:
-        manual_url = f"https://disk.yandex.ru/d/{obj.folder_id}" if obj.folder_id else None
+    # objects_data = []
+    # for obj in objects:
+    #     manual_url = f"https://disk.yandex.ru/d/{obj.folder_id}" if obj.folder_id else None
 
-        # Получаем последний осмотр для этого объекта
-        last_service = Service.objects.filter(
-            object=obj).order_by('-service_date').first()
+    #     # Получаем последний осмотр для этого объекта
+    #     last_service = Service.objects.filter(
+    #         object=obj).order_by('-service_date').first()
 
-        objects_data.append({
-            'id': obj.id,
-            'customer': obj.customer,
-            'address': obj.address,
-            'latitude': float(obj.latitude) if obj.latitude else None,
-            'longitude': float(obj.longitude) if obj.longitude else None,
-            'model': obj.model,
-            'phone': obj.phone,
-            'manual_url': manual_url,
-            'last_service_date': last_service.service_date.strftime('%d.%m.%Y') if last_service else None,
-            'last_service_comments': last_service.comments if last_service else None
-        })
+    #     objects_data.append({
+    #         'id': obj.id,
+    #         'customer': obj.customer,
+    #         'address': obj.address,
+    #         'latitude': float(obj.latitude) if obj.latitude else None,
+    #         'longitude': float(obj.longitude) if obj.longitude else None,
+    #         'model': obj.model,
+    #         'phone': obj.phone,
+    #         'manual_url': manual_url,
+    #         'last_service_date': last_service.service_date.strftime('%d.%m.%Y') if last_service else None,
+    #         'last_service_comments': last_service.comments if last_service else None
+    #     })
 
     context = {
-        'objects_data': json.dumps(objects_data),
+        'objects_data': '[]',
         'YANDEX_MAPS_API_KEY': settings.YANDEX_MAPS_API_KEY
     }
     return render(request, 'map.html', context)
