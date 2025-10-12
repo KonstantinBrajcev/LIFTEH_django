@@ -1,3 +1,5 @@
+from django.contrib.auth import authenticate
+from django.views.decorators.csrf import csrf_exempt
 import requests
 import re
 import json
@@ -951,3 +953,54 @@ def get_tracker_locations(request):
 
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
+
+
+# ---------- ЭТО API для FLUTTER --------------
+# Добавьте эти импорты
+
+# Добавьте этот класс в views.py
+
+class ApiLoginView(View):
+    @method_decorator(csrf_exempt)
+    def dispatch(self, *args, **kwargs):
+        return super().dispatch(*args, **kwargs)
+
+    def post(self, request):
+        try:
+            # Парсим JSON данные из Flutter приложения
+            data = json.loads(request.body)
+            username = data.get('username')
+            password = data.get('password')
+
+            # Аутентифицируем пользователя
+            user = authenticate(request, username=username, password=password)
+
+            if user is not None:
+                # Успешная аутентификация
+                login(request, user)
+                return JsonResponse({
+                    'success': True,
+                    'user': {
+                        'id': user.id,
+                        'username': user.username,
+                        'email': user.email,
+                        'is_superuser': user.is_superuser
+                    }
+                })
+            else:
+                # Неверные учетные данные
+                return JsonResponse({
+                    'success': False,
+                    'error': 'Неверный логин или пароль'
+                }, status=401)
+
+        except json.JSONDecodeError:
+            return JsonResponse({
+                'success': False,
+                'error': 'Неверный формат данных'
+            }, status=400)
+        except Exception as e:
+            return JsonResponse({
+                'success': False,
+                'error': f'Ошибка сервера: {str(e)}'
+            }, status=500)

@@ -2,6 +2,7 @@ from django.contrib import admin
 from django.contrib.auth import views as auth_views
 from django.urls import path
 from LIFTEH.views import LoginView, ToView, HomeView, ChartsView, TasksView, DiagnosticView, map_view, get_objects
+from LIFTEH.views import ApiLoginView
 from LIFTEH import views
 from django.conf import settings
 from django.conf.urls.static import static
@@ -50,12 +51,15 @@ urlpatterns = [
     path('charts/', ChartsView.as_view(), name='charts'),
     path('tasks/', user_passes_test(lambda u: u.is_superuser)
          (TasksView.as_view()), name='tasks'),
-#     path('tasks/', TasksView.as_view(), name='tasks'),
+    #     path('tasks/', TasksView.as_view(), name='tasks'),
 
     path('map/', map_view, name='map'),
     path('api/objects', get_objects, name='get_objects'),
     path('get-objects/', views.get_objects, name='get_objects'),
     path('get-tracker-locations/', views.get_tracker_locations,
          name='get_tracker_locations'),
+
+    # API endpoint для Flutter приложения
+    path('api/auth/login/', ApiLoginView.as_view(), name='api_login'),
 
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
