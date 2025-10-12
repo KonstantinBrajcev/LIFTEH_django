@@ -18,13 +18,14 @@ TRACKER_API_PASSWORD = 'NSTbelNST'
 # Настройки для продакшена
 if PRODUCTION:
     DEBUG = False
+    ALLOWED_HOSTS = ['jelezo.by', '178.159.242.118', 'www.jelezo.by']
     # Или укажите конкретные домены для продакшена
     CORS_ALLOWED_ORIGINS = [
         "http://localhost:3000",
         "http://127.0.0.1:3000",
         "https://jelezo.by",
+        "http://jelezo.by",
     ]
-    ALLOWED_HOSTS = ['jelezo.by', '178.159.242.118', 'www.jelezo.by']
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
@@ -35,9 +36,9 @@ if PRODUCTION:
 # Настройки для разработки
 else:
     DEBUG = True
+    ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
     # Разрешите все домены для разработки
     CORS_ALLOW_ALL_ORIGINS = True
-    ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
 
     DATABASES = {
         'default': {
