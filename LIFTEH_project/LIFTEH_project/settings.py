@@ -15,17 +15,24 @@ SECRET_KEY = 'django-insecure-03alwk0(#3q^7&9v0i_!s+*bp-_)tspc7wsrrx1@gf02c-!3c(
 TRACKER_API_LOGIN = 'NOVASTARTEH'
 TRACKER_API_PASSWORD = 'NSTbelNST'
 
+# ПОЛНОЕ ОТКЛЮЧЕНИЕ CORS - РАЗРЕШАЕМ ВСЁ
+CORS_ALLOW_ALL_ORIGINS = True  # ГЛАВНАЯ НАСТРОЙКА - разрешить ВСЕ origin'ы
+CORS_ALLOW_CREDENTIALS = True  # Разрешить куки и авторизацию
+
+# Разрешить ВСЕ HTTP методы
+CORS_ALLOW_METHODS = ['*']  # Вместо списка - просто звездочка
+
+# Разрешить ВСЕ заголовки
+CORS_ALLOW_HEADERS = ['*']  # Вместо списка - просто звездочка
+
+# Дополнительные настройки для полного доступа
+CORS_EXPOSE_HEADERS = ['*']  # Открыть все заголовки браузеру
+CORS_PREFLIGHT_MAX_AGE = 86400  # Кэшировать preflight на сутки
+
 # Настройки для продакшена
 if PRODUCTION:
     DEBUG = False
     ALLOWED_HOSTS = ['jelezo.by', '178.159.242.118', 'www.jelezo.by']
-    # Или укажите конкретные домены для продакшена
-    CORS_ALLOWED_ORIGINS = [
-        "http://localhost:3000",
-        "http://127.0.0.1:3000",
-        "https://jelezo.by",
-        "http://jelezo.by",
-    ]
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
@@ -37,9 +44,6 @@ if PRODUCTION:
 else:
     DEBUG = True
     ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
-    # Разрешите все домены для разработки
-    CORS_ALLOW_ALL_ORIGINS = True
-
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
