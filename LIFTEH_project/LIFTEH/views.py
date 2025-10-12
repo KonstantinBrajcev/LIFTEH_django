@@ -957,28 +957,41 @@ def get_tracker_locations(request):
 
 # ---------- ЭТО API для FLUTTER --------------
 # Добавьте эти импорты
-
-# Добавьте этот класс в views.py
-
 class ApiLoginView(View):
     @method_decorator(csrf_exempt)
     def dispatch(self, *args, **kwargs):
         return super().dispatch(*args, **kwargs)
 
+    def _add_cors_headers(self, response):
+        """Добавляет CORS headers к response"""
+        origin = self.request.META.get('HTTP_ORIGIN', '')
+
+        # Разрешаем все локальные origin для разработки
+        if settings.DEBUG and origin:
+            response["Access-Control-Allow-Origin"] = origin
+        else:
+            response["Access-Control-Allow-Origin"] = "*"
+
+        response["Access-Control-Allow-Methods"] = "POST, OPTIONS, GET"
+        response["Access-Control-Allow-Headers"] = "Content-Type, Authorization, X-Requested-With"
+        response["Access-Control-Allow-Credentials"] = "true"
+        return response
+
+    def options(self, request, *args, **kwargs):
+        response = JsonResponse({})
+        return self._add_cors_headers(response)
+
     def post(self, request):
         try:
-            # Парсим JSON данные из Flutter приложения
             data = json.loads(request.body)
             username = data.get('username')
             password = data.get('password')
 
-            # Аутентифицируем пользователя
             user = authenticate(request, username=username, password=password)
 
             if user is not None:
-                # Успешная аутентификация
                 login(request, user)
-                return JsonResponse({
+                response_data = {
                     'success': True,
                     'user': {
                         'id': user.id,
@@ -986,21 +999,20 @@ class ApiLoginView(View):
                         'email': user.email,
                         'is_superuser': user.is_superuser
                     }
-                })
+                }
+                response = JsonResponse(response_data)
             else:
-                # Неверные учетные данные
-                return JsonResponse({
+                response_data = {
                     'success': False,
                     'error': 'Неверный логин или пароль'
-                }, status=401)
+                }
+                response = JsonResponse(response_data, status=401)
 
-        except json.JSONDecodeError:
-            return JsonResponse({
-                'success': False,
-                'error': 'Неверный формат данных'
-            }, status=400)
+            return self._add_cors_headers(response)
+
         except Exception as e:
-            return JsonResponse({
+            response = JsonResponse({
                 'success': False,
                 'error': f'Ошибка сервера: {str(e)}'
             }, status=500)
+            return self._add_cors_headers(response)

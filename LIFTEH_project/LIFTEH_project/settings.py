@@ -20,12 +20,12 @@ if PRODUCTION:
     DEBUG = False
     ALLOWED_HOSTS = ['jelezo.by', '178.159.242.118', 'www.jelezo.by']
     # Или укажите конкретные домены для продакшена
-    # CORS_ALLOWED_ORIGINS = [
-    #     "http://localhost:3000",
-    #     "http://127.0.0.1:3000",
-    #     "https://jelezo.by",
-    #     "http://jelezo.by",
-    # ]
+    CORS_ALLOWED_ORIGINS = [
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+        "https://jelezo.by",
+        "http://jelezo.by",
+    ]
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
@@ -38,7 +38,7 @@ else:
     DEBUG = True
     ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
     # Разрешите все домены для разработки
-    # CORS_ALLOW_ALL_ORIGINS = True
+    CORS_ALLOW_ALL_ORIGINS = True
 
     DATABASES = {
         'default': {
@@ -59,12 +59,12 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    # 'corsheaders',
+    'corsheaders',
     'LIFTEH',
 ]
 
 MIDDLEWARE = [
-    # 'corsheaders.middleware.CorsMiddleware',  # Должно быть первым
+    'corsheaders.middleware.CorsMiddleware',  # Должно быть первым
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
