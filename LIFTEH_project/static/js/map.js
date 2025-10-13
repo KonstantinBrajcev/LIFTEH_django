@@ -16,7 +16,7 @@ const transportFilterStates = {
     no_transport: "no_transport"
 };
 
-let currentObjectsState = objectsFilterStates.all;
+let currentObjectsState = objectsFilterStates.without_marks;
 let currentTransportState = transportFilterStates.transport;
 
 // Удалите старые функции переключения и добавьте новые:

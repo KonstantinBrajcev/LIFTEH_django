@@ -358,8 +358,11 @@ select[multiple] option:checked {
 
 .modal-header {
   border-bottom: 2px solid #c43c0c;
+  padding: 8px;
 }
-
+.modal-body {
+  padding: 8px;
+}
 /* КОНЕЦ КНОПОК В БАЛУНЕ */
 
 @media (max-width: 660px) {
