@@ -2,8 +2,8 @@
 <table class="table table-hover table-sm" style="width: 100%; margin-bottom: 0px;">
     <thead class="table-light">
         <tr>
-            <th style="width: 5%; text-align: center; background-color: #de4c15; color: white;">№</th>
-            <th style="width: 75%; text-align: left; background-color: #de4c15; color: white;">Задача</th>
+            <th class="delete" style="width: 5%; text-align: center; background-color: #de4c15; color: white;">№</th>
+            <th style="width: 75%; text-align: left; background-color: #de4c15; color: white; padding: 0px 5px;">Задача</th>
             <th style="width: 10%; text-align: center; background-color: #de4c15; color: white;">Создано</th>
             {% if user.is_superuser %}
             <th style="width: 10%; background-color: #de4c15; color: white;"></th>
@@ -13,19 +13,19 @@
     <tbody>
         {% for problem in problems %}
         <tr id="problem-row-{{ problem.id }}">
-            <td style="text-align: center;"><strong>{{ problem.id }}</strong></td>
-            <td id="problem-name-{{ problem.id }}">{{ problem.name }}</td>
-            <td style="text-align: center;" id="problem-date-{{ problem.id }}">{{ problem.created_date|date:"d.m.Y" }}</td>
+            <td class="delete" style="text-align: center; align-content: center;"><strong>{{ problem.id }}</strong></td>
+            <td style="align-content: center; padding: 5px;" id="problem-name-{{ problem.id }}">{{ problem.name }}</td>
+            <td style="text-align: center; align-content: center; padding: 5px;" id="problem-date-{{ problem.id }}">{{ problem.created_date|date:"d.m.Y" }}</td>
             {% if user.is_superuser %}
-            <td class="text-end" style="width: 10%; text-wrap: nowrap;">
+            <td class="text-end" style="width: 10%; text-wrap: nowrap; align-content: center;">
               <div class="btn-group" style="gap: 2px;">
-                <button class="btn btn-sm btn-secondary edit-btn" style="padding: 5px 10px;"
+                <button class="btn btn-secondary edit-btn" style="padding: 5px 10px;"
                         data-id="{{ problem.id }}"
                         data-name="{{ problem.name }}"
                         data-date="{{ problem.created_date|date:'Y-m-d' }}">
                     &#9998;
                 </button>
-                <button class="btn btn-sm btn-danger delete-btn" style="padding: 5px 10px;"
+                <button class="btn btn-danger delete-btn" style="padding: 5px 15px;"
                         data-id="{{ problem.id }}"
                         data-name="{{ problem.name }}">
                     <strong>Х</strong>
@@ -57,14 +57,14 @@
 function loadEditProblemForm(problemId, problemName, problemDate) {
     const modal = new bootstrap.Modal(document.getElementById('objectModal'));
     document.getElementById('modalTitle').textContent = 'Редактировать задачу';
-    
+
     // Очищаем предыдущее содержимое
     document.getElementById('modalFormContent').innerHTML = 
         '<div class="text-center py-4"><div class="spinner-border" role="status"><span class="visually-hidden">Загрузка...</span></div></div>';
-    
+
     // Показываем модальное окно сразу
     modal.show();
-    
+
     fetch(`/problems/${problemId}/edit/`, {
         headers: {
             'X-Requested-With': 'XMLHttpRequest',
@@ -92,12 +92,12 @@ function deleteProblem(problemId, problemName) {
     if (!confirm(`Вы уверены, что хотите удалить задачу "${problemName}"?`)) {
         return;
     }
-    
+
     const deleteBtn = document.querySelector(`.delete-btn[data-id="${problemId}"]`);
     const originalHtml = deleteBtn.innerHTML;
     deleteBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status"></span>';
     deleteBtn.disabled = true;
-    
+
     fetch(`/problems/${problemId}/delete/`, {
         method: 'POST',
         headers: {

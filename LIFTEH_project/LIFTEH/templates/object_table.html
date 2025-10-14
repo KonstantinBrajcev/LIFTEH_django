@@ -1,9 +1,34 @@
 {% load static %}
+
+<style>
+#sortMenuContainer {
+    max-height: 0;
+    opacity: 0;
+    overflow: hidden;
+    transition: all 0.5s ease-in-out;
+}
+
+#sortMenuContainer.show {
+    max-height: 200px;
+    opacity: 1;
+    display: block;
+}
+
+</style>
+
 <div class="card">
   <div class="card-header d-flex">
     <h4>Объекты ТО</h4>
 
     <div class="col d-flex justify-content-end align-items-center">
+      <div class="form-check form-switch me-3">
+        <input class="form-check-input" type="checkbox" id="sortToggle" 
+              onclick="toggleSortMenu()">
+        <label class="form-check-label" for="sortToggle">
+          Сортировка
+        </label>
+      </div>
+
       {% if user.is_superuser %}
       <button type="button" class="btn btn-primary"
               onclick="loadModalForm('{% url 'object_add' %}', 'Добавить объект')">
@@ -14,7 +39,10 @@
   </div>
 
   {% load custom_filters %}
-  {% include 'sort_object.html' %}
+    <!-- Контейнер для меню сортировки (изначально скрыт) -->
+  <div id="sortMenuContainer">
+    {% include 'sort_object.html' %}
+  </div>
 
   <div class="card-body" style="padding: 0px; min-height: 100px !important;">
     <table class="table-hover" style="width: 100%;">
@@ -80,7 +108,7 @@
 
               {% if user.is_superuser %}
               <button onclick="confirmDelete('{% url 'object_delete' pk=object.id %}', '{{ object.id }}')" 
-                      class="btn btn-danger delete">
+                      class="btn btn-danger delete" style="padding: 5px 15px;">
                 <strong>Х</strong>
               </button>
               {% endif %}
@@ -102,3 +130,42 @@
   </table>
 </div>
 </div>
+
+<script>
+function toggleSortMenu() {
+    const sortMenu = document.getElementById('sortMenuContainer');
+    const toggle = document.getElementById('sortToggle');
+    
+    if (toggle.checked) {
+        sortMenu.classList.add('show');
+    } else {
+        sortMenu.classList.remove('show');
+    }
+}
+
+// Опционально: функция для сохранения состояния переключателя
+function saveToggleState() {
+    const toggle = document.getElementById('sortToggle');
+    localStorage.setItem('sortMenuVisible', toggle.checked);
+}
+
+function loadToggleState() {
+    const savedState = localStorage.getItem('sortMenuVisible');
+    const toggle = document.getElementById('sortToggle');
+    const sortMenu = document.getElementById('sortMenuContainer');
+    
+    if (savedState === 'true') {
+        toggle.checked = true;
+        // Небольшая задержка для корректной анимации при загрузке
+        setTimeout(() => {
+            sortMenu.classList.add('show');
+        }, 10);
+    }
+}
+
+// Загружаем состояние при загрузке страницы
+document.addEventListener('DOMContentLoaded', loadToggleState);
+
+// Сохраняем состояние при изменении
+document.getElementById('sortToggle').addEventListener('change', saveToggleState);
+</script>

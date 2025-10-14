@@ -44,7 +44,7 @@
           {% comment %} <button onclick="loadModalForm('{% url 'avr_edit' pk=avr.id %}', 'Редактирование АВР')" 
             class="btn btn-secondary">✏</button> {% endcomment %}
 
-          <button onclick="loadAvrEditForm({{ avr.id }})" class="btn btn-secondary">✏</button>
+          <button onclick="loadAvrEditForm({{ avr.id }})" class="btn btn-secondary">&#9998;</button>
           <button onclick="confirmDelete('{% url 'avr_delete' pk=avr.id %}', '{{ avr.id }}')" 
             class="btn btn-danger">
             <strong>X</strong>
