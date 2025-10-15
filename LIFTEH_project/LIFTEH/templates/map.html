@@ -17,7 +17,8 @@
     <script src="https://api-maps.yandex.ru/2.1/?apikey={{ YANDEX_MAPS_API_KEY }}&lang=ru_RU"></script>
 
 </head>
-<body>
+<body data-has-access-entries="{{ has_access_entries|yesno:'true,false' }}" 
+      data-user-is-superuser="{{ user.is_superuser|yesno:'true,false' }}">
     <!-- Шапка с кнопкой перехода к таблице -->
     <div class="new map-header">
         <a href="{% url 'to' %}" style="height: 64px;" data-tooltip="Таблица">

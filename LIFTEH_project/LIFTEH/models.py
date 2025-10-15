@@ -108,8 +108,7 @@ class Problem(models.Model):
         on_delete=models.CASCADE, 
         verbose_name="Пользователь",
         related_name='problems',
-        null=True,  # Разрешить NULL временно
-        blank=True
+        default=1
     )
     
     def __str__(self):

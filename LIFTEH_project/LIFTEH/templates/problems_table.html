@@ -3,10 +3,10 @@
     <thead class="table-light">
         <tr>
             <th class="delete" style="width: 5%; text-align: center; background-color: #de4c15; color: white;">№</th>
-            <th style="width: 65%; text-align: left; background-color: #de4c15; color: white; padding: 0px 5px;">Задача</th>
+            <th style="width: 100%; text-align: left; background-color: #de4c15; color: white; padding: 0px 5px;">Задача</th>
             <th style="width: 10%; text-align: center; background-color: #de4c15; color: white;">Создано</th>
             {% if user.is_superuser %}
-            <th style="width: 10%; text-align: center; background-color: #de4c15; color: white;">Пользователь</th>
+            <th class="delete" style="width: 10%; text-align: center; background-color: #de4c15; color: white;"></th>
             {% endif %}
             <th style="width: 10%; background-color: #de4c15; color: white;"></th>
         </tr>
@@ -18,7 +18,7 @@
             <td style="align-content: center; padding: 5px;" id="problem-name-{{ problem.id }}">{{ problem.name }}</td>
             <td style="text-align: center; align-content: center; padding: 5px;" id="problem-date-{{ problem.id }}">{{ problem.created_date|date:"d.m.Y" }}</td>
             {% if user.is_superuser %}
-            <td style="text-align: center; align-content: center; padding: 5px;">
+            <td class="delete" style="text-align: center; align-content: center; padding: 5px;">
                 <small class="text-muted">{{ problem.user.username }}</small>
             </td>
             {% endif %}
@@ -37,7 +37,7 @@
                     <strong>Х</strong>
                 </button>
                 {% else %}
-                <span class="text-muted small">Только для {{ problem.user.username }}</span>
+                {% comment %} <span class="text-muted small">для {{ problem.user.username }}</span> {% endcomment %}
                 {% endif %}
               </div>
             </td>
@@ -56,14 +56,14 @@
     </tbody>
 
     <tr style="background-color: #f0f0f0; font-weight: bold;">
-        <td colspan="{% if user.is_superuser %}3{% else %}2{% endif %}" style="text-align: right;">Итого:</td>
+        <td colspan="{% if user.is_superuser %}2{% else %}1{% endif %}" style="text-align: right;">Итого:</td>
         <td style="text-align: left; padding: 0px 10px; align-content: center;">
             {{ problems|length }}
         </td>
         {% if user.is_superuser %}
         <td></td>
         {% endif %}
-        <td></td>
+        <td class="delete"></td>
     </tr>
 </table>
 

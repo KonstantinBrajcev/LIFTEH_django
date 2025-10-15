@@ -5,7 +5,6 @@ let buildingPlacemarks = [];
 let updateInterval;
 
 // Состояния кнопок
-// Упрощенные состояния (можно оставить старые, они будут работать)
 const objectsFilterStates = {
     all: "all",
     without_marks: "without_marks"
@@ -19,7 +18,41 @@ const transportFilterStates = {
 let currentObjectsState = objectsFilterStates.without_marks;
 let currentTransportState = transportFilterStates.transport;
 
-// Удалите старые функции переключения и добавьте новые:
+// Переменные для прав доступа
+let userHasLimitedAccess = false;
+
+// Функция для проверки прав доступа
+function checkUserAccess() {
+    const hasAccessEntries = document.body.getAttribute('data-has-access-entries') === 'true';
+    const isSuperuser = document.body.getAttribute('data-user-is-superuser') === 'true';
+    
+    // Если пользователь имеет ограниченные права (не суперпользователь И есть записи доступа)
+    userHasLimitedAccess = (!isSuperuser && hasAccessEntries);
+    
+    if (userHasLimitedAccess) {
+        const transportSwitch = document.getElementById('transportSwitch');
+        const transportSwitchContainer = transportSwitch ? transportSwitch.closest('.filter-switch') : null;
+        
+        if (transportSwitchContainer) {
+            transportSwitchContainer.style.display = 'none';
+            console.log('Transport switch hidden for user with limited access');
+        }
+        
+        // Автоматически выключаем транспорт
+        currentTransportState = transportFilterStates.no_transport;
+        if (transportSwitch) {
+            transportSwitch.checked = false;
+        }
+    }
+    
+    console.log(`User access - Limited: ${userHasLimitedAccess}, Superuser: ${isSuperuser}`);
+    return userHasLimitedAccess;
+}
+
+// // Вызов функции после загрузки DOM
+// document.addEventListener('DOMContentLoaded', function() {
+//     checkUserAccess();
+// });
 
 function toggleObjectsFilter() {
     const switchElement = document.getElementById('objectsSwitch');
@@ -35,6 +68,12 @@ function toggleObjectsFilter() {
 }
 
 function toggleTransportFilter() {
+    // Если пользователь с ограниченными правами, игнорируем переключение транспорта
+    if (userHasLimitedAccess) {
+        console.log('Transport toggle ignored for user with limited access');
+        return;
+    }
+
     const switchElement = document.getElementById('transportSwitch');
     const isChecked = switchElement.checked;
 
@@ -99,6 +138,9 @@ function openAvrModal(objectId) {
 }
 
 function initMap() {
+    // ПЕРВОЕ: проверяем права доступа ДО инициализации карты
+    const isLimitedAccess = checkUserAccess();
+    
     if (map) {
         map.destroy();
     }
@@ -126,46 +168,65 @@ function initMap() {
     });
 
     map.geoObjects.add(clusterer);
+    
+    // ВТОРОЕ: загружаем объекты только после проверки прав
     loadObjects();
 }
 
 function loadObjects() {
+    console.log(`Загрузка объектов: состояние объектов = ${currentObjectsState}, состояние транспорта = ${currentTransportState}`);
+    console.log(`User has limited access: ${userHasLimitedAccess}`);
+    console.log(`URL для объектов: /api/get_objects/?filter=${currentObjectsState}`);
+    console.log(`URL для транспорта: /api/get_tracker_locations/`);
+    
     clusterer.removeAll();
     clearCarPlacemarks();
     clearBuildingPlacemarks();
 
-    const showTransport = currentTransportState === "transport"; // Убрали .filter
+    const showTransport = currentTransportState === "transport" && !userHasLimitedAccess;
 
     // Загружаем объекты в зависимости от состояния
-    switch (currentObjectsState) { // Убрали .filter
+    switch (currentObjectsState) {
         case "all":
+            console.log('Загрузка ВСЕХ объектов');
             loadBuildings("all");
             break;
         case "without_marks":
+            console.log('Загрузка объектов без отметок');
             loadBuildings("without_marks");
             break;
     }
 
-    if (showTransport) {
+    if (showTransport && !userHasLimitedAccess) {
+        console.log('Загрузка транспорта');
         loadCars();
     } else {
-        // Если транспорт скрыт, устанавливаем границы только по объектам
-        if (buildingPlacemarks.length > 0) {
-            setBelarusBounds();
-        }
-    }
-
-    // Если нет ни объектов, ни транспорта - показываем пустую карту
-    if (currentObjectsState === "without_all" && !showTransport) {
-        setBelarusBounds();
+        console.log('Транспорт скрыт');
     }
 }
 
 function loadBuildings(filterType) {
-    fetch(`/get-objects/?filter=${filterType}`)
-        .then(response => response.json())
+    fetch(`/api/get_objects/?filter=${filterType}`)
+        .then(response => {
+            if (response.status === 403 || response.status === 401) {
+                // Пользователь не авторизован - перенаправляем на страницу логина
+                window.location.href = '/login/';
+                return;
+            }
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
         .then(objectsData => {
-            console.log('Полученные объекты:', objectsData); // ДЛЯ ОТЛАДКИ
+            console.log('Полученные объекты:', objectsData);
+            
+            if (objectsData.error) {
+                console.error('Ошибка загрузки объектов:', objectsData.error);
+                setBelarusBounds();
+                return;
+            }
+
             const placemarks = [];
             const uniqueAddresses = new Set();
 
@@ -185,10 +246,14 @@ function loadBuildings(filterType) {
                 }
             });
 
-            if (placemarks.length > 0) { clusterer.add(placemarks); }
+            if (placemarks.length > 0) { 
+                clusterer.add(placemarks); 
+                console.log(`Добавлено ${placemarks.length} объектов на карту`);
+            } else {
+                console.log('Нет объектов для отображения на карту');
+            }
 
-            // Если транспорт не показан, устанавливаем границы
-            if (currentTransportState === "no_transport") {
+            if (currentTransportState === "no_transport" || userHasLimitedAccess) {
                 setBelarusBounds();
             }
         })
@@ -199,8 +264,19 @@ function loadBuildings(filterType) {
 }
 
 function loadCars() {
-    fetch('/get-tracker-locations/')
+    // Если пользователь с ограниченными правами, не загружаем автомобили
+    if (userHasLimitedAccess) {
+        console.log('Skipping car load for user with limited access');
+        return;
+    }
+
+    fetch('/api/get_tracker_locations/')
         .then(response => {
+            if (response.status === 403 || response.status === 401) {
+                // Пользователь не авторизован - перенаправляем на страницу логина
+                window.location.href = '/login/';
+                return;
+            }
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
@@ -211,7 +287,6 @@ function loadCars() {
 
             if (trackersData.error) {
                 console.error('Ошибка загрузки трекеров:', trackersData.error);
-                setBelarusBounds();
                 return;
             }
 
@@ -221,9 +296,11 @@ function loadCars() {
 
             if (validTrackers.length === 0) {
                 console.log('Нет валидных данных для отображения автомобилей');
-                setBelarusBounds();
                 return;
             }
+
+            // Очищаем предыдущие метки автомобилей
+            clearCarPlacemarks();
 
             validTrackers.forEach(function (tracker) {
                 const placemark = createCarPlacemark(tracker);
@@ -231,19 +308,35 @@ function loadCars() {
                 map.geoObjects.add(placemark);
             });
 
-            // Устанавливаем границы Беларуси
-            setBelarusBounds();
+            console.log(`Добавлено ${validTrackers.length} автомобилей на карту`);
 
-            // Запускаем автоматическое обновление если транспорт показан
-            if (currentTransportState === "transport") {
+            // Если есть и объекты и автомобили, подгоняем карту под все
+            if (buildingPlacemarks.length > 0 || validTrackers.length > 0) {
+                setTimeout(() => {
+                    const allPlacemarks = [...buildingPlacemarks, ...carPlacemarks];
+                    if (allPlacemarks.length > 0) {
+                        const group = new ymaps.GeoObjectCollection();
+                        allPlacemarks.forEach(pm => group.add(pm));
+                        const bounds = group.getBounds();
+                        if (bounds) {
+                            map.setBounds(bounds, {
+                                checkZoomRange: true,
+                                zoomMargin: 50
+                            });
+                        }
+                    }
+                }, 100);
+            }
+
+            if (currentTransportState === "transport" && !userHasLimitedAccess) {
                 startAutoUpdate();
             }
         })
         .catch(error => {
             console.error('Ошибка загрузки автомобилей:', error);
-            setBelarusBounds();
         });
 }
+
 
 // Функция для установки фиксированных границ Беларуси
 function setBelarusBounds() {
@@ -303,14 +396,21 @@ function clearBuildingPlacemarks() {
     buildingPlacemarks = [];
 }
 
+// Обновите функцию startAutoUpdate
 function startAutoUpdate() {
     if (updateInterval) {
         clearInterval(updateInterval);
     }
 
+    // Если пользователь с ограниченными правами, не запускаем автообновление
+    if (userHasLimitedAccess) {
+        console.log('Auto-update disabled for user with limited access');
+        return;
+    }
+
     updateInterval = setInterval(() => {
-        if (currentTransportState === "transport") { // Убрали .filter
-            fetch('/get-tracker-locations/')
+        if (currentTransportState === "transport") {
+            fetch('/api/get_tracker_locations/')
                 .then(response => response.json())
                 .then(trackersData => {
                     if (!trackersData.error) {
@@ -318,7 +418,7 @@ function startAutoUpdate() {
                             const existingPlacemark = carPlacemarks.find(p =>
                                 p.properties.get('balloonContent').includes(tracker.car_id)
                             );
-                            if (existingPlacemark) {
+                            if (existingPlacemark && tracker.latitude && tracker.longitude) {
                                 existingPlacemark.geometry.setCoordinates([tracker.latitude, tracker.longitude]);
                             }
                         });
@@ -332,7 +432,6 @@ function startAutoUpdate() {
 }
 
 // Функции переключения кнопок
-// ОСТАВЬТЕ ТОЛЬКО ЭТИ НОВЫЕ ФУНКЦИИ:
 function toggleObjectsFilter() {
     const switchElement = document.getElementById('objectsSwitch');
     const isChecked = switchElement.checked;
@@ -347,6 +446,12 @@ function toggleObjectsFilter() {
 }
 
 function toggleTransportFilter() {
+    // Если пользователь с ограниченными правами, игнорируем переключение транспорта
+    if (userHasLimitedAccess) {
+        console.log('Transport toggle ignored for user with limited access');
+        return;
+    }
+
     const switchElement = document.getElementById('transportSwitch');
     const isChecked = switchElement.checked;
 
@@ -460,10 +565,6 @@ function createServiceInfo(obj) {
 ymaps.ready(function () {
     initMap();
 
-    // // Обработчики для кнопок
-    // document.getElementById('objectsToggle').addEventListener('click', toggleObjectsFilter);
-    // document.getElementById('transportToggle').addEventListener('click', toggleTransportFilter);
-
     // Обработчики для переключателей
     document.getElementById('objectsSwitch').addEventListener('change', toggleObjectsFilter);
     document.getElementById('transportSwitch').addEventListener('change', toggleTransportFilter);
@@ -475,3 +576,4 @@ ymaps.ready(function () {
         }
     });
 });
+

@@ -1,4 +1,5 @@
 from django.contrib.auth import authenticate
+from django.contrib.auth import get_user_model
 from django.views.decorators.csrf import csrf_exempt
 import requests
 import re
@@ -68,7 +69,7 @@ class ToView(TemplateView):
 
         # Исправляем обработку города (None → пустая строка)
         selected_city = self.request.GET.get('city', '')
-        if selected_city == 'None':  # Обрабатываем случай, когда city=None в URL
+        if selected_city == 'None':
             selected_city = ''
 
         selected_colors = self.request.GET.getlist('colors', ['all'])
@@ -77,15 +78,22 @@ class ToView(TemplateView):
         if 'all' in selected_colors or not selected_colors:
             selected_colors = ['green', 'yellow', 'red', 'gray']
 
-        # Базовый запрос с фильтрацией по месяцу И правами доступа
-        if self.request.user.is_superuser:
+        # НОВАЯ ЛОГИКА ДОСТУПА К ОБЪЕКТАМ
+        # Проверяем, есть ли у пользователя записи в AccessUser
+        has_access_entries = AccessUser.objects.filter(user=self.request.user).exists()
+        
+        # Базовый запрос с фильтрацией по месяцу
+        if self.request.user.is_superuser or not has_access_entries:
+            # Суперпользователь ИЛИ пользователь без записей в AccessUser видят ВСЕ объекты
             objects = Object.objects.filter(**{f'M{month}__gt': 0})
+            print(f"User {self.request.user.username} sees ALL objects (superuser: {self.request.user.is_superuser}, has_access_entries: {has_access_entries})")
         else:
-            # Для обычных пользователей - только объекты из таблицы доступа
+            # Пользователь с записями в AccessUser видит только свои объекты
             objects = Object.objects.filter(
                 accessuser__user=self.request.user,
                 **{f'M{month}__gt': 0}
             ).distinct()
+            print(f"User {self.request.user.username} sees ONLY assigned objects (has_access_entries: {has_access_entries})")
 
         # Фильтрация по городу (только если город выбран)
         if selected_city:
@@ -118,10 +126,12 @@ class ToView(TemplateView):
             ):
                 filtered_objects.append(obj)
 
-        # ФИЛЬТРАЦИЯ ПРОБЛЕМ ПО ПОЛЬЗОВАТЕЛЮ (ИСПРАВЛЕННАЯ СТРОКА)
-        if self.request.user.is_superuser:
+        # НОВАЯ ЛОГИКА ДОСТУПА К ЗАДАЧАМ
+        if self.request.user.is_superuser or not has_access_entries:
+            # Суперпользователь ИЛИ пользователь без записей в AccessUser видят ВСЕ задачи
             problems = Problem.objects.all().order_by('-created_date')
         else:
+            # Пользователь с записями в AccessUser видит только свои задачи
             problems = Problem.objects.filter(user=self.request.user).order_by('-created_date')
 
         context.update({
@@ -135,11 +145,9 @@ class ToView(TemplateView):
             'selected_city': selected_city,
             'selected_colors': selected_colors,
             'avrs': Avr.objects.filter(Q(result__isnull=True) | Q(result__in=[0, 1, 2])),
-            # 'problems': Problem.objects.all().order_by('-created_date')
             'problems': problems
         })
 
-        # return context
         # Добавляем контекст из других представлений
         charts_view = ChartsView()
         charts_view.request = self.request
@@ -157,7 +165,6 @@ class ToView(TemplateView):
 
 
 # ----------- ЗАДАЧИ -----------
-
 class TasksView(AdminRequiredMixin, TemplateView):
     template_name = 'tasks.html'
 
@@ -539,9 +546,8 @@ def service_add(request, object_id):
         'current_datetime': current_datetime
     })
 
+
 # ---------- ГРАФИКИ ------------
-
-
 class ChartsView(AdminRequiredMixin, TemplateView):
     template_name = 'charts.html'
 
@@ -660,37 +666,28 @@ class ChartsView(AdminRequiredMixin, TemplateView):
         return context
 
 
-# --------- РАБОТА С ПРОБЛЕМАМИ ----------
-# def problems_view(request):
-#     problems = Problem.objects.all().order_by('-created_date')
-#     today = timezone.now().date()
-
-#     if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-#         # Если это AJAX запрос, возвращаем только таблицу
-#         return render(request, 'problems_table.html', {
-#             'problems': problems,
-#             'today': today
-#         })
-
-#     return render(request, 'problems.html', {
-#         'problems': problems,
-#         'today': today
-#     })
 
 # --------- РАБОТА С ПРОБЛЕМАМИ ----------
 def problems_view(request):
-    # Фильтруем задачи по пользователю
-    if request.user.is_superuser:
-        # Суперпользователь видит все задачи
+    from django.contrib.auth import get_user_model
+    User = get_user_model()
+    
+    # НОВАЯ ЛОГИКА ДОСТУПА К ЗАДАЧАМ
+    # Проверяем, есть ли у пользователя записи в AccessUser
+    has_access_entries = AccessUser.objects.filter(user=request.user).exists()
+    
+    if request.user.is_superuser or not has_access_entries:
+        # Суперпользователь ИЛИ пользователь без записей в AccessUser видят ВСЕ задачи
         problems = Problem.objects.all().order_by('-created_date')
+        print(f"User {request.user.username} sees ALL problems (superuser: {request.user.is_superuser}, has_access_entries: {has_access_entries})")
     else:
-        # Обычный пользователь видит только свои задачи
+        # Пользователь с записями в AccessUser видит только свои задачи
         problems = Problem.objects.filter(user=request.user).order_by('-created_date')
+        print(f"User {request.user.username} sees ONLY assigned problems (has_access_entries: {has_access_entries})")
     
     today = timezone.now().date()
 
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-        # Если это AJAX запрос, возвращаем только таблицу
         return render(request, 'problems_table.html', {
             'problems': problems,
             'today': today
@@ -701,43 +698,6 @@ def problems_view(request):
         'today': today
     })
 
-
-# def add_problem(request):
-#     print(f"Add problem called. Method: {request.method}")
-#     print(f"Headers: {dict(request.headers)}")
-
-#     if request.method == 'POST':
-#         # Обработка отправки формы
-#         name = request.POST.get('name')
-#         print(f"Received name: '{name}'")
-
-#         if name and name.strip():
-#             problem = Problem.objects.create(
-#                 name=name.strip(),
-#                 created_date=timezone.now().date()
-#             )
-#             print(f"Created problem: {problem.id} - {problem.name}")
-
-#             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-#                 print("Returning JSON success response")
-#                 return JsonResponse({'success': True})
-#             else:
-#                 return redirect(reverse('to') + '#problems')
-#         else:
-#             print("Name is empty or invalid")
-
-#             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-#                 print("Returning JSON error response")
-#                 return JsonResponse({'success': False, 'error': 'Неверные данные: название задачи не может быть пустым'})
-
-#     elif request.method == 'GET':
-#         # Показать форму (для AJAX запроса)
-#         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-#             print("Returning form HTML")
-#             return render(request, 'problems_form.html')
-
-#     # Для не-AJAX запросов или ошибок
-#     return redirect(reverse('to') + '#problems')
 
 def add_problem(request):
     print(f"Add problem called. Method: {request.method}")
@@ -822,62 +782,6 @@ def update_problem_status(request, problem_id):
         )
 
 
-# def edit_problem(request, problem_id):
-#     print(f"Edit problem called. ID: {problem_id}, Method: {request.method}")
-
-#     try:
-#         problem = Problem.objects.get(id=problem_id)
-#     except Problem.DoesNotExist:
-#         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-#             return JsonResponse({'success': False, 'error': 'Задача не найдена'})
-#         return redirect(reverse('to') + '#problems')
-
-#     if request.method == 'POST':
-#         # Обработка сохранения изменений
-#         name = request.POST.get('name')
-#         created_date = request.POST.get('created_date')
-
-#         print(f"Received data - name: '{name}', date: '{created_date}'")
-
-#         if name and name.strip() and created_date:
-#             problem.name = name.strip()
-#             try:
-#                 problem.created_date = created_date
-#                 problem.save()
-
-#                 print(f"Updated problem: {problem.id} - {problem.name}")
-
-#                 if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-#                     return JsonResponse({'success': True})
-#                 else:
-#                     return redirect(reverse('to') + '#problems')
-
-#             except ValueError:
-#                 print("Invalid date format")
-#                 if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-#                     return JsonResponse({'success': False, 'error': 'Неверный формат даты'})
-#         else:
-#             print("Invalid data received")
-
-#     elif request.method == 'GET':
-#         # Показать форму редактирования - РАЗРЕШАЕМ GET запросы
-#         print(f"Returning edit form for problem {problem_id}")
-#         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-#             return render(request, 'edit_problem_form.html', {
-#                 'problem': problem
-#             })
-#         else:
-#             # Если не AJAX, тоже возвращаем форму
-#             return render(request, 'edit_problem_form.html', {
-#                 'problem': problem
-#             })
-
-#     if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-#         return JsonResponse({'success': False, 'error': 'Неверные данные'})
-
-#     return redirect(reverse('to') + '#problems')
-
-from django.contrib.auth import get_user_model
 
 def edit_problem(request, problem_id):
     print(f"Edit problem called. ID: {problem_id}, Method: {request.method}")
@@ -959,31 +863,6 @@ def edit_problem(request, problem_id):
 
     return redirect(reverse('to') + '#problems')
 
-# @require_POST
-# def delete_problem(request, problem_id):
-#     print(f"Delete problem called. ID: {problem_id}, Method: {request.method}")
-
-#     if request.method == 'POST':
-#         try:
-#             problem = Problem.objects.get(id=problem_id)
-#             problem_name = problem.name
-#             problem.delete()
-#             print(f"Deleted problem: {problem_id} - {problem_name}")
-
-#             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-#                 return JsonResponse({'success': True, 'message': 'Задача удалена'})
-#             else:
-#                 return redirect(reverse('to') + '#problems')
-
-#         except Problem.DoesNotExist:
-#             print(f"Problem {problem_id} not found")
-#             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-#                 return JsonResponse({'success': False, 'error': 'Задача не найдена'})
-
-#     if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-#         return JsonResponse({'success': False, 'error': 'Неверный метод запроса'})
-
-#     return redirect(reverse('to') + '#problems')
 
 @require_POST
 def delete_problem(request, problem_id):
@@ -1018,150 +897,6 @@ def delete_problem(request, problem_id):
 
     return redirect(reverse('to') + '#problems')
 
-# ------РАБОТА С КАРТАМИ----------
-def get_objects(request):
-    """API endpoint для получения объектов с координатами"""
-    try:
-        # Получаем параметр фильтра из запроса
-        filter_type = request.GET.get('filter', 'all')
-        current_month = timezone.now().month
-        current_year = timezone.now().year
-
-        objects = Object.objects.exclude(
-            latitude__isnull=True).exclude(longitude__isnull=True)
-
-        # Фильтрация по типу
-        if filter_type == 'without_marks':
-            # Объекты без записей осмотра в текущем месяце
-            objects_with_service = Service.objects.filter(
-                service_date__year=current_year,
-                service_date__month=current_month
-            ).values_list('object_id', flat=True)
-
-            objects = objects.exclude(id__in=objects_with_service)
-
-        # elif filter_type == 'all':
-        #     # Все объекты с заполненными месячными полями
-        #     month_fields = ['M1', 'M2', 'M3', 'M4', 'M5', 'M6',
-        #                     'M7', 'M8', 'M9', 'M10', 'M11', 'M12']
-
-        #     # Создаем условия для проверки, что поле текущего месяца не NULL
-        #     current_month_field = f'M{current_month}'
-        #     if hasattr(Object, current_month_field):
-        #         objects = objects.exclude(
-        #             **{f'{current_month_field}__isnull': True})
-
-        objects_data = []
-        for obj in objects:
-            manual_url = f"https://disk.yandex.ru/d/{obj.folder_id}" if obj.folder_id else None
-
-            # Получаем последний осмотр для этого объекта
-            last_service = Service.objects.filter(
-                object=obj).order_by('-service_date').first()
-
-            objects_data.append({
-                'id': obj.id,
-                'customer': obj.customer,
-                'address': obj.address,
-                'latitude': float(obj.latitude) if obj.latitude else None,
-                'longitude': float(obj.longitude) if obj.longitude else None,
-                'model': obj.model,
-                'phone': obj.phone,
-                'manual_url': manual_url,
-                'last_service_date': last_service.service_date.strftime('%d.%m.%Y') if last_service else None,
-                'last_service_comments': last_service.comments if last_service else None
-            })
-
-        return JsonResponse(objects_data, safe=False)
-
-    except Exception as e:
-        return JsonResponse({'error': str(e)}, status=500)
-
-
-def map_view(request):
-    """Представление для отображения карты с данными в шаблоне"""
-    # objects = Object.objects.exclude(
-    #     latitude__isnull=True).exclude(longitude__isnull=True)
-
-    # objects_data = []
-    # for obj in objects:
-    #     manual_url = f"https://disk.yandex.ru/d/{obj.folder_id}" if obj.folder_id else None
-
-    #     # Получаем последний осмотр для этого объекта
-    #     last_service = Service.objects.filter(
-    #         object=obj).order_by('-service_date').first()
-
-    #     objects_data.append({
-    #         'id': obj.id,
-    #         'customer': obj.customer,
-    #         'address': obj.address,
-    #         'latitude': float(obj.latitude) if obj.latitude else None,
-    #         'longitude': float(obj.longitude) if obj.longitude else None,
-    #         'model': obj.model,
-    #         'phone': obj.phone,
-    #         'manual_url': manual_url,
-    #         'last_service_date': last_service.service_date.strftime('%d.%m.%Y') if last_service else None,
-    #         'last_service_comments': last_service.comments if last_service else None
-    #     })
-
-    context = {
-        'objects_data': '[]',
-        'YANDEX_MAPS_API_KEY': settings.YANDEX_MAPS_API_KEY
-    }
-    return render(request, 'map.html', context)
-
-
-# ------ API ТРЕКЕРОВ --------
-def get_tracker_locations(request):
-    """API endpoint для получения текущих координат трекеров"""
-    try:
-        # Авторизация в API
-        auth_url = "http://monitoring.truck-control.info/api/login"
-        auth_data = {
-            "login": settings.TRACKER_API_LOGIN,
-            "password": settings.TRACKER_API_PASSWORD
-        }
-
-        # Получаем токен
-        auth_response = requests.post(auth_url, json=auth_data)
-        if auth_response.status_code != 200:
-            return JsonResponse({'error': 'Ошибка авторизации в API'}, status=500)
-
-        auth_result = auth_response.json()
-        if auth_result.get('status') != 'ok':
-            return JsonResponse({'error': 'Неверные учетные данные API'}, status=500)
-
-        token = auth_result['data']['token']
-
-        # Получаем данные трекеров
-        tracker_url = f"http://monitoring.truck-control.info/api/get_last_data?token={token}"
-        tracker_response = requests.post(tracker_url)
-
-        if tracker_response.status_code != 200:
-            return JsonResponse({'error': 'Ошибка получения данных трекеров'}, status=500)
-
-        tracker_data = tracker_response.json()
-
-        # Форматируем данные для карты
-        formatted_trackers = []
-        for tracker in tracker_data:
-            if tracker.get('valid') == 1 and tracker.get('xcoord') and tracker.get('ycoord'):
-                formatted_trackers.append({
-                    'tracker_id': tracker.get('trackerid'),
-                    'car_id': tracker.get('CarID', f"Трекер {tracker.get('trackerid')}"),
-                    'driver_name': tracker.get('DriverName'),
-                    'latitude': float(tracker['xcoord']),
-                    'longitude': float(tracker['ycoord']),
-                    'speed': tracker.get('speed', 0),
-                    'satellites': tracker.get('satcount', 0),
-                    'last_update': datetime.fromtimestamp(tracker.get('unixtime_coord', 0)).strftime('%d.%m.%Y %H:%M:%S'),
-                    'mileage': round(tracker.get('milage_db', 0), 2)
-                })
-
-        return JsonResponse(formatted_trackers, safe=False)
-
-    except Exception as e:
-        return JsonResponse({'error': str(e)}, status=500)
 
 
 # ---------- ЭТО API для FLUTTER --------------
@@ -1225,3 +960,158 @@ class ApiLoginView(View):
                 'error': f'Ошибка сервера: {str(e)}'
             }, status=500)
             return self._add_cors_headers(response)
+
+
+
+# ------РАБОТА С КАРТАМИ----------
+@login_required
+def get_objects(request):
+    """API endpoint для получения объектов с координатами"""
+    try:
+        # Получаем параметр фильтра из запроса
+        filter_type = request.GET.get('filter', 'all')
+        current_month = timezone.now().month
+        current_year = timezone.now().year
+
+        # НОВАЯ ЛОГИКА ДОСТУПА К ОБЪЕКТАМ (как в ToView)
+        # Проверяем, есть ли у пользователя записи в AccessUser
+        has_access_entries = AccessUser.objects.filter(user=request.user).exists()
+        
+        # Базовый запрос объектов с координатами
+        if request.user.is_superuser or not has_access_entries:
+            # Суперпользователь ИЛИ пользователь без записей в AccessUser видят ВСЕ объекты
+            objects = Object.objects.exclude(
+                latitude__isnull=True).exclude(longitude__isnull=True)
+            print(f"Map: User {request.user.username} sees ALL objects (superuser: {request.user.is_superuser}, has_access_entries: {has_access_entries})")
+        else:
+            # Пользователь с записями в AccessUser видит только свои объекты
+            objects = Object.objects.filter(
+                accessuser__user=request.user
+            ).exclude(
+                latitude__isnull=True
+            ).exclude(
+                longitude__isnull=True
+            ).distinct()
+            print(f"Map: User {request.user.username} sees ONLY assigned objects (has_access_entries: {has_access_entries})")
+
+        # Фильтрация по типу (если нужна)
+        if filter_type == 'without_marks':
+            # Объекты без записей осмотра в текущем месяце
+            objects_with_service = Service.objects.filter(
+                service_date__year=current_year,
+                service_date__month=current_month
+            ).values_list('object_id', flat=True)
+
+            objects = objects.exclude(id__in=objects_with_service)
+
+        objects_data = []
+        for obj in objects:
+            manual_url = f"https://disk.yandex.ru/d/{obj.folder_id}" if obj.folder_id else None
+
+            # Получаем последний осмотр для этого объекта
+            last_service = Service.objects.filter(
+                object=obj).order_by('-service_date').first()
+
+            objects_data.append({
+                'id': obj.id,
+                'customer': obj.customer,
+                'address': obj.address,
+                'latitude': float(obj.latitude) if obj.latitude else None,
+                'longitude': float(obj.longitude) if obj.longitude else None,
+                'model': obj.model,
+                'phone': obj.phone,
+                'manual_url': manual_url,
+                'last_service_date': last_service.service_date.strftime('%d.%m.%Y') if last_service else None,
+                'last_service_comments': last_service.comments if last_service else None,
+                # Добавляем информацию о доступе для отладки
+                'has_access': True  # Все объекты в этом списке уже отфильтрованы по правам доступа
+            })
+
+        print(f"Map: Returning {len(objects_data)} objects for user {request.user.username}")
+        return JsonResponse(objects_data, safe=False)
+
+    except Exception as e:
+        print(f"Map error: {str(e)}")
+        return JsonResponse({'error': str(e)}, status=500)
+
+
+
+@login_required
+def map_view(request):
+    """Представление для отображения карты с данными в шаблоне"""
+    
+    # Передаем информацию о правах доступа в шаблон (для возможного использования)
+    has_access_entries = AccessUser.objects.filter(user=request.user).exists()
+    
+    context = {
+        'objects_data': '[]',  # Данные загружаются через API
+        'YANDEX_MAPS_API_KEY': settings.YANDEX_MAPS_API_KEY,
+        'has_access_entries': has_access_entries,  # Для возможного использования в шаблоне
+        'user_is_superuser': request.user.is_superuser  # Для возможного использования в шаблоне
+    }
+    return render(request, 'map.html', context)
+
+
+
+# ------ API ТРЕКЕРОВ --------
+@login_required
+def get_tracker_locations(request):
+    """API endpoint для получения текущих координат трекеров"""
+    try:
+        # ПРОВЕРКА ПРАВ ДОСТУПА - как в других функциях
+        has_access_entries = AccessUser.objects.filter(user=request.user).exists()
+        
+        # Если пользователь имеет ограниченные права (есть записи в AccessUser), не показываем автомобили
+        if not request.user.is_superuser and has_access_entries:
+            print(f"Map: User {request.user.username} has limited access - hiding transport")
+            return JsonResponse([], safe=False)  # Возвращаем пустой список
+        
+        # Авторизация в API
+        auth_url = "http://monitoring.truck-control.info/api/login"
+        auth_data = {
+            "login": settings.TRACKER_API_LOGIN,
+            "password": settings.TRACKER_API_PASSWORD
+        }
+
+        # Получаем токен
+        auth_response = requests.post(auth_url, json=auth_data)
+        if auth_response.status_code != 200:
+            return JsonResponse({'error': 'Ошибка авторизации в API'}, status=500)
+
+        auth_result = auth_response.json()
+        if auth_result.get('status') != 'ok':
+            return JsonResponse({'error': 'Неверные учетные данные API'}, status=500)
+
+        token = auth_result['data']['token']
+
+        # Получаем данные трекеров
+        tracker_url = f"http://monitoring.truck-control.info/api/get_last_data?token={token}"
+        tracker_response = requests.post(tracker_url)
+
+        if tracker_response.status_code != 200:
+            return JsonResponse({'error': 'Ошибка получения данных трекеров'}, status=500)
+
+        tracker_data = tracker_response.json()
+
+        # Форматируем данные для карты
+        formatted_trackers = []
+        for tracker in tracker_data:
+            if tracker.get('valid') == 1 and tracker.get('xcoord') and tracker.get('ycoord'):
+                formatted_trackers.append({
+                    'tracker_id': tracker.get('trackerid'),
+                    'car_id': tracker.get('CarID', f"Трекер {tracker.get('trackerid')}"),
+                    'driver_name': tracker.get('DriverName'),
+                    'latitude': float(tracker['xcoord']),
+                    'longitude': float(tracker['ycoord']),
+                    'speed': tracker.get('speed', 0),
+                    'satellites': tracker.get('satcount', 0),
+                    'last_update': datetime.fromtimestamp(tracker.get('unixtime_coord', 0)).strftime('%d.%m.%Y %H:%M:%S'),
+                    'mileage': round(tracker.get('milage_db', 0), 2)
+                })
+
+        print(f"Map: Returning {len(formatted_trackers)} trackers for user {request.user.username}")
+        return JsonResponse(formatted_trackers, safe=False)
+
+    except Exception as e:
+        print(f"Map tracker error: {str(e)}")
+        return JsonResponse({'error': str(e)}, status=500)
