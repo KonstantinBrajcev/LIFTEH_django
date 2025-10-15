@@ -103,6 +103,14 @@ class Problem(models.Model):
     name = models.CharField(max_length=255, verbose_name="Наименование задачи")
     created_date = models.DateField(auto_now_add=True, verbose_name="Дата создания")
     is_completed = models.BooleanField(default=False, verbose_name="Выполнено")
+    user = models.ForeignKey(
+        User, 
+        on_delete=models.CASCADE, 
+        verbose_name="Пользователь",
+        related_name='problems',
+        null=True,  # Разрешить NULL временно
+        blank=True
+    )
     
     def __str__(self):
         return self.name

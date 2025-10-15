@@ -17,6 +17,31 @@
         <div class="invalid-feedback">Пожалуйста, выберите дату</div>
     </div>
     
+    <!-- Поле выбора пользователя (только для суперпользователей) -->
+    {% if user.is_superuser %}
+    <div class="mb-3">
+        <label for="editProblemUser" class="form-label">Назначить пользователю</label>
+        <select class="form-select" id="editProblemUser" name="user_id">
+            <option value="">-- Выберите пользователя --</option>
+            {% for user_obj in users %}
+            <option value="{{ user_obj.id }}" {% if user_obj.id == problem.user.id %}selected{% endif %}>
+                {{ user_obj.username }} 
+                {% if user_obj.first_name or user_obj.last_name %}
+                ({{ user_obj.first_name }} {{ user_obj.last_name }})
+                {% endif %}
+                {% if user_obj.is_superuser %}👑{% endif %}
+            </option>
+            {% endfor %}
+        </select>
+        <div class="form-text">Только суперпользователи могут изменять назначение задач</div>
+    </div>
+    {% else %}
+    <input type="hidden" name="user_id" value="{{ problem.user.id }}">
+    <div class="alert alert-info">
+        <small>Задача назначена: <strong>{{ problem.user.username }}</strong></small>
+    </div>
+    {% endif %}
+    
     <div class="d-flex justify-content-end">
         <button type="button" class="btn btn-secondary me-2" data-bs-dismiss="modal">Отмена</button>
         <button type="submit" class="btn btn-primary" id="submitEditBtn">Сохранить</button>
@@ -28,21 +53,41 @@
 function validateEditProblemForm() {
     const nameInput = document.getElementById('editProblemName');
     const dateInput = document.getElementById('editProblemDate');
-    const isValid = nameInput.value.trim().length > 0 && dateInput.value;
+    const userSelect = document.getElementById('editProblemUser');
     
-    if (isValid) {
+    let isValid = nameInput.value.trim().length > 0 && dateInput.value;
+    
+    // Если есть поле выбора пользователя (для суперпользователей), проверяем его
+    if (userSelect) {
+        isValid = isValid && userSelect.value !== '';
+    }
+    
+    // Валидация названия
+    if (nameInput.value.trim().length > 0) {
         nameInput.classList.remove('is-invalid');
         nameInput.classList.add('is-valid');
+    } else {
+        nameInput.classList.remove('is-valid');
+        nameInput.classList.add('is-invalid');
+    }
+    
+    // Валидация даты
+    if (dateInput.value) {
         dateInput.classList.remove('is-invalid');
         dateInput.classList.add('is-valid');
     } else {
-        if (nameInput.value.trim().length === 0) {
-            nameInput.classList.remove('is-valid');
-            nameInput.classList.add('is-invalid');
-        }
-        if (!dateInput.value) {
-            dateInput.classList.remove('is-valid');
-            dateInput.classList.add('is-invalid');
+        dateInput.classList.remove('is-valid');
+        dateInput.classList.add('is-invalid');
+    }
+    
+    // Валидация пользователя (только для суперпользователей)
+    if (userSelect) {
+        if (userSelect.value !== '') {
+            userSelect.classList.remove('is-invalid');
+            userSelect.classList.add('is-valid');
+        } else {
+            userSelect.classList.remove('is-valid');
+            userSelect.classList.add('is-invalid');
         }
     }
     
@@ -110,8 +155,27 @@ document.getElementById('editProblemForm').addEventListener('submit', function(e
     return false;
 });
 
-// Инициализация валидации при загрузке
+// Добавляем обработчики валидации при изменении полей
 document.addEventListener('DOMContentLoaded', function() {
+    const nameInput = document.getElementById('editProblemName');
+    const dateInput = document.getElementById('editProblemDate');
+    const userSelect = document.getElementById('editProblemUser');
+    
+    if (nameInput) {
+        nameInput.addEventListener('input', validateEditProblemForm);
+        nameInput.addEventListener('blur', validateEditProblemForm);
+    }
+    
+    if (dateInput) {
+        dateInput.addEventListener('change', validateEditProblemForm);
+        dateInput.addEventListener('blur', validateEditProblemForm);
+    }
+    
+    if (userSelect) {
+        userSelect.addEventListener('change', validateEditProblemForm);
+        userSelect.addEventListener('blur', validateEditProblemForm);
+    }
+    
     validateEditProblemForm();
 });
 </script>
