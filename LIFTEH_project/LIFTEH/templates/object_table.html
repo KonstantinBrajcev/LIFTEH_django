@@ -37,6 +37,7 @@
           <th style="text-align: center;">Телефон</th>
           <th></th>
       </tr>
+
       {% for object in objects %}
       {% with service_record=service_records|get_item:object.id %}
 
@@ -70,7 +71,8 @@
           <td style="text-align: end;">
             <div class="btn-group" style="gap: 2px;">
 
-              {% if user.is_superuser %}
+              {% comment %} {% if user.is_superuser %} {% endcomment %}
+              {% if user.is_superuser or user in object.accessuser_set.all %}
               <button onclick="loadModalForm('{% url 'object_edit' pk=object.id %}', 'Редактировать объект')" 
                       class="btn btn-secondary delete">&#9998;</button>
               {% endif %}
@@ -101,15 +103,25 @@
           </td>
       </tr>
       {% endwith %}
+      {% empty %}
+          <tr>
+          <td colspan="4" style="text-align: center; padding: 20px;">
+              {% if user.is_superuser %}
+                  Нет объектов для отображения
+              {% else %}
+                  У вас нет доступа к объектам или объекты не назначены
+              {% endif %}
+          </td>
+        </tr>
       {% endfor %}
-
+      
       <!-- Строка с суммой -->
       <tr style="background-color: #f0f0f0; font-weight: bold;">
-          <td colspan="2"></td>
-          <td style="text-align: right; padding: 0px 10px;">
-            Итого: {{ objects|length }}
-          </td>
-          <td class="delete"></td>
+        <td colspan="2"></td>
+        <td style="text-align: right; padding: 0px 10px;">
+          Итого: {{ objects|length }}
+        </td>
+        <td class="delete"></td>
       </tr>
   </table>
 </div>

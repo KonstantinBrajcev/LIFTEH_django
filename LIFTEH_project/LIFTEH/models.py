@@ -110,3 +110,15 @@ class Problem(models.Model):
     class Meta:
         verbose_name = "Задача"
         verbose_name_plural = "Задачи"
+
+class AccessUser(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="Пользователь")
+    object = models.ForeignKey('Object', on_delete=models.CASCADE, verbose_name="Объект")
+    
+    class Meta:
+        verbose_name = "Доступ пользователя"
+        verbose_name_plural = "Доступы пользователей"
+        unique_together = ('user', 'object')  # Уникальная связь пользователь-объект
+    
+    def __str__(self):
+        return f"{self.user.username} - {self.object.customer}"

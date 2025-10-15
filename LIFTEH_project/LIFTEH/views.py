@@ -27,7 +27,7 @@ from django.views.generic import TemplateView
 from datetime import datetime
 from django.shortcuts import render
 from django.http import JsonResponse
-from LIFTEH.models import Object, Avr, Service, Work, Diagnostic, Problem, Object
+from LIFTEH.models import Object, Avr, Service, Work, Diagnostic, Problem, Object, AccessUser  
 from LIFTEH.forms import ObjectForm, ServiceForm, AvrForm, ObjectAvrForm, DiagnosticForm
 
 
@@ -77,8 +77,15 @@ class ToView(TemplateView):
         if 'all' in selected_colors or not selected_colors:
             selected_colors = ['green', 'yellow', 'red', 'gray']
 
-        # Базовый запрос с фильтрацией по месяцу
-        objects = Object.objects.filter(**{f'M{month}__gt': 0})
+        # Базовый запрос с фильтрацией по месяцу И правами доступа
+        if self.request.user.is_superuser:
+            objects = Object.objects.filter(**{f'M{month}__gt': 0})
+        else:
+            # Для обычных пользователей - только объекты из таблицы доступа
+            objects = Object.objects.filter(
+                accessuser__user=self.request.user,
+                **{f'M{month}__gt': 0}
+            ).distinct()
 
         # Фильтрация по городу (только если город выбран)
         if selected_city:
@@ -330,6 +337,27 @@ def object_delete(request, pk):
         return JsonResponse({'success': False, 'error': 'Invalid method'})
     return redirect(reverse('to') + '#service')
 
+
+@login_required
+def object_table_view(request):
+    # Для суперпользователя - все объекты
+    if request.user.is_superuser:
+        objects = Object.objects.all()
+    else:
+        # Для обычных пользователей - только объекты из таблицы доступа
+        objects = Object.objects.filter(
+            accessuser__user=request.user
+        ).distinct()
+    
+    # Ваш существующий код для service_records и другого контекста
+    service_records = {}  # Ваша логика для service_records
+    
+    context = {
+        'objects': objects,
+        'service_records': service_records,
+    }
+    
+    return render(request, 'object_table.html', context)
 
 # ------ РАБОТА С АВР ------
 
