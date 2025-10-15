@@ -360,10 +360,28 @@ select[multiple] option:checked {
   border-bottom: 2px solid #c43c0c;
   padding: 8px;
 }
+
 .modal-body {
   padding: 8px;
 }
+
 /* КОНЕЦ КНОПОК В БАЛУНЕ */
+
+
+#sortMenuContainer {
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  transition: all 0.5s ease-in-out;
+}
+
+#sortMenuContainer.show {
+  max-height: 200px;
+  opacity: 1;
+  display: block;
+}
+
+
 
 @media (max-width: 660px) {
   .delete {
