@@ -33,7 +33,7 @@ function checkUserAccess() {
 
         if (transportSwitchContainer) {
             transportSwitchContainer.style.display = 'none';
-            console.log('Transport switch hidden for user with limited access');
+            // console.log('Transport switch hidden for user with limited access');
         }
 
         currentTransportState = transportFilterStates.no_transport;
@@ -41,13 +41,11 @@ function checkUserAccess() {
             transportSwitch.checked = false;
         }
     }
-
-    console.log(`User access - Limited: ${userHasLimitedAccess}, Superuser: ${isSuperuser}`);
+    // console.log(`User access - Limited: ${userHasLimitedAccess}, Superuser: ${isSuperuser}`);
     return userHasLimitedAccess;
 }
 
 function initMap() {
-    console.log("Инициирование карты initMap")
     const isLimitedAccess = checkUserAccess();
 
     if (map) {
@@ -60,7 +58,7 @@ function initMap() {
     });
 
     // Удаляем все стандартные элементы управления
-    map.controls.remove('zoomControl');
+    // map.controls.remove('zoomControl');
     map.controls.remove('geolocationControl');
     map.controls.remove('searchControl');
     map.controls.remove('typeSelector');
@@ -86,22 +84,22 @@ function initMap() {
 }
 
 function loadObjects() {
-    console.log('=== НАЧАЛО loadObjects ===');
-    console.log('isLoading:', isLoading);
-    console.log('buildingPlacemarks до очистки:', buildingPlacemarks.length);
-    console.log('carPlacemarks до очистки:', carPlacemarks.length);
+    // console.log('=== НАЧАЛО loadObjects ===');
+    // console.log('isLoading:', isLoading);
+    // console.log('buildingPlacemarks до очистки:', buildingPlacemarks.length);
+    // console.log('carPlacemarks до очистки:', carPlacemarks.length);
 
     if (clusterer && typeof clusterer.getGeoObjects === 'function') {
-        console.log('clusterer geoObjects до очистки:', clusterer.getGeoObjects().length);
+        // console.log('clusterer geoObjects до очистки:', clusterer.getGeoObjects().length);
     }
 
     if (isLoading) {
-        console.log('Загрузка уже выполняется, пропускаем...');
+        // console.log('Загрузка уже выполняется, пропускаем...');
         return;
     }
 
     isLoading = true;
-    console.log(`Загрузка объектов: состояние объектов = ${currentObjectsState}, состояние транспорта = ${currentTransportState}`);
+    // console.log(`Загрузка объектов: состояние объектов = ${currentObjectsState}, состояние транспорта = ${currentTransportState}`);
 
     clearAllPlacemarks();
 
@@ -109,10 +107,10 @@ function loadObjects() {
 
     loadBuildings(currentObjectsState).then(() => {
         if (showTransport && !userHasLimitedAccess) {
-            console.log('Загрузка транспорта после объектов');
+            // console.log('Загрузка транспорта после объектов');
             return loadCars();
         } else {
-            console.log('Транспорт скрыт');
+            // console.log('Транспорт скрыт');
             return Promise.resolve();
         }
     }).then(() => {
@@ -120,20 +118,15 @@ function loadObjects() {
     }).catch(error => {
         console.error('Ошибка при загрузке данных:', error);
     }).finally(() => {
-        console.log('buildingPlacemarks после загрузки:', buildingPlacemarks.length);
-        console.log('carPlacemarks после загрузки:', carPlacemarks.length);
-
+        // console.log('buildingPlacemarks после загрузки:', buildingPlacemarks.length);
+        // console.log('carPlacemarks после загрузки:', carPlacemarks.length);
         if (clusterer && typeof clusterer.getGeoObjects === 'function') {
-            console.log('clusterer geoObjects после загрузки:', clusterer.getGeoObjects().length);
         }
-
-        console.log('=== КОНЕЦ loadObjects ===');
         isLoading = false;
     });
 }
 
 function loadBuildings(filterType) {
-    console.log("Инициирование loadBuildings")
     return new Promise((resolve, reject) => {
         fetch(`/api/get_objects/?filter=${filterType}`)
             .then(response => {
@@ -147,8 +140,7 @@ function loadBuildings(filterType) {
                 return response.json();
             })
             .then(objectsData => {
-                console.log('Полученные объекты:', objectsData);
-
+                // console.log('Полученные объекты:', objectsData);
                 if (objectsData.error) {
                     console.error('Ошибка загрузки объектов:', objectsData.error);
                     resolve();
@@ -177,25 +169,23 @@ function loadBuildings(filterType) {
                             placemarks.push(placemark);
                             buildingPlacemarks.push(placemark);
                         } else {
-                            console.log('🚫 Пропущен дубликат координат:', coordKey, obj.address);
+                            // console.log('🚫 Пропущен дубликат координат:', coordKey, obj.address);
                         }
                     }
                 });
-
-                console.log(`📍 Уникальных координат: ${uniqueCoords.size}`);
-                console.log(`📍 Уникальных адресов: ${uniqueAddresses.size}`);
-
+                // console.log(`📍 Уникальных координат: ${uniqueCoords.size}`);
+                // console.log(`📍 Уникальных адресов: ${uniqueAddresses.size}`);
                 if (placemarks.length > 0) {
                     clusterer.add(placemarks);
-                    console.log(`✅ Добавлено ${placemarks.length} объектов в кластеризатор`);
+                    // console.log(`✅ Добавлено ${placemarks.length} объектов в кластеризатор`);
 
                     setTimeout(() => {
                         if (clusterer && typeof clusterer.getGeoObjects === 'function') {
-                            console.log('🔍 Меток в кластеризаторе после добавления:', clusterer.getGeoObjects().length);
+                            // console.log('🔍 Меток в кластеризаторе после добавления:', clusterer.getGeoObjects().length);
                         }
                     }, 100);
                 } else {
-                    console.log('❌ Нет объектов для отображения на карту');
+                    // console.log('❌ Нет объектов для отображения на карту');
                 }
 
                 resolve();
@@ -208,7 +198,6 @@ function loadBuildings(filterType) {
 }
 
 function loadCars() {
-    console.log("Инициирование loadCars")
     return new Promise((resolve, reject) => {
         if (userHasLimitedAccess) {
             console.log('Skipping car load for user with limited access');
@@ -228,10 +217,10 @@ function loadCars() {
                 return response.json();
             })
             .then(trackersData => {
-                console.log('Получены данные трекеров:', trackersData);
+                // console.log('Получены данные трекеров:', trackersData);
 
                 if (trackersData.error) {
-                    console.error('Ошибка загрузки трекеров:', trackersData.error);
+                    // console.error('Ошибка загрузки трекеров:', trackersData.error);
                     resolve();
                     return;
                 }
@@ -241,13 +230,11 @@ function loadCars() {
                 );
 
                 if (validTrackers.length === 0) {
-                    console.log('Нет валидных данных для отображения автомобилей');
+                    // console.log('Нет валидных данных для отображения автомобилей');
                     resolve();
                     return;
                 }
-
                 clearCarPlacemarks();
-
                 validTrackers.forEach(function (tracker) {
                     const placemark = createCarPlacemark(tracker);
                     carPlacemarks.push(placemark);
@@ -257,8 +244,7 @@ function loadCars() {
                 if (currentTransportState === "transport" && !userHasLimitedAccess) {
                     startAutoUpdate();
                 }
-
-                console.log(`✅ Добавлено ${validTrackers.length} автомобилей на карту`);
+                // console.log(`✅ Добавлено ${validTrackers.length} автомобилей на карту`);
                 resolve();
             })
             .catch(error => {
@@ -268,15 +254,13 @@ function loadCars() {
     });
 }
 
-// ИСПРАВЛЕННАЯ ФУНКЦИЯ - ГЛАВНОЕ ИСПРАВЛЕНИЕ
 // Добавьте в начало файла с другими переменными
 let isFirstLoad = true;
-
+// ФУНКЦИЯ ОТРИСОВКИ ОБЪЕКТОВ
 function updateMapBounds() {
-    console.log(`Инициирование updateMapBounds`);
     setTimeout(() => {
         const allPlacemarks = [...buildingPlacemarks, ...carPlacemarks];
-        console.log(`📍 Всего меток для границ: ${allPlacemarks.length}`);
+        // console.log(`📍 Всего меток для границ: ${allPlacemarks.length}`);
 
         if (allPlacemarks.length > 0) {
             if (isFirstLoad) {
@@ -285,20 +269,18 @@ function updateMapBounds() {
                 isFirstLoad = false;
             } else {
                 // При последующих переключениях фильтров сохраняем текущий вид
-                console.log('📍 Сохранены текущие границы карты (не первая загрузка)');
+                // console.log('📍 Сохранены текущие границы карты (не первая загрузка)');
             }
         } else {
             map.setCenter([53.9, 27.5], 7);
-            console.log('📍 Установлены границы по умолчанию');
+            // console.log('📍 Установлены границы по умолчанию');
             isFirstLoad = true; // Сбрасываем флаг если меток нет
         }
     }, 500);
 }
 
-// НОВАЯ ФУНКЦИЯ: Ручной расчет границ
+// Ручной расчет границ
 function calculateBoundsManually() {
-    console.log('🔄 Ручной расчет границ...');
-
     const allPlacemarks = [...buildingPlacemarks, ...carPlacemarks];
     const coordinates = [];
 
@@ -311,17 +293,16 @@ function calculateBoundsManually() {
                     coordinates.push(coords);
                 }
             } catch (error) {
-                console.log('Ошибка получения координат метки:', error);
+                // console.log('Ошибка получения координат метки:', error);
             }
         }
     });
 
     if (coordinates.length === 0) {
-        console.log('❌ Нет валидных координат для расчета границ');
+        // console.log('❌ Нет валидных координат для расчета границ');
         map.setCenter([53.9, 27.5], 7);
         return;
     }
-
     // Вычисляем минимальные и максимальные координаты
     let minLat = coordinates[0][0];
     let maxLat = coordinates[0][0];
@@ -344,49 +325,42 @@ function calculateBoundsManually() {
         [maxLat + latMargin, maxLon + lonMargin]
     ];
 
-    console.log('📐 Рассчитанные границы:', bounds);
+    // console.log('📐 Рассчитанные границы:', bounds);
 
     try {
-        map.setBounds(bounds(), {
+        map.setBounds(bounds(), { // ПРОБЛЕМА БЫЛА ТУТ
             checkZoomRange: true,
             zoomMargin: 0
         });
         console.log('✅ Границы установлены через ручной расчет');
     } catch (error) {
-        console.log('❌ Ошибка установки границ:', error);
+        // console.log('❌ Ошибка установки границ:', error);
         // Последний резервный способ
         const centerLat = (minLat + maxLat) / 2;
         const centerLon = (minLon + maxLon) / 2;
         map.setCenter([centerLat, centerLon], 7);
-        console.log('📍 Установлен центр карты по координатам меток');
+        // console.log('📍 Установлен центр карты по координатам меток');
     }
 }
 
 function clearAllPlacemarks() {
-    console.log(`Инициирование clearAllPlacemarks`);
-
     if (clusterer && typeof clusterer.removeAll === 'function') {
         clusterer.removeAll();
-        console.log('✅ Кластеризатор очищен');
     }
-
     clearCarPlacemarks();
     buildingPlacemarks = [];
-
     setTimeout(() => {
         if (clusterer && typeof clusterer.getGeoObjects === 'function') {
-            console.log('🧹 Меток в кластеризаторе после очистки:', clusterer.getGeoObjects().length);
         }
     }, 50);
 }
 
+// ИНИЦИИРОВАНИЕ ОЧИСТКИ АВТОМОБИЛЕЙ
 function clearCarPlacemarks() {
-    console.log(`Инициирование clearCarPlacemarks`);
     carPlacemarks.forEach(placemark => {
         map.geoObjects.remove(placemark);
     });
     carPlacemarks = [];
-    console.log(`✅ Автомобили очищены`);
 }
 
 function createBuildingPlacemark(obj, customIconSvg) {
@@ -441,7 +415,6 @@ function startAutoUpdate() {
     }
 
     if (userHasLimitedAccess) {
-        console.log('Auto-update disabled for user with limited access');
         return;
     }
 
@@ -469,7 +442,6 @@ function startAutoUpdate() {
 }
 
 function toggleObjectsFilter() {
-    console.log(`Переключение фильтра объектов`);
     const switchElement = document.getElementById('objectsSwitch');
     const isChecked = switchElement.checked;
 
@@ -478,14 +450,11 @@ function toggleObjectsFilter() {
     } else {
         currentObjectsState = objectsFilterStates.without_marks;
     }
-
     loadObjects();
 }
 
 function toggleTransportFilter() {
-    console.log(`Переключение фильтра транспорта`);
     if (userHasLimitedAccess) {
-        console.log('Transport toggle ignored for user with limited access');
         return;
     }
 
@@ -501,76 +470,9 @@ function toggleTransportFilter() {
     } else {
         currentTransportState = transportFilterStates.no_transport;
     }
-
     loadObjects();
 }
 
-// ИСПРАВЛЕННЫЕ КОМАНДЫ ДЛЯ ОТЛАДКИ
-window.debugMap = {
-    checkVisibility: function () {
-        console.log('=== ОТЛАДКА КАРТЫ ===');
-        console.log('🏠 buildingPlacemarks:', buildingPlacemarks.length);
-        console.log('🚗 carPlacemarks:', carPlacemarks.length);
-
-        if (clusterer && typeof clusterer.getGeoObjects === 'function') {
-            const geoObjects = clusterer.getGeoObjects();
-            console.log('📍 Меток в кластеризаторе:', geoObjects.length);
-
-            // Покажем первые 5 меток
-            geoObjects.slice(0, 5).forEach((obj, i) => {
-                try {
-                    const coords = obj.geometry.getCoordinates();
-                    console.log(`Метка ${i}:`, coords);
-                } catch (error) {
-                    console.log(`Метка ${i}: Ошибка получения координат`);
-                }
-            });
-        } else {
-            console.log('❌ Кластеризатор не доступен');
-        }
-
-        // Проверим центр и зум карты
-        // console.log('🎯 Центр карты:', map.getCenter());
-        // console.log('🔍 Зум карты:', map.getZoom());
-    },
-
-    showAllObjects: function () {
-        console.log('=== ВСЕ ОБЪЕКТЫ ===');
-        buildingPlacemarks.forEach((pm, i) => {
-            try {
-                const coords = pm.geometry.getCoordinates();
-                console.log(`Объект ${i}: ${coords[0]}, ${coords[1]}`);
-            } catch (error) {
-                console.log(`Объект ${i}: Ошибка координат`);
-            }
-        });
-    },
-
-    // Новая функция для проверки отображения меток
-    checkMapObjects: function () {
-        console.log('=== ПРОВЕРКА ОТОБРАЖЕНИЯ МЕТОК ===');
-        if (clusterer && typeof clusterer.getGeoObjects === 'function') {
-            const objects = clusterer.getGeoObjects();
-            console.log('Видимых меток на карте:', objects.length);
-
-            objects.forEach((obj, i) => {
-                const coords = obj.geometry.getCoordinates();
-                const pixelCoords = map.getPixelCoordinates(coords);
-                console.log(`Метка ${i}: coords=${coords}, pixel=${pixelCoords}`);
-            });
-        }
-    }
-};
-
-// Проверка через 3 секунды после загрузки
-setTimeout(() => {
-    console.log('=== ФИНАЛЬНАЯ ПРОВЕРКА ЧЕРЕЗ 3 СЕКУНДЫ ===');
-    if (window.debugMap && typeof window.debugMap.checkVisibility === 'function') {
-        window.debugMap.checkVisibility();
-    } else {
-        console.log('❌ debugMap не доступен');
-    }
-}, 3000);
 
 // Инициализация карты
 ymaps.ready(function () {
@@ -586,5 +488,3 @@ ymaps.ready(function () {
         }
     });
 });
-
-// Остальные функции (createBuildingBalloonContent, createCarBalloonContent и т.д.) остаются без изменений
