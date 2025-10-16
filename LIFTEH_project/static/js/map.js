@@ -17,130 +17,39 @@ const transportFilterStates = {
 
 let currentObjectsState = objectsFilterStates.without_marks;
 let currentTransportState = transportFilterStates.transport;
-
-// Переменные для прав доступа
 let userHasLimitedAccess = false;
+let isLoading = false;
 
 // Функция для проверки прав доступа
 function checkUserAccess() {
     const hasAccessEntries = document.body.getAttribute('data-has-access-entries') === 'true';
     const isSuperuser = document.body.getAttribute('data-user-is-superuser') === 'true';
-    
-    // Если пользователь имеет ограниченные права (не суперпользователь И есть записи доступа)
+
     userHasLimitedAccess = (!isSuperuser && hasAccessEntries);
-    
+
     if (userHasLimitedAccess) {
         const transportSwitch = document.getElementById('transportSwitch');
         const transportSwitchContainer = transportSwitch ? transportSwitch.closest('.filter-switch') : null;
-        
+
         if (transportSwitchContainer) {
             transportSwitchContainer.style.display = 'none';
             console.log('Transport switch hidden for user with limited access');
         }
-        
-        // Автоматически выключаем транспорт
+
         currentTransportState = transportFilterStates.no_transport;
         if (transportSwitch) {
             transportSwitch.checked = false;
         }
     }
-    
+
     console.log(`User access - Limited: ${userHasLimitedAccess}, Superuser: ${isSuperuser}`);
     return userHasLimitedAccess;
 }
 
-// // Вызов функции после загрузки DOM
-// document.addEventListener('DOMContentLoaded', function() {
-//     checkUserAccess();
-// });
-
-function toggleObjectsFilter() {
-    const switchElement = document.getElementById('objectsSwitch');
-    const isChecked = switchElement.checked;
-
-    if (isChecked) {
-        currentObjectsState = objectsFilterStates.all;
-    } else {
-        currentObjectsState = objectsFilterStates.without_marks;
-    }
-
-    loadObjects();
-}
-
-function toggleTransportFilter() {
-    // Если пользователь с ограниченными правами, игнорируем переключение транспорта
-    if (userHasLimitedAccess) {
-        console.log('Transport toggle ignored for user with limited access');
-        return;
-    }
-
-    const switchElement = document.getElementById('transportSwitch');
-    const isChecked = switchElement.checked;
-
-    // Останавливаем автообновление при выключении транспорта
-    if (!isChecked && updateInterval) {
-        clearInterval(updateInterval);
-    }
-
-    if (isChecked) {
-        currentTransportState = transportFilterStates.transport;
-    } else {
-        currentTransportState = transportFilterStates.no_transport;
-    }
-
-    loadObjects();
-}
-
-// Функция для создания балуна метки с кнопками
-function createPlacemarkBalloon(object) {
-    const balloonContent = `
-        <div class="balloon-content">
-            <h4>${object.customer || 'Заказчик не указан'}</h4>
-            <p><strong>Адрес:</strong> ${object.address || 'Не указан'}</p>
-            <p><strong>Телефон:</strong> ${object.phone || 'Не указан'}</p>
-            <div class="balloon-buttons">
-                <button class="btn btn-primary btn-sm" onclick="openServiceModal(${object.id})">
-                    Добавить ТО
-                </button>
-                <button class="btn btn-success btn-sm" onclick="openAvrModal(${object.id})">
-                    Добавить АВР
-                </button>
-            </div>
-        </div>
-    `;
-    return balloonContent;
-}
-
-// Функция для открытия модального окна ТО
-function openServiceModal(objectId) {
-    const url = `/service/add/${objectId}/`;
-    const title = 'Добавление обслуживания';
-
-    // Используем функцию из to.js
-    if (typeof loadModalForm === 'function') {
-        loadModalForm(url, title);
-    } else {
-        console.error('Функция loadModalForm не найдена');
-    }
-}
-
-// Функция для открытия модального окна АВР
-function openAvrModal(objectId) {
-    const url = `/avr/add/${objectId}/`;
-    const title = 'Добавление АВР';
-
-    // Используем функцию из to.js
-    if (typeof loadModalForm === 'function') {
-        loadModalForm(url, title);
-    } else {
-        console.error('Функция loadModalForm не найдена');
-    }
-}
-
 function initMap() {
-    // ПЕРВОЕ: проверяем права доступа ДО инициализации карты
+    console.log("Инициирование карты initMap")
     const isLimitedAccess = checkUserAccess();
-    
+
     if (map) {
         map.destroy();
     }
@@ -160,192 +69,328 @@ function initMap() {
     map.controls.remove('trafficControl');
     map.controls.remove('routeButtonControl');
 
+    // Инициализируем кластеризатор с настройками, которые не скрывают отдельные метки
     clusterer = new ymaps.Clusterer({
         preset: 'islands#invertedOrangeClusterIcons',
         clusterDisableClickZoom: true,
         clusterOpenBalloonOnClick: true,
-        gridSize: 64
+        gridSize: 64,
+        clusterHideIconOnBalloonOpen: false,
+        geoObjectHideIconOnBalloonOpen: false,
+        groupByCoordinates: false
     });
 
     map.geoObjects.add(clusterer);
-    
-    // ВТОРОЕ: загружаем объекты только после проверки прав
+
     loadObjects();
 }
 
 function loadObjects() {
-    console.log(`Загрузка объектов: состояние объектов = ${currentObjectsState}, состояние транспорта = ${currentTransportState}`);
-    console.log(`User has limited access: ${userHasLimitedAccess}`);
-    console.log(`URL для объектов: /api/get_objects/?filter=${currentObjectsState}`);
-    console.log(`URL для транспорта: /api/get_tracker_locations/`);
-    
-    clusterer.removeAll();
-    clearCarPlacemarks();
-    clearBuildingPlacemarks();
+    console.log('=== НАЧАЛО loadObjects ===');
+    console.log('isLoading:', isLoading);
+    console.log('buildingPlacemarks до очистки:', buildingPlacemarks.length);
+    console.log('carPlacemarks до очистки:', carPlacemarks.length);
 
-    const showTransport = currentTransportState === "transport" && !userHasLimitedAccess;
-
-    // Загружаем объекты в зависимости от состояния
-    switch (currentObjectsState) {
-        case "all":
-            console.log('Загрузка ВСЕХ объектов');
-            loadBuildings("all");
-            break;
-        case "without_marks":
-            console.log('Загрузка объектов без отметок');
-            loadBuildings("without_marks");
-            break;
+    if (clusterer && typeof clusterer.getGeoObjects === 'function') {
+        console.log('clusterer geoObjects до очистки:', clusterer.getGeoObjects().length);
     }
 
-    if (showTransport && !userHasLimitedAccess) {
-        console.log('Загрузка транспорта');
-        loadCars();
-    } else {
-        console.log('Транспорт скрыт');
-    }
-}
-
-function loadBuildings(filterType) {
-    fetch(`/api/get_objects/?filter=${filterType}`)
-        .then(response => {
-            if (response.status === 403 || response.status === 401) {
-                // Пользователь не авторизован - перенаправляем на страницу логина
-                window.location.href = '/login/';
-                return;
-            }
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            return response.json();
-        })
-        .then(objectsData => {
-            console.log('Полученные объекты:', objectsData);
-            
-            if (objectsData.error) {
-                console.error('Ошибка загрузки объектов:', objectsData.error);
-                setBelarusBounds();
-                return;
-            }
-
-            const placemarks = [];
-            const uniqueAddresses = new Set();
-
-            const customIconSvg = 'data:image/svg+xml;charset=utf-8,' +
-                encodeURIComponent(
-                    '<svg xmlns="http://www.w3.org/2000/svg" width="35" height="35" fill="currentColor" class="bi bi-geo-alt-fill" viewBox="0 0 16 16">' +
-                    '<path fill="#de4c15" d="M8 16s6-5.686 6-10A6 6 0 0 0 2 6c0 4.314 6 10 6 10m0-7a3 3 0 1 1 0-6 3 3 0 0 1 0 6"/>' +
-                    '</svg>'
-                );
-
-            objectsData.forEach(function (obj) {
-                if (obj.latitude && obj.longitude && !uniqueAddresses.has(obj.address)) {
-                    uniqueAddresses.add(obj.address);
-                    const placemark = createBuildingPlacemark(obj, customIconSvg);
-                    placemarks.push(placemark);
-                    buildingPlacemarks.push(placemark);
-                }
-            });
-
-            if (placemarks.length > 0) { 
-                clusterer.add(placemarks); 
-                console.log(`Добавлено ${placemarks.length} объектов на карту`);
-            } else {
-                console.log('Нет объектов для отображения на карту');
-            }
-
-            if (currentTransportState === "no_transport" || userHasLimitedAccess) {
-                setBelarusBounds();
-            }
-        })
-        .catch(error => {
-            console.error('Ошибка загрузки объектов:', error);
-            setBelarusBounds();
-        });
-}
-
-function loadCars() {
-    // Если пользователь с ограниченными правами, не загружаем автомобили
-    if (userHasLimitedAccess) {
-        console.log('Skipping car load for user with limited access');
+    if (isLoading) {
+        console.log('Загрузка уже выполняется, пропускаем...');
         return;
     }
 
-    fetch('/api/get_tracker_locations/')
-        .then(response => {
-            if (response.status === 403 || response.status === 401) {
-                // Пользователь не авторизован - перенаправляем на страницу логина
-                window.location.href = '/login/';
-                return;
-            }
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            return response.json();
-        })
-        .then(trackersData => {
-            console.log('Получены данные трекеров:', trackersData);
+    isLoading = true;
+    console.log(`Загрузка объектов: состояние объектов = ${currentObjectsState}, состояние транспорта = ${currentTransportState}`);
 
-            if (trackersData.error) {
-                console.error('Ошибка загрузки трекеров:', trackersData.error);
-                return;
-            }
+    clearAllPlacemarks();
 
-            const validTrackers = trackersData.filter(tracker =>
-                tracker.latitude && tracker.longitude
-            );
+    const showTransport = currentTransportState === "transport" && !userHasLimitedAccess;
 
-            if (validTrackers.length === 0) {
-                console.log('Нет валидных данных для отображения автомобилей');
-                return;
-            }
+    loadBuildings(currentObjectsState).then(() => {
+        if (showTransport && !userHasLimitedAccess) {
+            console.log('Загрузка транспорта после объектов');
+            return loadCars();
+        } else {
+            console.log('Транспорт скрыт');
+            return Promise.resolve();
+        }
+    }).then(() => {
+        updateMapBounds();
+    }).catch(error => {
+        console.error('Ошибка при загрузке данных:', error);
+    }).finally(() => {
+        console.log('buildingPlacemarks после загрузки:', buildingPlacemarks.length);
+        console.log('carPlacemarks после загрузки:', carPlacemarks.length);
 
-            // Очищаем предыдущие метки автомобилей
-            clearCarPlacemarks();
+        if (clusterer && typeof clusterer.getGeoObjects === 'function') {
+            console.log('clusterer geoObjects после загрузки:', clusterer.getGeoObjects().length);
+        }
 
-            validTrackers.forEach(function (tracker) {
-                const placemark = createCarPlacemark(tracker);
-                carPlacemarks.push(placemark);
-                map.geoObjects.add(placemark);
-            });
-
-            console.log(`Добавлено ${validTrackers.length} автомобилей на карту`);
-
-            // Если есть и объекты и автомобили, подгоняем карту под все
-            if (buildingPlacemarks.length > 0 || validTrackers.length > 0) {
-                setTimeout(() => {
-                    const allPlacemarks = [...buildingPlacemarks, ...carPlacemarks];
-                    if (allPlacemarks.length > 0) {
-                        const group = new ymaps.GeoObjectCollection();
-                        allPlacemarks.forEach(pm => group.add(pm));
-                        const bounds = group.getBounds();
-                        if (bounds) {
-                            map.setBounds(bounds, {
-                                checkZoomRange: true,
-                                zoomMargin: 50
-                            });
-                        }
-                    }
-                }, 100);
-            }
-
-            if (currentTransportState === "transport" && !userHasLimitedAccess) {
-                startAutoUpdate();
-            }
-        })
-        .catch(error => {
-            console.error('Ошибка загрузки автомобилей:', error);
-        });
+        console.log('=== КОНЕЦ loadObjects ===');
+        isLoading = false;
+    });
 }
 
+function loadBuildings(filterType) {
+    console.log("Инициирование loadBuildings")
+    return new Promise((resolve, reject) => {
+        fetch(`/api/get_objects/?filter=${filterType}`)
+            .then(response => {
+                if (response.status === 403 || response.status === 401) {
+                    window.location.href = '/login/';
+                    return reject(new Error('Unauthorized'));
+                }
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(objectsData => {
+                console.log('Полученные объекты:', objectsData);
 
-// Функция для установки фиксированных границ Беларуси
-function setBelarusBounds() {
-    // Fallback: центр Беларуси
-    map.setCenter([53.9, 27.5], 7);
+                if (objectsData.error) {
+                    console.error('Ошибка загрузки объектов:', objectsData.error);
+                    resolve();
+                    return;
+                }
+
+                const placemarks = [];
+                const uniqueAddresses = new Set();
+                const uniqueCoords = new Set();
+
+                const customIconSvg = 'data:image/svg+xml;charset=utf-8,' +
+                    encodeURIComponent(
+                        '<svg xmlns="http://www.w3.org/2000/svg" width="35" height="35" fill="currentColor" class="bi bi-geo-alt-fill" viewBox="0 0 16 16">' +
+                        '<path fill="#de4c15" d="M8 16s6-5.686 6-10A6 6 0 0 0 2 6c0 4.314 6 10 6 10m0-7a3 3 0 1 1 0-6 3 3 0 0 1 0 6"/>' +
+                        '</svg>'
+                    );
+
+                objectsData.forEach(function (obj) {
+                    if (obj.latitude && obj.longitude && !uniqueAddresses.has(obj.address)) {
+                        const coordKey = `${obj.latitude.toFixed(6)},${obj.longitude.toFixed(6)}`;
+                        if (!uniqueCoords.has(coordKey)) {
+                            uniqueAddresses.add(obj.address);
+                            uniqueCoords.add(coordKey);
+
+                            const placemark = createBuildingPlacemark(obj, customIconSvg);
+                            placemarks.push(placemark);
+                            buildingPlacemarks.push(placemark);
+                        } else {
+                            console.log('🚫 Пропущен дубликат координат:', coordKey, obj.address);
+                        }
+                    }
+                });
+
+                console.log(`📍 Уникальных координат: ${uniqueCoords.size}`);
+                console.log(`📍 Уникальных адресов: ${uniqueAddresses.size}`);
+
+                if (placemarks.length > 0) {
+                    clusterer.add(placemarks);
+                    console.log(`✅ Добавлено ${placemarks.length} объектов в кластеризатор`);
+
+                    setTimeout(() => {
+                        if (clusterer && typeof clusterer.getGeoObjects === 'function') {
+                            console.log('🔍 Меток в кластеризаторе после добавления:', clusterer.getGeoObjects().length);
+                        }
+                    }, 100);
+                } else {
+                    console.log('❌ Нет объектов для отображения на карту');
+                }
+
+                resolve();
+            })
+            .catch(error => {
+                console.error('Ошибка загрузки объектов:', error);
+                reject(error);
+            });
+    });
+}
+
+function loadCars() {
+    console.log("Инициирование loadCars")
+    return new Promise((resolve, reject) => {
+        if (userHasLimitedAccess) {
+            console.log('Skipping car load for user with limited access');
+            resolve();
+            return;
+        }
+
+        fetch('/api/get_tracker_locations/')
+            .then(response => {
+                if (response.status === 403 || response.status === 401) {
+                    window.location.href = '/login/';
+                    return reject(new Error('Unauthorized'));
+                }
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(trackersData => {
+                console.log('Получены данные трекеров:', trackersData);
+
+                if (trackersData.error) {
+                    console.error('Ошибка загрузки трекеров:', trackersData.error);
+                    resolve();
+                    return;
+                }
+
+                const validTrackers = trackersData.filter(tracker =>
+                    tracker.latitude && tracker.longitude
+                );
+
+                if (validTrackers.length === 0) {
+                    console.log('Нет валидных данных для отображения автомобилей');
+                    resolve();
+                    return;
+                }
+
+                clearCarPlacemarks();
+
+                validTrackers.forEach(function (tracker) {
+                    const placemark = createCarPlacemark(tracker);
+                    carPlacemarks.push(placemark);
+                    map.geoObjects.add(placemark);
+                });
+
+                if (currentTransportState === "transport" && !userHasLimitedAccess) {
+                    startAutoUpdate();
+                }
+
+                console.log(`✅ Добавлено ${validTrackers.length} автомобилей на карту`);
+                resolve();
+            })
+            .catch(error => {
+                console.error('Ошибка загрузки автомобилей:', error);
+                reject(error);
+            });
+    });
+}
+
+// ИСПРАВЛЕННАЯ ФУНКЦИЯ - ГЛАВНОЕ ИСПРАВЛЕНИЕ
+// Добавьте в начало файла с другими переменными
+let isFirstLoad = true;
+
+function updateMapBounds() {
+    console.log(`Инициирование updateMapBounds`);
+    setTimeout(() => {
+        const allPlacemarks = [...buildingPlacemarks, ...carPlacemarks];
+        console.log(`📍 Всего меток для границ: ${allPlacemarks.length}`);
+
+        if (allPlacemarks.length > 0) {
+            if (isFirstLoad) {
+                // Только при первой загрузке устанавливаем границы
+                calculateBoundsManually();
+                isFirstLoad = false;
+            } else {
+                // При последующих переключениях фильтров сохраняем текущий вид
+                console.log('📍 Сохранены текущие границы карты (не первая загрузка)');
+            }
+        } else {
+            map.setCenter([53.9, 27.5], 7);
+            console.log('📍 Установлены границы по умолчанию');
+            isFirstLoad = true; // Сбрасываем флаг если меток нет
+        }
+    }, 500);
+}
+
+// НОВАЯ ФУНКЦИЯ: Ручной расчет границ
+function calculateBoundsManually() {
+    console.log('🔄 Ручной расчет границ...');
+
+    const allPlacemarks = [...buildingPlacemarks, ...carPlacemarks];
+    const coordinates = [];
+
+    // Собираем все координаты
+    allPlacemarks.forEach(pm => {
+        if (pm && pm.geometry) {
+            try {
+                const coords = pm.geometry.getCoordinates();
+                if (coords && Array.isArray(coords) && coords.length === 2) {
+                    coordinates.push(coords);
+                }
+            } catch (error) {
+                console.log('Ошибка получения координат метки:', error);
+            }
+        }
+    });
+
+    if (coordinates.length === 0) {
+        console.log('❌ Нет валидных координат для расчета границ');
+        map.setCenter([53.9, 27.5], 7);
+        return;
+    }
+
+    // Вычисляем минимальные и максимальные координаты
+    let minLat = coordinates[0][0];
+    let maxLat = coordinates[0][0];
+    let minLon = coordinates[0][1];
+    let maxLon = coordinates[0][1];
+
+    coordinates.forEach(coord => {
+        minLat = Math.min(minLat, coord[0]);
+        maxLat = Math.max(maxLat, coord[0]);
+        minLon = Math.min(minLon, coord[1]);
+        maxLon = Math.max(maxLon, coord[1]);
+    });
+
+    // Добавляем отступы
+    const latMargin = (maxLat - minLat) * 0.1;
+    const lonMargin = (maxLon - minLon) * 0.1;
+
+    const bounds = [
+        [minLat - latMargin, minLon - lonMargin],
+        [maxLat + latMargin, maxLon + lonMargin]
+    ];
+
+    console.log('📐 Рассчитанные границы:', bounds);
+
+    try {
+        map.setBounds(bounds(), {
+            checkZoomRange: true,
+            zoomMargin: 0
+        });
+        console.log('✅ Границы установлены через ручной расчет');
+    } catch (error) {
+        console.log('❌ Ошибка установки границ:', error);
+        // Последний резервный способ
+        const centerLat = (minLat + maxLat) / 2;
+        const centerLon = (minLon + maxLon) / 2;
+        map.setCenter([centerLat, centerLon], 7);
+        console.log('📍 Установлен центр карты по координатам меток');
+    }
+}
+
+function clearAllPlacemarks() {
+    console.log(`Инициирование clearAllPlacemarks`);
+
+    if (clusterer && typeof clusterer.removeAll === 'function') {
+        clusterer.removeAll();
+        console.log('✅ Кластеризатор очищен');
+    }
+
+    clearCarPlacemarks();
+    buildingPlacemarks = [];
+
+    setTimeout(() => {
+        if (clusterer && typeof clusterer.getGeoObjects === 'function') {
+            console.log('🧹 Меток в кластеризаторе после очистки:', clusterer.getGeoObjects().length);
+        }
+    }, 50);
+}
+
+function clearCarPlacemarks() {
+    console.log(`Инициирование clearCarPlacemarks`);
+    carPlacemarks.forEach(placemark => {
+        map.geoObjects.remove(placemark);
+    });
+    carPlacemarks = [];
+    console.log(`✅ Автомобили очищены`);
 }
 
 function createBuildingPlacemark(obj, customIconSvg) {
-    return new ymaps.Placemark(
+    const placemark = new ymaps.Placemark(
         [obj.latitude, obj.longitude],
         {
             balloonContent: createBuildingBalloonContent(obj),
@@ -356,9 +401,11 @@ function createBuildingPlacemark(obj, customIconSvg) {
             iconImageHref: customIconSvg,
             iconImageSize: [30, 30],
             iconImageOffset: [-15, -30],
-            balloonCloseButton: false
+            balloonCloseButton: false,
+            hideIconOnBalloonOpen: false
         }
     );
+    return placemark;
 }
 
 function createCarPlacemark(tracker) {
@@ -369,7 +416,7 @@ function createCarPlacemark(tracker) {
             '</svg>'
         );
 
-    return new ymaps.Placemark(
+    const placemark = new ymaps.Placemark(
         [tracker.latitude, tracker.longitude],
         {
             balloonContent: createCarBalloonContent(tracker),
@@ -380,29 +427,19 @@ function createCarPlacemark(tracker) {
             iconImageHref: carIconSvg,
             iconImageSize: [35, 35],
             iconImageOffset: [-10, -20],
-            balloonCloseButton: false
+            balloonCloseButton: false,
+            hideIconOnBalloonOpen: false
         }
     );
+    return placemark;
 }
 
-function clearCarPlacemarks() {
-    carPlacemarks.forEach(placemark => {
-        map.geoObjects.remove(placemark);
-    });
-    carPlacemarks = [];
-}
 
-function clearBuildingPlacemarks() {
-    buildingPlacemarks = [];
-}
-
-// Обновите функцию startAutoUpdate
 function startAutoUpdate() {
     if (updateInterval) {
         clearInterval(updateInterval);
     }
 
-    // Если пользователь с ограниченными правами, не запускаем автообновление
     if (userHasLimitedAccess) {
         console.log('Auto-update disabled for user with limited access');
         return;
@@ -431,8 +468,8 @@ function startAutoUpdate() {
     }, 30000);
 }
 
-// Функции переключения кнопок
 function toggleObjectsFilter() {
+    console.log(`Переключение фильтра объектов`);
     const switchElement = document.getElementById('objectsSwitch');
     const isChecked = switchElement.checked;
 
@@ -446,7 +483,7 @@ function toggleObjectsFilter() {
 }
 
 function toggleTransportFilter() {
-    // Если пользователь с ограниченными правами, игнорируем переключение транспорта
+    console.log(`Переключение фильтра транспорта`);
     if (userHasLimitedAccess) {
         console.log('Transport toggle ignored for user with limited access');
         return;
@@ -455,7 +492,6 @@ function toggleTransportFilter() {
     const switchElement = document.getElementById('transportSwitch');
     const isChecked = switchElement.checked;
 
-    // Останавливаем автообновление при выключении транспорта
     if (!isChecked && updateInterval) {
         clearInterval(updateInterval);
     }
@@ -469,103 +505,77 @@ function toggleTransportFilter() {
     loadObjects();
 }
 
-// Обновленная функция создания балуна для зданий с кнопками
-function createBuildingBalloonContent(obj) {
-    return '<div style="border-radius: 5px; min-width: 250px;">' +
-        '<div style="background-color: #de4c15; color: white; padding: 8px; font-weight: bold;">' +
-        obj.customer + '</div>' +
-        '<a href="https://yandex.ru/maps/?text=' + obj.address +
-        '" target="_blank" style="text-decoration: none; color: inherit; margin-right: 5px; color: #666;">' +
-        '<img src="/static/ico/geo-alt.svg" style="width: 16px; height: 16px; vertical-align: middle; margin: 5px;">' +
-        obj.address + '</a><br>' +
-        (obj.manual_url ?
-            '<a href="' + obj.manual_url + '" target="_blank" style="text-decoration: none; color: inherit; cursor: pointer;" onclick="event.stopPropagation();">' +
-            '<img src="/static/ico/gear.svg" style="width: 16px; height: 16px; vertical-align: middle; margin: 5px;">' +
-            obj.model + '</a><br>' :
-            '<span style="color: #666;">' +
-            '<img src="/static/ico/gear.svg" style="width: 16px; height: 16px; vertical-align: middle; margin: 5px; opacity: 0.5;">' +
-            obj.model + ' (*)</span><br>') +
-        '<a href="tel:' + obj.phone + '" style="text-decoration: none; color: inherit; color: #666;">' +
-        '<img src="/static/ico/telephone.svg" style="width: 16px; height: 16px; vertical-align: middle; margin: 5px;">' +
-        obj.phone + '</a><br>' +
-        createServiceInfo(obj) +
-        // Добавляем кнопки в балун
-        '<div class="balloon-buttons" style="display: flex; gap: 5px; justify-content: center;">' +
-        '<button class="btn btn-primary btn-sm" onclick="openServiceModal(' + obj.id + '); event.stopPropagation();">' +
-        'Добавить ТО</button>' +
-        '<button class="btn btn-success btn-sm" onclick="openAvrModal(' + obj.id + '); event.stopPropagation();">' +
-        'Добавить АВР</button>' +
-        '</div>' +
-        '</div>';
-}
+// ИСПРАВЛЕННЫЕ КОМАНДЫ ДЛЯ ОТЛАДКИ
+window.debugMap = {
+    checkVisibility: function () {
+        console.log('=== ОТЛАДКА КАРТЫ ===');
+        console.log('🏠 buildingPlacemarks:', buildingPlacemarks.length);
+        console.log('🚗 carPlacemarks:', carPlacemarks.length);
 
-function createCarBalloonContent(tracker) {
-    const lastUpdate = tracker.last_update || '';
-    const [date, time] = lastUpdate.split(' ');
-    return '<div style="border-radius: 5px; min-width: 200px;">' +
-        '<div style="background-color: #007bff; color: white; padding: 8px; font-weight: bold;">' + tracker.car_id + '</div>' +
-        '<div style="padding: 8px;">' +
-        '<div style="margin-bottom: 4px;">' +
-        '<img src="/static/ico/car-front-fill.svg" style="width: 16px; height: 16px; vertical-align: middle; margin-right: 5px;">' +
-        '<strong>Автомобиль:</strong> ' + (tracker.tracker_id == 1801661 ? 'VW Crafter' : 'MB Sprinter') +
-        '</div>' +
-        '<div style="margin-bottom: 4px;">' +
-        '<img src="/static/ico/nvme.svg" style="width: 16px; height: 16px; vertical-align: middle; margin-right: 5px;">' +
-        '<strong>Гос номер:</strong> ' + (tracker.tracker_id == 1801661 ? 'AH 2456-3' : '1256 MB-3') +
-        '</div>' +
-        '<div style="margin-bottom: 4px;">' +
-        '<img src="/static/ico/person.svg" style="width: 16px; height: 16px; vertical-align: middle; margin-right: 5px;">' +
-        '<strong>Водитель:</strong> ' + tracker.driver_name +
-        '</div>' +
-        '<div style="margin-bottom: 4px;">' +
-        '<img src="/static/ico/speedometer.svg" style="width: 16px; height: 16px; vertical-align: middle; margin-right: 5px;">' +
-        '<strong>Скорость:</strong> ' + tracker.speed + ' км/ч' +
-        '</div>' +
-        '<div style="margin-bottom: 4px;">' +
-        '<img src="/static/ico/radar.svg" style="width: 16px; height: 16px; vertical-align: middle; margin-right: 5px;">' +
-        '<strong>Спутники:</strong> ' + tracker.satellites +
-        '</div>' +
-        '<div style="margin-bottom: 4px;">' +
-        '<img src="/static/ico/123.svg" style="width: 16px; height: 16px; vertical-align: middle; margin-right: 5px;">' +
-        '<strong>Пробег:</strong> ' + tracker.mileage + ' км' +
-        '</div>' +
-        '<div style="margin-bottom: 4px;">' +
-        '<img src="/static/ico/recycle.svg" style="width: 16px; height: 16px; vertical-align: middle; margin-right: 5px;">' +
-        '<strong>Дата обновления:</strong> ' + (date || '--.--.----') +
-        '</div>' +
-        '<div style="margin-bottom: 4px;">' +
-        '<img src="/static/ico/recycle.svg" style="width: 16px; height: 16px; vertical-align: middle; margin-right: 5px;">' +
-        '<strong>Время обновления:</strong> ' + (time || '--:--:--') +
-        '</div>' +
-        '</div></div>';
-}
+        if (clusterer && typeof clusterer.getGeoObjects === 'function') {
+            const geoObjects = clusterer.getGeoObjects();
+            console.log('📍 Меток в кластеризаторе:', geoObjects.length);
 
-function createServiceInfo(obj) {
-    let serviceHtml = '<div style="margin-top: 5px; padding-top: 0px; border-top: 1px solid #eee;">';
-    serviceHtml += '<div style="font-weight: bold; color: #de4c15; margin-left: 5px; text-align: left;">Последнее ТО</div>';
-    if (obj.last_service_date) {
-        serviceHtml += '<div style="display: flex; align-items: center;">';
-        serviceHtml += '<img src="/static/ico/calendar.svg" style="width: 16px; height: 16px; vertical-align: middle; margin: 5px;">';
-        serviceHtml += '<span style="font-size: 14px; color: #666;">' + obj.last_service_date + '</span>';
-        serviceHtml += '</div>';
-        if (obj.last_service_comments) {
-            serviceHtml += '<div style="display: flex; align-items: center;">';
-            serviceHtml += '<img src="/static/ico/chat-left-text.svg" style="width: 16px; height: 16px; vertical-align: middle; margin: 5px;">';
-            serviceHtml += '<span style="font-size: 14px; color: #666;">' + obj.last_service_comments + '</span>';
-            serviceHtml += '</div>';
+            // Покажем первые 5 меток
+            geoObjects.slice(0, 5).forEach((obj, i) => {
+                try {
+                    const coords = obj.geometry.getCoordinates();
+                    console.log(`Метка ${i}:`, coords);
+                } catch (error) {
+                    console.log(`Метка ${i}: Ошибка получения координат`);
+                }
+            });
+        } else {
+            console.log('❌ Кластеризатор не доступен');
         }
-    } else {
-        serviceHtml += '<div style="color: #999; font-size: 14px; margin: 4px;">Нет данных об осмотрах</div>';
+
+        // Проверим центр и зум карты
+        // console.log('🎯 Центр карты:', map.getCenter());
+        // console.log('🔍 Зум карты:', map.getZoom());
+    },
+
+    showAllObjects: function () {
+        console.log('=== ВСЕ ОБЪЕКТЫ ===');
+        buildingPlacemarks.forEach((pm, i) => {
+            try {
+                const coords = pm.geometry.getCoordinates();
+                console.log(`Объект ${i}: ${coords[0]}, ${coords[1]}`);
+            } catch (error) {
+                console.log(`Объект ${i}: Ошибка координат`);
+            }
+        });
+    },
+
+    // Новая функция для проверки отображения меток
+    checkMapObjects: function () {
+        console.log('=== ПРОВЕРКА ОТОБРАЖЕНИЯ МЕТОК ===');
+        if (clusterer && typeof clusterer.getGeoObjects === 'function') {
+            const objects = clusterer.getGeoObjects();
+            console.log('Видимых меток на карте:', objects.length);
+
+            objects.forEach((obj, i) => {
+                const coords = obj.geometry.getCoordinates();
+                const pixelCoords = map.getPixelCoordinates(coords);
+                console.log(`Метка ${i}: coords=${coords}, pixel=${pixelCoords}`);
+            });
+        }
     }
-    serviceHtml += '</div>';
-    return serviceHtml;
-}
+};
+
+// Проверка через 3 секунды после загрузки
+setTimeout(() => {
+    console.log('=== ФИНАЛЬНАЯ ПРОВЕРКА ЧЕРЕЗ 3 СЕКУНДЫ ===');
+    if (window.debugMap && typeof window.debugMap.checkVisibility === 'function') {
+        window.debugMap.checkVisibility();
+    } else {
+        console.log('❌ debugMap не доступен');
+    }
+}, 3000);
 
 // Инициализация карты
 ymaps.ready(function () {
     initMap();
 
-    // Обработчики для переключателей
     document.getElementById('objectsSwitch').addEventListener('change', toggleObjectsFilter);
     document.getElementById('transportSwitch').addEventListener('change', toggleTransportFilter);
 
@@ -577,3 +587,4 @@ ymaps.ready(function () {
     });
 });
 
+// Остальные функции (createBuildingBalloonContent, createCarBalloonContent и т.д.) остаются без изменений

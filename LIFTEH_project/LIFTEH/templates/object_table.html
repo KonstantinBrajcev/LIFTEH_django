@@ -71,9 +71,9 @@
           <td style="text-align: end;">
             <div class="btn-group" style="gap: 2px;">
 
-              {% comment %} {% if user.is_superuser %} {% endcomment %}
+              {% if user.is_superuser %}
               {% comment %} {% if user.is_superuser or user in object.accessuser_set.all %} {% endcomment %}
-              {% if user.is_superuser or not has_access_entries or user in object.accessuser_set.all %}
+              {% comment %} {% if user.is_superuser or not has_access_entries or user in object.accessuser_set.all %} {% endcomment %}
               <button onclick="loadModalForm('{% url 'object_edit' pk=object.id %}', 'Редактировать объект')" 
                       class="btn btn-secondary delete">&#9998;</button>
               {% endif %}
