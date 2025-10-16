@@ -18,39 +18,32 @@
 
 </head>
 
-    {% if user.is_authenticated %}
-    <div class='glass-button' style="padding: 5px 5px 5px 0px;
-    display: flex;
-    position: absolute;
+{% if user.is_authenticated %}
+<form action="{% url 'logout' %}" method="post">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-link glass-button" style="
+    padding: 15px 20px 15px 15px;
     top: 10px;
     right: 10px;
     z-index: 10;
-    background-color: #de4c15;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);">
-      <form action="{% url 'logout' %}" method="post">
-        {% csrf_token %}
-        <button type="submit" class="btn btn-link">
-          <img src="{% static 'ico/box-arrow-in-right.svg' %}" alt="Выйти" 
-                style="height: 30px; width: 30px; opacity: 0.8; filter: invert(100%) brightness(2);"
-                onmouseover="this.style.opacity=1" 
-                onmouseout="this.style.opacity=0.8">
-        </button>
-      </form>
-    </div>
-    {% endif %}
+    ">
+        <img src="{% static 'ico/box-arrow-in-right.svg' %}" alt="Выйти" 
+            style="height: 30px; width: 30px; opacity: 0.8; filter: invert(100%) brightness(2);"
+            onmouseover="this.style.opacity=1" 
+            onmouseout="this.style.opacity=0.8">
+    </button>
+</form>
+{% endif %}
 
 <body data-has-access-entries="{{ has_access_entries|yesno:'true,false' }}" 
       data-user-is-superuser="{{ user.is_superuser|yesno:'true,false' }}">
     <!-- Шапка с кнопкой перехода к таблице -->
-    <div class="new map-header glass-button" style="display: flex;
-    position: absolute; 
-    width: 68px; 
-    height: 68px;
-    background-color: #de4c15;">
+    <div class="new map-header glass-button" style="
+    width: 70px;
+    height: 70px;
+    ">
     <a href="{% url 'to' %}" class="logo-link" style="height: 68px; color: white;">
-        {% comment %} <a href="{% url 'to' %}" class="logo-link" style="height: 64px; color: white;" data-tooltip="Таблица"> {% endcomment %}
             <h1 style="font-size: 50px;">LT</h1>
-            {% comment %} <img src="{% static 'logo_lifteh.png' %}" alt="Logo" style="height: 4em;"> {% endcomment %}
         </a>
     </div>
 

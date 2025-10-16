@@ -78,14 +78,14 @@ select[multiple] option:checked {
 
 /* КНОПКИ СТЕКЛЯННЫЕ С ПОДСВЕТКОЙ */
 .glass-button {
-  position: relative;
+  position: absolute;
   font-size: 18px;
   font-weight: bold;
   color: white;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
-  background: linear-gradient(145deg, rgba(222, 76, 21, 0.9), rgba(222, 76, 21, 0.7));
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+  background: linear-gradient(145deg, rgba(222, 76, 21, 0.9), rgba(222, 76, 21, 1));
   border: none;
-  border-radius: 10px;
+  border-radius: 7px;
   cursor: pointer;
   overflow: hidden;
 }
@@ -98,7 +98,8 @@ select[multiple] option:checked {
   left: -100%;
   width: 100%;
   height: 100%;
-  z-index: 1000;
+  pointer-events: none;
+  z-index: 1;
   background: linear-gradient(90deg,
       transparent,
       rgba(255, 255, 255, 0.4),
@@ -127,11 +128,12 @@ select[multiple] option:checked {
   left: 0;
   width: 100%;
   height: 50%;
-  z-index: 1000;
+  pointer-events: none;
+  z-index: 1;
   background: linear-gradient(to bottom,
       rgba(255, 255, 255, 0.2),
       transparent);
-  border-radius: 10px 10px 0 0;
+  border-radius: 7px 7px 0 0;
 }
 
 .logo-text {
@@ -143,6 +145,7 @@ select[multiple] option:checked {
 .logo-link {
   height: 100%;
   width: 100%;
+  z-index: 2;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -278,7 +281,7 @@ select[multiple] option:checked {
   flex-direction: column;
   background-color: white;
   border-radius: 7px;
-  padding: 5px;
+  padding: 7px;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
 }
 

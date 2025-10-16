@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.contrib.auth import views as auth_views
 from django.contrib.auth.decorators import login_required
 from django.urls import path
-from LIFTEH.views import LoginView, ToView, HomeView, ChartsView, TasksView, DiagnosticView, map_view, get_objects
+from LIFTEH.views import LoginView, ToView, HomeView, ChartsView, TasksView, DiagnosticView
 from LIFTEH.views import ApiLoginView
 from LIFTEH import views
 from django.conf import settings
@@ -52,19 +52,12 @@ urlpatterns = [
     path('charts/', ChartsView.as_view(), name='charts'),
     path('tasks/', user_passes_test(lambda u: u.is_superuser)
          (TasksView.as_view()), name='tasks'),
-    #     path('tasks/', TasksView.as_view(), name='tasks'),
 
-#     path('map/', map_view, name='map'),
     path('map/', login_required(views.map_view), name='map'),
 
-#     path('api/objects', get_objects, name='get_objects'),
-     # path('api/get_objects/', views.get_objects, name='get_objects'),
-     path('api/get_objects/', login_required(views.get_objects), name='get_objects'),
-     path('api/get_tracker_locations/', login_required(views.get_tracker_locations), name='get_tracker_locations'),
-#     path('api/get_tracker_locations/', views.get_tracker_locations, name='get_tracker_locations'),
-#     path('get_objects/', views.get_objects, name='get_objects'),
-#     path('get-tracker-locations/', views.get_tracker_locations,
-#          name='get_tracker_locations'),
+    path('api/get_objects/', login_required(views.get_objects), name='get_objects'),
+    path('api/get_tracker_locations/',
+         login_required(views.get_tracker_locations), name='get_tracker_locations'),
 
     # API endpoint для Flutter приложения
     path('api/auth/login/', ApiLoginView.as_view(), name='api_login'),
