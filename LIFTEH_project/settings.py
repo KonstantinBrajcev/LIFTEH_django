@@ -1,7 +1,7 @@
 import os
 from pathlib import Path
 
-BASE_DIR = Path(__file__).resolve().parent.parent
+BASE_DIR = Path(__file__).resolve().parent
 
 # Определяем среду выполнения
 PRODUCTION = os.getenv('DJANGO_PRODUCTION', 'False').lower() == 'true'
@@ -83,7 +83,7 @@ MIDDLEWARE = [
 if PRODUCTION:
     MIDDLEWARE.insert(1, 'whitenoise.middleware.WhiteNoiseMiddleware')
 
-ROOT_URLCONF = 'LIFTEH_project.urls'
+ROOT_URLCONF = 'urls'
 
 TEMPLATES = [
     {
@@ -101,7 +101,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'LIFTEH_project.wsgi.application'
+WSGI_APPLICATION = 'wsgi.application'
 
 AUTH_PASSWORD_VALIDATORS = [
     {

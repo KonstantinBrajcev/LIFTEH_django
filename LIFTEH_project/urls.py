@@ -10,6 +10,7 @@ from django.conf.urls.static import static
 from django.contrib.auth import views as auth_views
 from django.contrib.auth.decorators import user_passes_test
 
+app_name = 'LIFTEH'
 
 urlpatterns = [
     path('', HomeView.as_view(), name='home'),

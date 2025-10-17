@@ -668,6 +668,7 @@ class ChartsView(AdminRequiredMixin, TemplateView):
 
 
 # --------- РАБОТА С ПРОБЛЕМАМИ ----------
+@login_required
 def problems_view(request):
     from django.contrib.auth import get_user_model
     User = get_user_model()
