@@ -49,7 +49,7 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             # Переходим в директорию проекта
-            cd ${{ secrets.PROJECT_PATH }}
+            cd ${{ secrets.PROJECT_PATH }}/LIFTEH_priject
             
             # ПРОВЕРЯЕМ ЧТО МЫ В ПРАВИЛЬНОЙ ДИРЕКТОРИИ
             echo "=== ТЕКУЩАЯ ДИРЕКТОРИЯ ==="
