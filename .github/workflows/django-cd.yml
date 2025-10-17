@@ -48,19 +48,46 @@ jobs:
           username: ${{ secrets.SSH_USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
+            # Переходим в директорию проекта
             cd ${{ secrets.PROJECT_PATH }}
+            
+            # ПРОВЕРЯЕМ ЧТО МЫ В ПРАВИЛЬНОЙ ДИРЕКТОРИИ
+            echo "=== ТЕКУЩАЯ ДИРЕКТОРИЯ ==="
+            pwd
+            echo "=== СОДЕРЖИМОЕ ДИРЕКТОРИИ ==="
+            ls -la
+            
             source ~/myenv/bin/activate
             export DJANGO_PRODUCTION=true
             export DJANGO_SETTINGS_MODULE=settings
 
+            # ПРОВЕРЯЕМ СУЩЕСТВОВАНИЕ ФАЙЛОВ
+            echo "=== ПРОВЕРКА ФАЙЛОВ ==="
+            if [ -f "requirements-server.txt" ]; then
+              echo "✅ requirements-server.txt найден"
+            else
+              echo "❌ requirements-server.txt НЕ НАЙДЕН"
+              echo "Содержимое директории:"
+              ls -la
+              exit 1
+            fi
+
+            if [ -f "manage.py" ]; then
+              echo "✅ manage.py найден"
+            else
+              echo "❌ manage.py НЕ НАЙДЕН"
+              exit 1
+            fi
+
             # Обновляем зависимости
+            echo "=== УСТАНОВКА ЗАВИСИМОСТЕЙ ==="
             pip install -r requirements-server.txt
 
-            # ⚠️ Удаляем db.sqlite3 если он пришел из репозитория
+            # Управление БД
+            echo "=== РАБОТА С БАЗОЙ ДАННЫХ ==="
             if [ -f "db.sqlite3" ]; then
-              # Проверяем размер файла - если маленький, значит это пустая БД из разработки
               FILE_SIZE=$(stat -f%z "db.sqlite3" 2>/dev/null || stat -c%s "db.sqlite3" 2>/dev/null)
-              if [ "$FILE_SIZE" -lt 50000 ]; then  # Если файл меньше 50KB - это пустая БД
+              if [ "$FILE_SIZE" -lt 50000 ]; then
                 echo "Удаляем пустую БД из разработки..."
                 rm -f db.sqlite3
               else
@@ -68,26 +95,34 @@ jobs:
               fi
             fi
 
-            # Если БД нет - создаем через миграции
-            if [ ! -f "db.sqlite3" ]; then
-              python manage.py makemigrations
-              python manage.py migrate --no-input
-            else
-              python manage.py makemigrations
-              python manage.py migrate --no-input
-            fi
+            # Миграции
+            echo "=== ВЫПОЛНЕНИЕ МИГРАЦИЙ ==="
+            python manage.py makemigrations
+            python manage.py migrate --no-input
 
-            # Сбор статики с проверкой
-            echo "Собираем статические файлы..."
+            # Сбор статики
+            echo "=== СБОР СТАТИЧЕСКИХ ФАЙЛОВ ==="
             python manage.py collectstatic --noinput --clear
 
-            # Проверяем собранные статические файлы
+            # Проверка результата
+            echo "=== ПРОВЕРКА РЕЗУЛЬТАТА ==="
             if [ -d "staticfiles" ]; then
-              echo "Статические файлы собраны в:"
+              echo "✅ Папка staticfiles создана"
+              echo "Содержимое staticfiles/:"
               ls -la staticfiles/
+              echo "Размер папки staticfiles:"
               du -sh staticfiles/
             else
-              echo "ОШИБКА: Папка staticfiles не создана!"
+              echo "❌ Папка staticfiles не создана!"
+              echo "Проверяем настройки Django:"
+              python -c "
+              import os
+              os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'settings')
+              from django.conf import settings
+              print('DEBUG:', settings.DEBUG)
+              print('STATIC_ROOT:', settings.STATIC_ROOT)
+              print('STATIC_URL:', settings.STATIC_URL)
+              "
             fi
 
       - name: Restart Gunicorn
