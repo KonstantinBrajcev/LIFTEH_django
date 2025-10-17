@@ -1,15 +1,14 @@
 {% load static %}
 
-{% comment %} {% block content %} {% endcomment %}
 <div class="card">
     <div class="card-header d-flex">
         <h3 class="mb-0">Задачи</h3>
         <div class="col d-flex justify-content-end align-items-center">
             {% if user.is_superuser %}
-<button type="button" class="btn btn-primary"
-        onclick="loadProblemModalForm('{% url 'add_problem' %}', 'Добавить задачу')">
-    Добавить
-</button>
+    <button type="button" class="btn btn-primary"
+            onclick="loadProblemModalForm('{% url 'add_problem' %}', 'Добавить задачу')">
+        Добавить
+    </button>
             {% endif %}
         </div>
     </div>
@@ -18,6 +17,3 @@
         {% include 'problems_table.html' %}
     </div>
 </div>
-
-<!-- Модальное окно для добавления/редактирования (уже есть в to.html) -->
-{% comment %} {% endblock %} {% endcomment %}

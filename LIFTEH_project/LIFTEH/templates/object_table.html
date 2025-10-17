@@ -23,7 +23,8 @@
   </div>
 
   {% load custom_filters %}
-    <!-- Контейнер для меню сортировки (изначально скрыт) -->
+
+  <!-- Контейнер для меню сортировки (изначально скрыт) -->
   <div id="sortMenuContainer">
     {% include 'sort_object.html' %}
   </div>
@@ -51,7 +52,7 @@
         {% endif %}
       {% else %} #80808063
       {% endif %};">
-      
+
           {% comment %} <td>{{ object.id }}</td> {% endcomment %}
           <td class="delete" style="text-align: center;">{{ object.customer }}</td>
           <td style="text-align: center;" style="text-align: center;">
@@ -72,8 +73,6 @@
             <div class="btn-group" style="gap: 2px;">
 
               {% if user.is_superuser %}
-              {% comment %} {% if user.is_superuser or user in object.accessuser_set.all %} {% endcomment %}
-              {% comment %} {% if user.is_superuser or not has_access_entries or user in object.accessuser_set.all %} {% endcomment %}
               <button onclick="loadModalForm('{% url 'object_edit' pk=object.id %}', 'Редактировать объект')" 
                       class="btn btn-secondary delete">&#9998;</button>
               {% endif %}
@@ -115,7 +114,7 @@
           </td>
         </tr>
       {% endfor %}
-      
+
       <!-- Строка с суммой -->
       <tr style="background-color: #f0f0f0; font-weight: bold;">
         <td colspan="2"></td>
@@ -128,41 +127,6 @@
 </div>
 </div>
 
-<script>
-function toggleSortMenu() {
-    const sortMenu = document.getElementById('sortMenuContainer');
-    const toggle = document.getElementById('sortToggle');
-    
-    if (toggle.checked) {
-        sortMenu.classList.add('show');
-    } else {
-        sortMenu.classList.remove('show');
-    }
-}
 
-// Опционально: функция для сохранения состояния переключателя
-function saveToggleState() {
-    const toggle = document.getElementById('sortToggle');
-    localStorage.setItem('sortMenuVisible', toggle.checked);
-}
-
-function loadToggleState() {
-    const savedState = localStorage.getItem('sortMenuVisible');
-    const toggle = document.getElementById('sortToggle');
-    const sortMenu = document.getElementById('sortMenuContainer');
-    
-    if (savedState === 'true') {
-        toggle.checked = true;
-        // Небольшая задержка для корректной анимации при загрузке
-        setTimeout(() => {
-            sortMenu.classList.add('show');
-        }, 10);
-    }
-}
-
-// Загружаем состояние при загрузке страницы
-document.addEventListener('DOMContentLoaded', loadToggleState);
-
-// Сохраняем состояние при изменении
-document.getElementById('sortToggle').addEventListener('change', saveToggleState);
+<script src={% static 'js/object.js' %}>
 </script>

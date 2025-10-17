@@ -1,8 +1,5 @@
-{% comment %} {% block content %} {% endcomment %}
-    {% comment %} <h2>Редактирование диагностики</h2> {% endcomment %}
-    <form method="post" enctype="multipart/form-data" action="{% url 'diagnostic_edit' pk=diagnostic.id %}">
+<form method="post" enctype="multipart/form-data" action="{% url 'diagnostic_edit' pk=diagnostic.id %}">
         {% csrf_token %}
-        {% comment %} {{ form.as_p }} {% endcomment %}
 
         <div class="form-floating mb-2">
             <input class="form-control" type="text" name="customer" value="{{ form.customer.value }}" maxlength="255" required="" id="id_customer">

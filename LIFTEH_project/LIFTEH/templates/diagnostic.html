@@ -4,14 +4,14 @@
     <div>
       <h4>Диагностики</h4>
     </div>
-{% if user.is_superuser %}
-    <div class="col d-flex justify-content-end align-items-center">
-      <button type="button" class="btn btn-primary" 
-        onclick="loadModalForm('{% url 'diagnostic_add' %}', 'Добавить диагностику')">
-          Добавить
-      </button>
-    </div>
-{% endif %}
+    {% if user.is_superuser %}
+      <div class="col d-flex justify-content-end align-items-center">
+        <button type="button" class="btn btn-primary" 
+          onclick="loadModalForm('{% url 'diagnostic_add' %}', 'Добавить диагностику')">
+            Добавить
+        </button>
+      </div>
+    {% endif %}
   </div>
 
   <div class="card-body" style="padding: 0px; min-height: 50px;">
@@ -29,7 +29,6 @@
       <tbody>
         {% for diagnostic in diagnostics %}
         <tr>
-          {% comment %} <td style="text-align: center;">{{ diagnostic.id }}</td> {% endcomment %}
           <td style="text-align: center;">{{ diagnostic.object.customer|default:"-" }}</td>
           <td style="text-align: center;">{{ diagnostic.object.address|default:"-" }}</td>
           {% comment %} <td style="text-align: center;">{{ diagnostic.insert_date|date:"d.m.Y" }}</td> {% endcomment %}

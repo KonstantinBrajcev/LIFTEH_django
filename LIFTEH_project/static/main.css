@@ -54,7 +54,6 @@ select[multiple] option:checked {
 }
 
 .new {
-  /* height: 50px; */
   display: flex;
   align-items: center;
   background-color: #de4c15;
@@ -399,7 +398,7 @@ select[multiple] option:checked {
   transition: color 0.2s ease;
 }
 
-/* --- КНОПКИ в БАЛУУНе --- */
+/* --- КНОПКИ в БАЛУНе --- */
 .balloon-content {
   padding: 10px;
   min-width: 250px;

@@ -1,0 +1,44 @@
+<!-- Модальное окно для добавления/редактирования -->
+<div class="modal fade" id="objectModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+
+        <div class="modal-header" style="background-color: #de4c15; color: white;">
+          <h5 class="modal-title" id="modalTitle">Добавить объект</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+
+        <div class="modal-body" id="modalFormContent">
+
+          <!-- Сюда загружается форма -->
+          <div class="text-center py-4">
+            <div class="spinner-border" role="status">
+              <span class="visually-hidden">Загрузка...</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Модальное окно для подтверждения удаления -->
+  <div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header bg-danger text-white">
+          <h5 class="modal-title">Подтверждение удаления</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <p id="deleteConfirmText">Вы уверены, что хотите удалить эту запись?</p>
+        </div>
+        <div class="modal-footer">
+          <form id="deleteForm" method="POST">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger">Удалить</button>
+          </form>
+          <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Отмена</button>
+        </div>
+      </div>
+    </div>
+  </div>

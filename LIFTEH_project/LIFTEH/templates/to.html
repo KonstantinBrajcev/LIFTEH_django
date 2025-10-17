@@ -19,12 +19,11 @@
 
 <div class="d-flex" style="background-color: #de4c15; padding-left: 70px; justify-content: space-between;">
     <div class="new map-header glass-button" style="
-    width: 70px; 
-    height: 70px;
-    ">
-    <a href="{% url 'map' %}" class="logo-link" style="height: 68px; color: white;">
-            <h1 style="font-size: 50px;">LT</h1>
-        </a>
+    width: 70px;
+    height: 70px;">
+      <a href="{% url 'map' %}" class="logo-link" style="height: 68px; color: white;">
+        <h1 style="font-size: 50px;">LT</h1>
+      </a>
     </div>
 
     {% if user.is_authenticated %}
@@ -34,23 +33,22 @@
     {% endif %}
 
 
-{% if user.is_authenticated %}
-<form action="{% url 'logout' %}" method="post" >
-    {% csrf_token %}
-    <button type="submit" class="btn btn-link glass-button" style="
-    padding: 15px 20px 15px 15px;
-    top: 10px;
-    right: 10px;
-    z-index: 10;
-    ">
-        <img src="{% static 'ico/box-arrow-in-right.svg' %}" alt="Выйти" 
-            style="height: 30px; width: 30px; opacity: 0.8; filter: invert(100%) brightness(2);"
-            onmouseover="this.style.opacity=1" 
-            onmouseout="this.style.opacity=0.8">
-    </button>
-</form>
-{% endif %}
-</div>
+    {% if user.is_authenticated %}
+    <form action="{% url 'logout' %}" method="post" >
+        {% csrf_token %}
+        <button type="submit" class="btn btn-link glass-button" style="
+        padding: 15px 20px 15px 15px;
+        top: 10px;
+        right: 10px;
+        z-index: 10;">
+          <img src="{% static 'ico/box-arrow-in-right.svg' %}" alt="Выйти"
+                style="height: 30px; width: 30px; opacity: 0.8; filter: invert(100%) brightness(2);"
+                onmouseover="this.style.opacity=1"
+                onmouseout="this.style.opacity=0.8">
+        </button>
+    </form>
+    {% endif %}
+    </div>
 
 
 <div>
@@ -69,9 +67,9 @@
       </li>
       <li class="nav-item" style="margin-left: -8px;">
         <a class="nav-link tab-button" onclick="showTab('acts')"
-          data-bs-toggle="tooltip" data-bs-placement="bottom" 
+          data-bs-toggle="tooltip" data-bs-placement="bottom"
           title="Акты">
-        
+
           {% comment %} КАРТИНКА АКТОВ {% endcomment %}
           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-files" viewBox="0 0 16 16">
             <path d="M13 0H6a2 2 0 0 0-2 2 2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h7a2 2 0 0 0 2-2 2 2 0 0 0 2-2V2a2 2 0 0 0-2-2m0 13V4a2 2 0 0 0-2-2H5a1 1 0 0 1 1-1h7a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1M3 4a1 1 0 0 1 1-1h7a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z"/>
@@ -80,7 +78,7 @@
       </li>
       <li class="nav-item" style="margin-left: -8px;">
         <a class="nav-link tab-button" onclick="showTab('problems')"
-          data-bs-toggle="tooltip" data-bs-placement="bottom" 
+          data-bs-toggle="tooltip" data-bs-placement="bottom"
           title="Проблемы">
 
           {% comment %} КНОПКА ПРОБЛЕМЫ {% endcomment %}
@@ -92,7 +90,7 @@
       {% if user.is_superuser %}
       <li class="nav-item" style="margin-left: -8px;">
           <a class="nav-link tab-button" onclick="showTab('diagnostic')"
-            data-bs-toggle="tooltip" data-bs-placement="bottom" 
+            data-bs-toggle="tooltip" data-bs-placement="bottom"
             title="Диагностика">
 
             {% comment %} КНОПКА ДИАГНОСТИКИ {% endcomment %}
@@ -104,7 +102,7 @@
       </li>
       <li class="nav-item" style="margin-left: -8px;">
         <a class="nav-link tab-button" onclick="showTab('tasks')"
-          data-bs-toggle="tooltip" data-bs-placement="bottom" 
+          data-bs-toggle="tooltip" data-bs-placement="bottom"
           title="Задачи">
 
           {% comment %} КНОПКА ЗАДАЧИ {% endcomment %}
@@ -116,7 +114,7 @@
       </li>
       <li class="nav-item" style="margin-left: -8px;">
         <a class="nav-link tab-button" onclick="showTab('charts')"
-          data-bs-toggle="tooltip" data-bs-placement="bottom" 
+          data-bs-toggle="tooltip" data-bs-placement="bottom"
           title="Графики">
 
           {% comment %} КАРТИНКА ГРАФИКА {% endcomment %}
@@ -153,54 +151,7 @@
         {% include 'diagnostic.html' %}
     </div>
 
-
-
-<!-- Модальное окно для добавления/редактирования -->
-<div class="modal fade" id="objectModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-      <div class="modal-content">
-
-        <div class="modal-header" style="background-color: #de4c15; color: white;">
-          <h5 class="modal-title" id="modalTitle">Добавить объект</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-
-        <div class="modal-body" id="modalFormContent">
-
-          <!-- Сюда загружается форма -->
-          <div class="text-center py-4">
-            <div class="spinner-border" role="status">
-              <span class="visually-hidden">Загрузка...</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-
-  <!-- Модальное окно для подтверждения удаления -->
-  <div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header bg-danger text-white">
-          <h5 class="modal-title">Подтверждение удаления</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body">
-          <p id="deleteConfirmText">Вы уверены, что хотите удалить эту запись?</p>
-        </div>
-        <div class="modal-footer">
-          <form id="deleteForm" method="POST">
-            {% csrf_token %}
-            <button type="submit" class="btn btn-danger">Удалить</button>
-          </form>
-          <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Отмена</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
+  {% include 'modal.html' %}
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script src="{% static 'js/to_tab.js' %}"></script>

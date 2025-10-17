@@ -1,55 +1,53 @@
-{% comment %} <h1>Редактирование объекта</h1> {% endcomment %}
-
 {% load form_tags %}
 
 <form method="post" id="objectEditForm" action="{% url 'object_edit' pk=object.id %}">
     {% csrf_token %}
 
         <div class="form-floating mb-2">
-            <div class="form-floating">
-                <input type="text" class="form-control" name="customer" value="{{ form.customer.value }}" id="id_customer" required>
-                <label for="id_customer">Заказчик</label>
-            </div>
+          <div class="form-floating">
+            <input type="text" class="form-control" name="customer" value="{{ form.customer.value }}" id="id_customer" required>
+            <label for="id_customer">Заказчик</label>
+          </div>
         </div>
 
         <div class="form-floating mb-2">
-            <div class="form-floating">
-                <input type="text" class="form-control" name="address" value="{{ form.address.value }}" autocomplete="address" id="id_address" required>
-                <label for="id_address">Адрес</label>
-            </div>
+          <div class="form-floating">
+            <input type="text" class="form-control" name="address" value="{{ form.address.value }}" autocomplete="address" id="id_address" required>
+            <label for="id_address">Адрес</label>
+          </div>
         </div>
 
-            <div class="row g-2">
-        <div class="col-md-6">
-      <div class="form-floating mb-2">
-        <input type="text" class="form-control" name="model" value="{{ form.model.value }}" maxlength="255" id="id_model" placeholder='' required>
-        <label for="id_model" class="form-label">Модель:</label>
-      </div>
-    </div>
+        <div class="row g-2">
+          <div class="col-md-6">
+            <div class="form-floating mb-2">
+              <input type="text" class="form-control" name="model" value="{{ form.model.value }}" maxlength="255" id="id_model" placeholder='' required>
+              <label for="id_model" class="form-label">Модель:</label>
+            </div>
+          </div>
 
-    <div class="col-md-6">
-      <div class="form-floating mb-2">
-        <input type="text" class="form-control" name="work" value="{{ form.work.value }}" maxlength="20" id="id_work" placeholder='' required>
-        <label for="id_work" class="form-label">Работы:</label>
-      </div>
-    </div>
-  </div>
+          <div class="col-md-6">
+            <div class="form-floating mb-2">
+              <input type="text" class="form-control" name="work" value="{{ form.work.value }}" maxlength="20" id="id_work" placeholder='' required>
+              <label for="id_work" class="form-label">Работы:</label>
+            </div>
+          </div>
+        </div>
 
       <div class="row g-2">
         <div class="col-md-6">
-      <div class="form-floating mb-2">
-        <input type="text" class="form-control" name="phone" value="{{ form.phone.value }}" maxlength="20" autocomplete="phone" id="id_phone" placeholder='' required>
-        <label for="id_phone" class="form-label">Телефон:</label>
-      </div>
-    </div>
+          <div class="form-floating mb-2">
+            <input type="text" class="form-control" name="phone" value="{{ form.phone.value }}" maxlength="20" autocomplete="phone" id="id_phone" placeholder='' required>
+            <label for="id_phone" class="form-label">Телефон:</label>
+          </div>
+        </div>
 
-    <div class="col-md-6">
-      <div class="form-floating mb-2">
-        <input type="text" class="form-control" name="name" value="{{ form.name.value }}" maxlength="255" autocomplete="given-name" id="id_name" placeholder='' required>
-        <label for="id_name" class="form-label">Имя:</label>
+        <div class="col-md-6">
+          <div class="form-floating mb-2">
+            <input type="text" class="form-control" name="name" value="{{ form.name.value }}" maxlength="255" autocomplete="given-name" id="id_name" placeholder='' required>
+            <label for="id_name" class="form-label">Имя:</label>
+          </div>
+        </div>
       </div>
-      </div>
-    </div>
 
 <div class="row g-2 mb-2">
     {% for month in "1 2 3 4 5 6 7 8 9 10 11 12"|split %}
@@ -70,9 +68,6 @@
     </div>
     {% endfor %}
 </div>
-    {% comment %} {{ form.as_p }} {% endcomment %}
-
-    {% comment %} <hr> {% endcomment %}
     <button type="submit" class="btn btn-success">Сохранить</button>
     <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Отмена</button>
 </form>

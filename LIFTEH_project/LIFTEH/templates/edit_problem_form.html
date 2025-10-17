@@ -2,21 +2,21 @@
 <form method="post" action="{% url 'edit_problem' problem.id %}" id="editProblemForm">
     {% csrf_token %}
     <input type="hidden" name="problem_id" value="{{ problem.id }}">
-    
+
     <div class="form-floating mb-3">
-        <input type="text" class="form-control" id="editProblemName" name="name" 
+        <input type="text" class="form-control" id="editProblemName" name="name"
                value="{{ problem.name }}" placeholder="Введите задачу" required maxlength="200">
         <label for="editProblemName">Наименование задачи</label>
         <div class="invalid-feedback">Пожалуйста, введите название задачи</div>
     </div>
-    
+
     <div class="form-floating mb-3">
-        <input type="date" class="form-control" id="editProblemDate" name="created_date" 
+        <input type="date" class="form-control" id="editProblemDate" name="created_date"
                value="{{ problem.created_date|date:'Y-m-d' }}" required>
         <label for="editProblemDate">Дата создания</label>
         <div class="invalid-feedback">Пожалуйста, выберите дату</div>
     </div>
-    
+
     <!-- Поле выбора пользователя (только для суперпользователей) -->
     {% if user.is_superuser %}
     <div class="mb-3">
@@ -25,7 +25,7 @@
             <option value="">-- Выберите пользователя --</option>
             {% for user_obj in users %}
             <option value="{{ user_obj.id }}" {% if user_obj.id == problem.user.id %}selected{% endif %}>
-                {{ user_obj.username }} 
+                {{ user_obj.username }}
                 {% if user_obj.first_name or user_obj.last_name %}
                 ({{ user_obj.first_name }} {{ user_obj.last_name }})
                 {% endif %}
@@ -41,7 +41,7 @@
         <small>Задача назначена: <strong>{{ problem.user.username }}</strong></small>
     </div>
     {% endif %}
-    
+
     <div class="d-flex justify-content-end">
         <button type="button" class="btn btn-secondary me-2" data-bs-dismiss="modal">Отмена</button>
         <button type="submit" class="btn btn-primary" id="submitEditBtn">Сохранить</button>
@@ -54,14 +54,14 @@ function validateEditProblemForm() {
     const nameInput = document.getElementById('editProblemName');
     const dateInput = document.getElementById('editProblemDate');
     const userSelect = document.getElementById('editProblemUser');
-    
+
     let isValid = nameInput.value.trim().length > 0 && dateInput.value;
-    
+
     // Если есть поле выбора пользователя (для суперпользователей), проверяем его
     if (userSelect) {
         isValid = isValid && userSelect.value !== '';
     }
-    
+
     // Валидация названия
     if (nameInput.value.trim().length > 0) {
         nameInput.classList.remove('is-invalid');
@@ -70,7 +70,7 @@ function validateEditProblemForm() {
         nameInput.classList.remove('is-valid');
         nameInput.classList.add('is-invalid');
     }
-    
+
     // Валидация даты
     if (dateInput.value) {
         dateInput.classList.remove('is-invalid');
@@ -79,7 +79,7 @@ function validateEditProblemForm() {
         dateInput.classList.remove('is-valid');
         dateInput.classList.add('is-invalid');
     }
-    
+
     // Валидация пользователя (только для суперпользователей)
     if (userSelect) {
         if (userSelect.value !== '') {
@@ -90,30 +90,26 @@ function validateEditProblemForm() {
             userSelect.classList.add('is-invalid');
         }
     }
-    
     return isValid;
 }
 
 // Обработчик отправки формы редактирования
 document.getElementById('editProblemForm').addEventListener('submit', function(e) {
     e.preventDefault();
-    
+
     if (!validateEditProblemForm()) {
         alert('Пожалуйста, заполните все поля правильно');
         return false;
     }
-    
+
     const form = e.target;
     const submitBtn = form.querySelector('button[type="submit"]');
     const originalText = submitBtn.innerHTML;
     submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status"></span> Сохранение...';
     submitBtn.disabled = true;
-    
+
     const formData = new FormData(form);
-    
-    console.log('Submitting edit form to:', form.action);
-    console.log('Form data:', Object.fromEntries(formData.entries()));
-    
+
     fetch(form.action, {
         method: 'POST',
         body: formData,
@@ -123,14 +119,12 @@ document.getElementById('editProblemForm').addEventListener('submit', function(e
         }
     })
     .then(response => {
-        console.log('Response status:', response.status);
         if (!response.ok) {
             throw new Error('Network response was not ok: ' + response.status);
         }
         return response.json();
     })
     .then(data => {
-        console.log('Response data:', data);
         if (data.success) {
             // Закрываем модальное окно
             const modal = bootstrap.Modal.getInstance(document.getElementById('objectModal'));
@@ -151,7 +145,6 @@ document.getElementById('editProblemForm').addEventListener('submit', function(e
         submitBtn.innerHTML = originalText;
         submitBtn.disabled = false;
     });
-    
     return false;
 });
 
@@ -160,22 +153,18 @@ document.addEventListener('DOMContentLoaded', function() {
     const nameInput = document.getElementById('editProblemName');
     const dateInput = document.getElementById('editProblemDate');
     const userSelect = document.getElementById('editProblemUser');
-    
     if (nameInput) {
         nameInput.addEventListener('input', validateEditProblemForm);
         nameInput.addEventListener('blur', validateEditProblemForm);
     }
-    
     if (dateInput) {
         dateInput.addEventListener('change', validateEditProblemForm);
         dateInput.addEventListener('blur', validateEditProblemForm);
     }
-    
     if (userSelect) {
         userSelect.addEventListener('change', validateEditProblemForm);
         userSelect.addEventListener('blur', validateEditProblemForm);
     }
-    
     validateEditProblemForm();
 });
 </script>

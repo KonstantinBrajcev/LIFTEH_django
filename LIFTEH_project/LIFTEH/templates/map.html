@@ -17,75 +17,55 @@
     <script src="https://api-maps.yandex.ru/2.1/?apikey={{ YANDEX_MAPS_API_KEY }}&lang=ru_RU"></script>
 
 </head>
-
-{% if user.is_authenticated %}
-<form action="{% url 'logout' %}" method="post">
-    {% csrf_token %}
-    <button type="submit" class="btn btn-link glass-button" style="
-    padding: 15px 20px 15px 15px;
-    top: 10px;
-    right: 10px;
-    z-index: 10;
-    ">
-        <img src="{% static 'ico/box-arrow-in-right.svg' %}" alt="Выйти" 
-            style="height: 30px; width: 30px; opacity: 0.8; filter: invert(100%) brightness(2);"
-            onmouseover="this.style.opacity=1" 
-            onmouseout="this.style.opacity=0.8">
-    </button>
-</form>
-{% endif %}
-
-<body data-has-access-entries="{{ has_access_entries|yesno:'true,false' }}" 
+<body data-has-access-entries="{{ has_access_entries|yesno:'true,false' }}"
       data-user-is-superuser="{{ user.is_superuser|yesno:'true,false' }}">
+
     <!-- Шапка с кнопкой перехода к таблице -->
     <div class="new map-header glass-button" style="
     width: 70px;
-    height: 70px;
-    ">
-    <a href="{% url 'to' %}" class="logo-link" style="height: 68px; color: white;">
+    height: 70px;">
+        <a href="{% url 'to' %}" class="logo-link" style="height: 68px; color: white;">
             <h1 style="font-size: 50px;">LT</h1>
         </a>
     </div>
 
+    {% if user.is_authenticated %}
+    <form action="{% url 'logout' %}" method="post">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-link glass-button" style="
+        padding: 15px 20px 15px 15px;
+        top: 10px;
+        right: 10px;
+        z-index: 10;">
+            <img src="{% static 'ico/box-arrow-in-right.svg' %}" alt="Выйти"
+                style="height: 30px; width: 30px; opacity: 0.8; filter: invert(100%) brightness(2);"
+                onmouseover="this.style.opacity=1"
+                onmouseout="this.style.opacity=0.8">
+        </button>
+    </form>
+    {% endif %}
+
     <!-- Два переключателя фильтра -->
-<div class="filter-switches">
-    <div class="filter-switch">
-        <label class="switch-label">
-            <input type="checkbox" id="objectsSwitch" class="switch-input">
-            <span class="switch-slider"></span>
-            <span class="switch-text">ОБЪЕКТЫ</span>
-        </label>
+    <div class="filter-switches">
+        <div class="filter-switch">
+            <label class="switch-label">
+                <input type="checkbox" id="objectsSwitch" class="switch-input">
+                <span class="switch-slider"></span>
+                <span class="switch-text">ОБЪЕКТЫ</span>
+            </label>
+        </div>
+        <div class="filter-switch">
+            <label class="switch-label">
+                <input type="checkbox" id="transportSwitch" class="switch-input" checked="">
+                <span class="switch-slider"></span>
+                <span class="switch-text">ТРАНСПОРТ</span>
+            </label>
+        </div>
     </div>
-    <div class="filter-switch">
-        <label class="switch-label">
-            <input type="checkbox" id="transportSwitch" class="switch-input" checked="">
-            <span class="switch-slider"></span>
-            <span class="switch-text">ТРАНСПОРТ</span>
-        </label>
-    </div>
-</div>
 
     <div id="map"></div>
 
-        <!-- Модальное окно для добавления ТО (аналогичное to.html) -->
-    <div class="modal fade" id="objectModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header" style="background-color: #de4c15; color: white;">
-                    <h5 class="modal-title" id="modalTitle">Добавить обслуживание</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body" id="modalFormContent">
-                    <!-- Сюда загружается форма -->
-                    <div class="text-center py-4">
-                        <div class="spinner-border" role="status">
-                            <span class="visually-hidden">Загрузка...</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+    {% include 'modal.html' %}
 
     <script src="{% static 'js/map.js' %}"></script>
     <script src="{% static 'js/map_text.js' %}"></script>

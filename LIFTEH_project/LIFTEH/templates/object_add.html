@@ -1,9 +1,5 @@
 <form method="post" action="{% url 'object_add' %}">
     {% csrf_token %}
-    {% comment %} <div class="mb-3"> {% endcomment %}
-      {% comment %} {{ form.as_p }} {% endcomment %}
-
-      {% comment %} <div class="mb-3"> {% endcomment %}
       <div class="form-floating mb-2">
         <input type="text" class="form-control" name="customer" maxlength="255" id="id_customer" autocomplete="organization" placeholder='' required=''>
         <label for="id_customer" class="form-label">Заказчик:</label>
@@ -135,11 +131,8 @@
       </div>
     </div>
   </div>
-    {% comment %} </div> {% endcomment %}
 
-    {% comment %} </div> {% endcomment %}
-    {% comment %} <div class="modal-footer"> {% endcomment %}
-      <button type="submit" class="btn btn-success">Сохранить</button>
-      <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Отмена</button>
-    {% comment %} </div> {% endcomment %}
-  </form>
+  <button type="submit" class="btn btn-success">Сохранить</button>
+  <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Отмена</button>
+
+</form>

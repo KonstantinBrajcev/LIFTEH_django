@@ -1,23 +1,20 @@
-{% comment %} <h1>Добавить Объект и АВР</h1> {% endcomment %}
-    <form method="post" action="{% url 'object_avr_add' %}">
-        {% csrf_token %}
-        {% comment %} {{ form.as_p }} {% endcomment %}
+<form method="post" action="{% url 'object_avr_add' %}">
+    {% csrf_token %}
     <div class="form-floating mb-2">
         <input class="form-control" type="text" name="customer" maxlength="255" required="" id="id_customer">
         <label class="form-label" for="id_customer">Заказчик:</label>
     </div>
 
-  <div class="form-floating mb-2">
-      <input class="form-control" type="text" name="address" maxlength="255" autocomplete="address" required="" id="id_address">
-      <label class="form-label" for="id_address">Адрес:</label>
-  </div>
+    <div class="form-floating mb-2">
+        <input class="form-control" type="text" name="address" maxlength="255" autocomplete="address" required="" id="id_address">
+        <label class="form-label" for="id_address">Адрес:</label>
+    </div>
 
-  <div class="form-floating mb-2">
-      <input class="form-control" type="text" name="problem" maxlength="255" required="" id="id_problem" style="height: 100px;">
-      <label class="form-label" for="id_problem">Проблема:</label>
-  </div>
+    <div class="form-floating mb-2">
+        <input class="form-control" type="text" name="problem" maxlength="255" required="" id="id_problem" style="height: 100px;">
+        <label class="form-label" for="id_problem">Проблема:</label>
+    </div>
 
-    {% comment %} <h5>Работы:</h5> {% endcomment %}
     <div id="work-rows">
         <div class="work-row" style="display: flex; gap: 10px; align-items: center; margin-bottom: 10px; width: 100%;">
             <div class="form-floating" style="flex: 1; min-width: 200px;">
@@ -47,9 +44,6 @@
         </div>
     </div>
 
-    {% comment %} <div><button type="button" class="btn btn-warning" id="addWorkButton">+ Добавить работу</button></div> {% endcomment %}
-
-    {% comment %} <hr> {% endcomment %}
       <button type="submit" class="btn btn-success">Сохранить</button>
       <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Отмена</button>
 </form>

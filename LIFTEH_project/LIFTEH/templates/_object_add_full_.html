@@ -1,14 +1,10 @@
-{% extends 'base.html' %}
-
 {% block content %}
 <div class="container">
   <h1>Добавить объект</h1>
-  {% comment %} <hr> {% endcomment %}
   <form method="post">
     {% csrf_token %}
     {{ form.as_p }}
-    {% comment %} <hr> {% endcomment %}
-    <button type="submit" class="btn btn-success">Сохранить</button>
+    <button type="submit" class="btn btn-success">Сохранить_ить ить</button>
     <a href="{% url 'to' %}#service">
       <button type="button" class="btn btn-primary">Назад</button>
     </a>
