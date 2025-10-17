@@ -137,16 +137,38 @@ jobs:
             export DJANGO_SETTINGS_MODULE=settings
             
             # Останавливаем старые процессы Gunicorn
-            pkill -f gunicorn || true
-            sleep 2
+            echo "Останавливаем старые процессы Gunicorn..."
+            pkill -f "gunicorn.*LIFTEH_project" || true
+            sleep 3
             
-            # Запускаем Gunicorn
+            # Проверяем, что процессы остановились
+            if pgrep -f "gunicorn.*LIFTEH_project" > /dev/null; then
+              echo "Принудительно завершаем процессы..."
+              pkill -9 -f "gunicorn.*LIFTEH_project" || true
+              sleep 2
+            fi
+            
+            # Запускаем Gunicorn в фоновом режиме с nohup и disown
+            echo "Запускаем Gunicorn..."
             nohup gunicorn --bind 0.0.0.0:8001 --workers 3 --timeout 120 LIFTEH_project.wsgi:application > gunicorn.log 2>&1 &
+            GUNICORN_PID=$!
+            disown $GUNICORN_PID
+            
             sleep 5
             
             # Проверяем запуск
-            echo "Процессы Gunicorn:"
-            pgrep -af gunicorn || echo "Gunicorn не запустился"
+            echo "=== ПРОВЕРКА ЗАПУСКА GUNICORN ==="
+            if pgrep -f "gunicorn.*LIFTEH_project" > /dev/null; then
+              echo "✅ Gunicorn запущен успешно"
+              echo "Процессы Gunicorn:"
+              pgrep -af gunicorn
+              echo "Логи Gunicorn (последние 20 строк):"
+              tail -20 gunicorn.log || echo "Логи пока недоступны"
+            else
+              echo "❌ Gunicorn не запустился"
+              echo "Проверяем логи:"
+              cat gunicorn.log || echo "Логи недоступны"
+            fi
 
       - name: Verify static files
         uses: appleboy/ssh-action@v1

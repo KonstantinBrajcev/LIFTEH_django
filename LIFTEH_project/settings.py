@@ -16,12 +16,18 @@ TRACKER_API_LOGIN = 'NOVASTARTEH'
 TRACKER_API_PASSWORD = 'NSTbelNST'
 
 # ПОЛНОЕ ОТКЛЮЧЕНИЕ CORS - РАЗРЕШАЕМ ВСЁ
-CORS_ALLOW_ALL_ORIGINS = True
-CORS_ALLOW_CREDENTIALS = True
-CORS_ALLOW_METHODS = ['*']
-CORS_ALLOW_HEADERS = ['*']
-CORS_EXPOSE_HEADERS = ['*']
-CORS_PREFLIGHT_MAX_AGE = 86400
+CORS_ALLOW_ALL_ORIGINS = True  # ГЛАВНАЯ НАСТРОЙКА - разрешить ВСЕ origin'ы
+CORS_ALLOW_CREDENTIALS = True  # Разрешить куки и авторизацию
+
+# Разрешить ВСЕ HTTP методы
+CORS_ALLOW_METHODS = ['*']  # Вместо списка - просто звездочка
+
+# Разрешить ВСЕ заголовки
+CORS_ALLOW_HEADERS = ['*']  # Вместо списка - просто звездочка
+
+# Дополнительные настройки для полного доступа
+CORS_EXPOSE_HEADERS = ['*']  # Открыть все заголовки браузеру
+CORS_PREFLIGHT_MAX_AGE = 86400  # Кэшировать preflight на сутки
 X_FRAME_OPTIONS = 'ALLOWALL'
 
 # Настройки для продакшена
@@ -34,9 +40,6 @@ if PRODUCTION:
             'NAME': BASE_DIR / 'db.sqlite3',
         }
     }
-    # ВАЖНО: Для продакшена STATIC_ROOT должен быть абсолютным путем
-    STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Настройки для разработки
 else:
@@ -48,7 +51,6 @@ else:
             'NAME': BASE_DIR / 'db_dev.sqlite3',
         }
     }
-    STATIC_ROOT = None  # В разработке не используем STATIC_ROOT
 
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static'),
@@ -67,9 +69,8 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
-    'corsheaders.middleware.CorsMiddleware',
+    'corsheaders.middleware.CorsMiddleware',  # Должно быть первым
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',  # ДОБАВИТЬ ВСЕГДА
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -77,6 +78,10 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+# Добавляем whitenoise только в продакшене
+if PRODUCTION:
+    MIDDLEWARE.insert(1, 'whitenoise.middleware.WhiteNoiseMiddleware')
 
 ROOT_URLCONF = 'urls'
 
@@ -119,8 +124,17 @@ USE_I18N = True
 USE_TZ = True
 
 STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
+# РЕШЕНИЕ: Используем простую StaticFilesStorage без манифеста
+if PRODUCTION:
+    STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 LOGOUT_REDIRECT_URL = 'login'
 LOGIN_URL = 'login'
+
+# Дополнительная настройка для разработки
+if not PRODUCTION:
+    STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
