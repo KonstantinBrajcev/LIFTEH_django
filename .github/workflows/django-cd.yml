@@ -11,7 +11,7 @@ jobs:
           fetch-depth: 0
 
       - name: Verify settings.py exists
-        working-directory: ./LIFTEH_project/LIFTEH_project
+        working-directory: ./LIFTEH_project
         run: |
           if [ ! -f "settings.py" ]; then
             echo "::error::settings.py not found in repository!"
@@ -48,10 +48,10 @@ jobs:
           username: ${{ secrets.SSH_USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            cd ${{ secrets.PROJECT_PATH }}/LIFTEH_project
+            cd ${{ secrets.PROJECT_PATH }}
             source ~/myenv/bin/activate
             export DJANGO_PRODUCTION=true
-            export DJANGO_SETTINGS_MODULE=LIFTEH_project.settings
+            export DJANGO_SETTINGS_MODULE=settings
 
             # Обновляем зависимости
             pip install -r requirements-server.txt
@@ -98,9 +98,9 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             source ~/myenv/bin/activate
-            cd ${{ secrets.PROJECT_PATH }}/LIFTEH_project || exit 1
+            cd ${{ secrets.PROJECT_PATH }} || exit 1
             export DJANGO_PRODUCTION=true
-            export DJANGO_SETTINGS_MODULE=LIFTEH_project.settings
+            export DJANGO_SETTINGS_MODULE=settings
             PIDS=$(pgrep -f gunicorn)
             MY_PID=$$
             MY_PPID=$(ps -o ppid= -p $$ | tr -d ' ')
@@ -115,6 +115,7 @@ jobs:
             nohup gunicorn --bind 0.0.0.0:8001 --workers 3 --timeout 120 LIFTEH_project.wsgi:application > gunicorn.log 2>&1 &
             sleep 3
             pgrep -af gunicorn || echo "Gunicorn не запустился"
+
       - name: Verify static files
         uses: appleboy/ssh-action@v1
         with:
@@ -122,7 +123,7 @@ jobs:
           username: ${{ secrets.SSH_USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            cd ${{ secrets.PROJECT_PATH }}/LIFTEH_project
+            cd ${{ secrets.PROJECT_PATH }}
             echo "Проверка статических файлов:"
             find staticfiles/ -type f -name "*.css" -o -name "*.js" | head -10
             echo "Размер папки staticfiles:"
