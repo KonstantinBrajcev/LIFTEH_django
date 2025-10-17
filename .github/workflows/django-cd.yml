@@ -124,7 +124,7 @@ jobs:
               "
             fi
 
-      - name: Restart Gunicorn (simple)
+      - name: Setup and restart Gunicorn with systemd
         uses: appleboy/ssh-action@v1
         with:
           host: ${{ secrets.SSH_HOST }}
@@ -132,24 +132,51 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             source ~/myenv/bin/activate
-            cd "${{ secrets.PROJECT_PATH }}/LIFTEH_project"
-            export DJANGO_PRODUCTION=true
-            export DJANGO_SETTINGS_MODULE=settings
+            PROJECT_PATH="${{ secrets.PROJECT_PATH }}/LIFTEH_project"
             
-            # Останавливаем Gunicorn
-            pkill -f "gunicorn.*LIFTEH_project" || true
-            sleep 2
-            pkill -9 -f "gunicorn.*LIFTEH_project" || true
-            sleep 1
+            # Создаем systemd сервисный файл
+            sudo tee /etc/systemd/system/lifteh-gunicorn.service > /dev/null <<EOF
+            [Unit]
+            Description=Gunicorn instance for LIFTEH Django app
+            After=network.target
+
+            [Service]
+            User=$(whoami)
+            Group=$(whoami)
+            WorkingDirectory=$PROJECT_PATH
+            Environment="DJANGO_PRODUCTION=true"
+            Environment="DJANGO_SETTINGS_MODULE=settings"
+            ExecStart=/home/$(whoami)/myenv/bin/gunicorn --access-logfile - --workers 3 --timeout 120 --bind 0.0.0.0:8001 LIFTEH_project.wsgi:application
+            ExecReload=/bin/kill -s HUP \$MAINPID
+            Restart=always
+            RestartSec=3
+
+            [Install]
+            WantedBy=multi-user.target
+            EOF
+
+            # Перезагружаем systemd и управляем сервисом
+            sudo systemctl daemon-reload
+            sudo systemctl enable lifteh-gunicorn.service
+            sudo systemctl restart lifteh-gunicorn.service
             
-            # Запускаем через screen/tmux или с полным отключением от терминала
-            setsid nohup gunicorn --bind 0.0.0.0:8001 --workers 3 --timeout 120 LIFTEH_project.wsgi:application > gunicorn.log 2>&1 &
-            
+            # Даем сервису время на запуск
             sleep 5
             
-            # Проверяем
-            echo "Процессы Gunicorn:"
-            pgrep -af gunicorn && echo "✅ Gunicorn запущен" || echo "❌ Gunicorn не запущен"
+            # Проверяем статус
+            echo "=== СТАТУС GUNICORN SERVICE ==="
+            sudo systemctl status lifteh-gunicorn.service --no-pager
+            
+            # Проверяем процессы и порт
+            echo "=== ПРОВЕРКА ПРОЦЕССОВ ==="
+            pgrep -af gunicorn || echo "Gunicorn процессы не найдены"
+            
+            echo "=== ПРОВЕРКА ПОРТА ==="
+            netstat -tlnp | grep :8001 || ss -tlnp | grep :8001 || echo "Порт 8001 не слушается"
+            
+            # Проверяем логи на ошибки
+            echo "=== ПОСЛЕДНИЕ ЛОГИ ==="
+            sudo journalctl -u lifteh-gunicorn.service -n 10 --no-pager
 
       - name: Verify static files
         uses: appleboy/ssh-action@v1
