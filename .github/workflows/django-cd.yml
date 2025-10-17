@@ -30,7 +30,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements-server.txt
 
-      - name: Copy project to server (без перезаписи БД)
+      - name: Copy project to server
         uses: appleboy/scp-action@v1
         with:
           host: ${{ secrets.SSH_HOST }}
@@ -38,7 +38,6 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           source: "LIFTEH_project/"
           target: "${{ secrets.PROJECT_PATH }}"
-          rm: false # ⚠️ Важно: НЕ удалять существующие файлы
           overwrite: true
 
       - name: Prepare server (migrations + static)
@@ -49,7 +48,7 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             # Переходим в директорию проекта
-            cd ${{ secrets.PROJECT_PATH }}/LIFTEH_priject
+            cd "${{ secrets.PROJECT_PATH }}/LIFTEH_project"
             
             # ПРОВЕРЯЕМ ЧТО МЫ В ПРАВИЛЬНОЙ ДИРЕКТОРИИ
             echo "=== ТЕКУЩАЯ ДИРЕКТОРИЯ ==="
@@ -133,22 +132,20 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             source ~/myenv/bin/activate
-            cd ${{ secrets.PROJECT_PATH }} || exit 1
+            cd "${{ secrets.PROJECT_PATH }}/LIFTEH_project"
             export DJANGO_PRODUCTION=true
             export DJANGO_SETTINGS_MODULE=settings
-            PIDS=$(pgrep -f gunicorn)
-            MY_PID=$$
-            MY_PPID=$(ps -o ppid= -p $$ | tr -d ' ')
-            if [ -n "$PIDS" ]; then
-              for pid in $PIDS; do
-                if [ "$pid" = "$MY_PID" ] || [ "$pid" = "$MY_PPID" ]; then
-                  continue
-                fi
-                kill "$pid" 2>/dev/null || echo "Процесс $pid уже завершён"
-              done
-            fi
+            
+            # Останавливаем старые процессы Gunicorn
+            pkill -f gunicorn || true
+            sleep 2
+            
+            # Запускаем Gunicorn
             nohup gunicorn --bind 0.0.0.0:8001 --workers 3 --timeout 120 LIFTEH_project.wsgi:application > gunicorn.log 2>&1 &
-            sleep 3
+            sleep 5
+            
+            # Проверяем запуск
+            echo "Процессы Gunicorn:"
             pgrep -af gunicorn || echo "Gunicorn не запустился"
 
       - name: Verify static files
@@ -158,8 +155,14 @@ jobs:
           username: ${{ secrets.SSH_USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            cd ${{ secrets.PROJECT_PATH }}
+            cd "${{ secrets.PROJECT_PATH }}/LIFTEH_project"
             echo "Проверка статических файлов:"
-            find staticfiles/ -type f -name "*.css" -o -name "*.js" | head -10
-            echo "Размер папки staticfiles:"
-            du -sh staticfiles/
+            if [ -d "staticfiles" ]; then
+              find staticfiles/ -type f -name "*.css" -o -name "*.js" | head -10
+              echo "Размер папки staticfiles:"
+              du -sh staticfiles/
+            else
+              echo "❌ Папка staticfiles не существует!"
+              echo "Содержимое текущей директории:"
+              ls -la
+            fi
