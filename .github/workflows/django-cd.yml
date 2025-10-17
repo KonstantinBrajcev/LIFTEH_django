@@ -47,82 +47,18 @@ jobs:
           username: ${{ secrets.SSH_USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            # Переходим в директорию проекта
             cd "${{ secrets.PROJECT_PATH }}/LIFTEH_project"
-            
-            # ПРОВЕРЯЕМ ЧТО МЫ В ПРАВИЛЬНОЙ ДИРЕКТОРИИ
-            echo "=== ТЕКУЩАЯ ДИРЕКТОРИЯ ==="
-            pwd
-            echo "=== СОДЕРЖИМОЕ ДИРЕКТОРИИ ==="
-            ls -la
-            
             source ~/myenv/bin/activate
             export DJANGO_PRODUCTION=true
             export DJANGO_SETTINGS_MODULE=settings
 
-            # ПРОВЕРЯЕМ СУЩЕСТВОВАНИЕ ФАЙЛОВ
-            echo "=== ПРОВЕРКА ФАЙЛОВ ==="
-            if [ -f "requirements-server.txt" ]; then
-              echo "✅ requirements-server.txt найден"
-            else
-              echo "❌ requirements-server.txt НЕ НАЙДЕН"
-              echo "Содержимое директории:"
-              ls -la
-              exit 1
-            fi
-
-            if [ -f "manage.py" ]; then
-              echo "✅ manage.py найден"
-            else
-              echo "❌ manage.py НЕ НАЙДЕН"
-              exit 1
-            fi
-
-            # Обновляем зависимости
-            echo "=== УСТАНОВКА ЗАВИСИМОСТЕЙ ==="
-            pip install -r requirements-server.txt
-
-            # Управление БД
-            echo "=== РАБОТА С БАЗОЙ ДАННЫХ ==="
-            if [ -f "db.sqlite3" ]; then
-              FILE_SIZE=$(stat -f%z "db.sqlite3" 2>/dev/null || stat -c%s "db.sqlite3" 2>/dev/null)
-              if [ "$FILE_SIZE" -lt 50000 ]; then
-                echo "Удаляем пустую БД из разработки..."
-                rm -f db.sqlite3
-              else
-                echo "Сохраняем существующую БД на сервере (размер: $FILE_SIZE байт)"
-              fi
-            fi
-
-            # Миграции
-            echo "=== ВЫПОЛНЕНИЕ МИГРАЦИЙ ==="
-            python manage.py makemigrations
+            # Быстрое обновление
+            pip install -r requirements-server.txt -q
             python manage.py migrate --no-input
-
-            # Сбор статики
-            echo "=== СБОР СТАТИЧЕСКИХ ФАЙЛОВ ==="
-            python manage.py collectstatic --noinput --clear
-
-            # Проверка результата
-            echo "=== ПРОВЕРКА РЕЗУЛЬТАТА ==="
-            if [ -d "staticfiles" ]; then
-              echo "✅ Папка staticfiles создана"
-              echo "Содержимое staticfiles/:"
-              ls -la staticfiles/
-              echo "Размер папки staticfiles:"
-              du -sh staticfiles/
-            else
-              echo "❌ Папка staticfiles не создана!"
-              echo "Проверяем настройки Django:"
-              python -c "
-              import os
-              os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'settings')
-              from django.conf import settings
-              print('DEBUG:', settings.DEBUG)
-              print('STATIC_ROOT:', settings.STATIC_ROOT)
-              print('STATIC_URL:', settings.STATIC_URL)
-              "
-            fi
+            python manage.py collectstatic --noinput -v 0
+            
+            echo "✅ Сервер подготовлен"
+            echo "📁 Статика: $(du -sh staticfiles/ | cut -f1)"
 
       - name: Restart Gunicorn
         uses: appleboy/ssh-action@v1
