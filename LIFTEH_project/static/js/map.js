@@ -9,7 +9,6 @@ const objectsFilterStates = {
     all: "all",
     without_marks: "without_marks"
 };
-
 const transportFilterStates = {
     transport: "transport",
     no_transport: "no_transport"
@@ -24,34 +23,26 @@ let isLoading = false;
 function checkUserAccess() {
     const hasAccessEntries = document.body.getAttribute('data-has-access-entries') === 'true';
     const isSuperuser = document.body.getAttribute('data-user-is-superuser') === 'true';
-
     userHasLimitedAccess = (!isSuperuser && hasAccessEntries);
-
     if (userHasLimitedAccess) {
         const transportSwitch = document.getElementById('transportSwitch');
         const transportSwitchContainer = transportSwitch ? transportSwitch.closest('.filter-switch') : null;
-
         if (transportSwitchContainer) {
             transportSwitchContainer.style.display = 'none';
-            // console.log('Transport switch hidden for user with limited access');
         }
-
         currentTransportState = transportFilterStates.no_transport;
         if (transportSwitch) {
             transportSwitch.checked = false;
         }
     }
-    // console.log(`User access - Limited: ${userHasLimitedAccess}, Superuser: ${isSuperuser}`);
     return userHasLimitedAccess;
 }
 
 function initMap() {
     const isLimitedAccess = checkUserAccess();
-
     if (map) {
         map.destroy();
     }
-
     map = new ymaps.Map('map', {
         center: [53.9, 27.5],
         zoom: 7
@@ -77,40 +68,19 @@ function initMap() {
         geoObjectHideIconOnBalloonOpen: false,
         groupByCoordinates: false
     });
-
     map.geoObjects.add(clusterer);
-
     loadObjects();
 }
 
 function loadObjects() {
-    // console.log('=== НАЧАЛО loadObjects ===');
-    // console.log('isLoading:', isLoading);
-    // console.log('buildingPlacemarks до очистки:', buildingPlacemarks.length);
-    // console.log('carPlacemarks до очистки:', carPlacemarks.length);
-
-    if (clusterer && typeof clusterer.getGeoObjects === 'function') {
-        // console.log('clusterer geoObjects до очистки:', clusterer.getGeoObjects().length);
-    }
-
-    if (isLoading) {
-        // console.log('Загрузка уже выполняется, пропускаем...');
-        return;
-    }
-
+    if (isLoading) { return; }
     isLoading = true;
-    // console.log(`Загрузка объектов: состояние объектов = ${currentObjectsState}, состояние транспорта = ${currentTransportState}`);
-
     clearAllPlacemarks();
-
     const showTransport = currentTransportState === "transport" && !userHasLimitedAccess;
-
     loadBuildings(currentObjectsState).then(() => {
         if (showTransport && !userHasLimitedAccess) {
-            // console.log('Загрузка транспорта после объектов');
             return loadCars();
         } else {
-            // console.log('Транспорт скрыт');
             return Promise.resolve();
         }
     }).then(() => {
@@ -118,10 +88,6 @@ function loadObjects() {
     }).catch(error => {
         console.error('Ошибка при загрузке данных:', error);
     }).finally(() => {
-        // console.log('buildingPlacemarks после загрузки:', buildingPlacemarks.length);
-        // console.log('carPlacemarks после загрузки:', carPlacemarks.length);
-        if (clusterer && typeof clusterer.getGeoObjects === 'function') {
-        }
         isLoading = false;
     });
 }
@@ -140,7 +106,6 @@ function loadBuildings(filterType) {
                 return response.json();
             })
             .then(objectsData => {
-                // console.log('Полученные объекты:', objectsData);
                 if (objectsData.error) {
                     console.error('Ошибка загрузки объектов:', objectsData.error);
                     resolve();
@@ -150,7 +115,6 @@ function loadBuildings(filterType) {
                 const placemarks = [];
                 const uniqueAddresses = new Set();
                 const uniqueCoords = new Set();
-
                 const customIconSvg = 'data:image/svg+xml;charset=utf-8,' +
                     encodeURIComponent(
                         '<svg xmlns="http://www.w3.org/2000/svg" width="35" height="35" fill="currentColor" class="bi bi-geo-alt-fill" viewBox="0 0 16 16">' +
@@ -164,30 +128,16 @@ function loadBuildings(filterType) {
                         if (!uniqueCoords.has(coordKey)) {
                             uniqueAddresses.add(obj.address);
                             uniqueCoords.add(coordKey);
-
                             const placemark = createBuildingPlacemark(obj, customIconSvg);
                             placemarks.push(placemark);
                             buildingPlacemarks.push(placemark);
-                        } else {
-                            // console.log('🚫 Пропущен дубликат координат:', coordKey, obj.address);
                         }
                     }
                 });
-                // console.log(`📍 Уникальных координат: ${uniqueCoords.size}`);
-                // console.log(`📍 Уникальных адресов: ${uniqueAddresses.size}`);
                 if (placemarks.length > 0) {
                     clusterer.add(placemarks);
-                    // console.log(`✅ Добавлено ${placemarks.length} объектов в кластеризатор`);
-
-                    setTimeout(() => {
-                        if (clusterer && typeof clusterer.getGeoObjects === 'function') {
-                            // console.log('🔍 Меток в кластеризаторе после добавления:', clusterer.getGeoObjects().length);
-                        }
-                    }, 100);
-                } else {
-                    // console.log('❌ Нет объектов для отображения на карту');
+                    setTimeout(() => { }, 100);
                 }
-
                 resolve();
             })
             .catch(error => {
@@ -200,7 +150,6 @@ function loadBuildings(filterType) {
 function loadCars() {
     return new Promise((resolve, reject) => {
         if (userHasLimitedAccess) {
-            console.log('Skipping car load for user with limited access');
             resolve();
             return;
         }
@@ -217,20 +166,14 @@ function loadCars() {
                 return response.json();
             })
             .then(trackersData => {
-                // console.log('Получены данные трекеров:', trackersData);
-
                 if (trackersData.error) {
-                    // console.error('Ошибка загрузки трекеров:', trackersData.error);
                     resolve();
                     return;
                 }
-
                 const validTrackers = trackersData.filter(tracker =>
                     tracker.latitude && tracker.longitude
                 );
-
                 if (validTrackers.length === 0) {
-                    // console.log('Нет валидных данных для отображения автомобилей');
                     resolve();
                     return;
                 }
@@ -240,11 +183,9 @@ function loadCars() {
                     carPlacemarks.push(placemark);
                     map.geoObjects.add(placemark);
                 });
-
                 if (currentTransportState === "transport" && !userHasLimitedAccess) {
                     startAutoUpdate();
                 }
-                // console.log(`✅ Добавлено ${validTrackers.length} автомобилей на карту`);
                 resolve();
             })
             .catch(error => {
@@ -260,20 +201,14 @@ let isFirstLoad = true;
 function updateMapBounds() {
     setTimeout(() => {
         const allPlacemarks = [...buildingPlacemarks, ...carPlacemarks];
-        // console.log(`📍 Всего меток для границ: ${allPlacemarks.length}`);
-
         if (allPlacemarks.length > 0) {
             if (isFirstLoad) {
                 // Только при первой загрузке устанавливаем границы
                 calculateBoundsManually();
                 isFirstLoad = false;
-            } else {
-                // При последующих переключениях фильтров сохраняем текущий вид
-                // console.log('📍 Сохранены текущие границы карты (не первая загрузка)');
             }
         } else {
             map.setCenter([53.9, 27.5], 7);
-            // console.log('📍 Установлены границы по умолчанию');
             isFirstLoad = true; // Сбрасываем флаг если меток нет
         }
     }, 500);
@@ -283,23 +218,17 @@ function updateMapBounds() {
 function calculateBoundsManually() {
     const allPlacemarks = [...buildingPlacemarks, ...carPlacemarks];
     const coordinates = [];
-
     // Собираем все координаты
     allPlacemarks.forEach(pm => {
         if (pm && pm.geometry) {
-            try {
-                const coords = pm.geometry.getCoordinates();
-                if (coords && Array.isArray(coords) && coords.length === 2) {
-                    coordinates.push(coords);
-                }
-            } catch (error) {
-                // console.log('Ошибка получения координат метки:', error);
+            const coords = pm.geometry.getCoordinates();
+            if (coords && Array.isArray(coords) && coords.length === 2) {
+                coordinates.push(coords);
             }
         }
     });
 
     if (coordinates.length === 0) {
-        // console.log('❌ Нет валидных координат для расчета границ');
         map.setCenter([53.9, 27.5], 7);
         return;
     }
@@ -325,21 +254,16 @@ function calculateBoundsManually() {
         [maxLat + latMargin, maxLon + lonMargin]
     ];
 
-    // console.log('📐 Рассчитанные границы:', bounds);
-
     try {
         map.setBounds(bounds(), { // ПРОБЛЕМА БЫЛА ТУТ
             checkZoomRange: true,
             zoomMargin: 0
         });
-        console.log('✅ Границы установлены через ручной расчет');
     } catch (error) {
-        // console.log('❌ Ошибка установки границ:', error);
         // Последний резервный способ
         const centerLat = (minLat + maxLat) / 2;
         const centerLon = (minLon + maxLon) / 2;
         map.setCenter([centerLat, centerLon], 7);
-        // console.log('📍 Установлен центр карты по координатам меток');
     }
 }
 
@@ -349,10 +273,6 @@ function clearAllPlacemarks() {
     }
     clearCarPlacemarks();
     buildingPlacemarks = [];
-    setTimeout(() => {
-        if (clusterer && typeof clusterer.getGeoObjects === 'function') {
-        }
-    }, 50);
 }
 
 // ИНИЦИИРОВАНИЕ ОЧИСТКИ АВТОМОБИЛЕЙ
@@ -413,11 +333,9 @@ function startAutoUpdate() {
     if (updateInterval) {
         clearInterval(updateInterval);
     }
-
     if (userHasLimitedAccess) {
         return;
     }
-
     updateInterval = setInterval(() => {
         if (currentTransportState === "transport") {
             fetch('/api/get_tracker_locations/')
@@ -444,7 +362,6 @@ function startAutoUpdate() {
 function toggleObjectsFilter() {
     const switchElement = document.getElementById('objectsSwitch');
     const isChecked = switchElement.checked;
-
     if (isChecked) {
         currentObjectsState = objectsFilterStates.all;
     } else {
@@ -457,14 +374,11 @@ function toggleTransportFilter() {
     if (userHasLimitedAccess) {
         return;
     }
-
     const switchElement = document.getElementById('transportSwitch');
     const isChecked = switchElement.checked;
-
     if (!isChecked && updateInterval) {
         clearInterval(updateInterval);
     }
-
     if (isChecked) {
         currentTransportState = transportFilterStates.transport;
     } else {
@@ -477,10 +391,8 @@ function toggleTransportFilter() {
 // Инициализация карты
 ymaps.ready(function () {
     initMap();
-
     document.getElementById('objectsSwitch').addEventListener('change', toggleObjectsFilter);
     document.getElementById('transportSwitch').addEventListener('change', toggleTransportFilter);
-
     map.events.add('click', function () {
         map.balloon.close();
         if (clusterer.balloon) {

@@ -28,7 +28,7 @@ from django.views.generic import TemplateView
 from datetime import datetime
 from django.shortcuts import render
 from django.http import JsonResponse
-from LIFTEH.models import Object, Avr, Service, Work, Diagnostic, Problem, Object, AccessUser  
+from LIFTEH.models import Object, Avr, Service, Work, Diagnostic, Problem, Object, AccessUser
 from LIFTEH.forms import ObjectForm, ServiceForm, AvrForm, ObjectAvrForm, DiagnosticForm
 
 
@@ -80,8 +80,9 @@ class ToView(TemplateView):
 
         # НОВАЯ ЛОГИКА ДОСТУПА К ОБЪЕКТАМ
         # Проверяем, есть ли у пользователя записи в AccessUser
-        has_access_entries = AccessUser.objects.filter(user=self.request.user).exists()
-        
+        has_access_entries = AccessUser.objects.filter(
+            user=self.request.user).exists()
+
         # Базовый запрос с фильтрацией по месяцу
         if self.request.user.is_superuser or not has_access_entries:
             # Суперпользователь ИЛИ пользователь без записей в AccessUser видят ВСЕ объекты
@@ -93,7 +94,8 @@ class ToView(TemplateView):
                 accessuser__user=self.request.user,
                 **{f'M{month}__gt': 0}
             ).distinct()
-            print(f"User {self.request.user.username} sees ONLY assigned objects (has_access_entries: {has_access_entries})")
+            print(
+                f"User {self.request.user.username} sees ONLY assigned objects (has_access_entries: {has_access_entries})")
 
         # Фильтрация по городу (только если город выбран)
         if selected_city:
@@ -132,7 +134,8 @@ class ToView(TemplateView):
             problems = Problem.objects.all().order_by('-created_date')
         else:
             # Пользователь с записями в AccessUser видит только свои задачи
-            problems = Problem.objects.filter(user=self.request.user).order_by('-created_date')
+            problems = Problem.objects.filter(
+                user=self.request.user).order_by('-created_date')
 
         context.update({
             'month': month,
@@ -362,18 +365,19 @@ def object_table_view(request):
         objects = Object.objects.filter(
             accessuser__user=request.user
         ).distinct()
-    
+
     # Ваш существующий код для service_records и другого контекста
     service_records = {}  # Ваша логика для service_records
-    
+
     context = {
         'objects': objects,
         'service_records': service_records,
     }
-    
+
     return render(request, 'object_table.html', context)
 
 # ------ РАБОТА С АВР ------
+
 
 @login_required
 def avr_add(request, pk):
@@ -666,26 +670,27 @@ class ChartsView(AdminRequiredMixin, TemplateView):
         return context
 
 
-
 # --------- РАБОТА С ПРОБЛЕМАМИ ----------
 @login_required
 def problems_view(request):
     from django.contrib.auth import get_user_model
     User = get_user_model()
-    
+
     # НОВАЯ ЛОГИКА ДОСТУПА К ЗАДАЧАМ
     # Проверяем, есть ли у пользователя записи в AccessUser
     has_access_entries = AccessUser.objects.filter(user=request.user).exists()
-    
+
     if request.user.is_superuser or not has_access_entries:
         # Суперпользователь ИЛИ пользователь без записей в AccessUser видят ВСЕ задачи
         problems = Problem.objects.all().order_by('-created_date')
         print(f"User {request.user.username} sees ALL problems (superuser: {request.user.is_superuser}, has_access_entries: {has_access_entries})")
     else:
         # Пользователь с записями в AccessUser видит только свои задачи
-        problems = Problem.objects.filter(user=request.user).order_by('-created_date')
-        print(f"User {request.user.username} sees ONLY assigned problems (has_access_entries: {has_access_entries})")
-    
+        problems = Problem.objects.filter(
+            user=request.user).order_by('-created_date')
+        print(
+            f"User {request.user.username} sees ONLY assigned problems (has_access_entries: {has_access_entries})")
+
     today = timezone.now().date()
 
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
@@ -715,7 +720,8 @@ def add_problem(request):
                 created_date=timezone.now().date(),
                 user=request.user  # Добавляем текущего пользователя
             )
-            print(f"Created problem: {problem.id} - {problem.name} - User: {problem.user.username}")
+            print(
+                f"Created problem: {problem.id} - {problem.name} - User: {problem.user.username}")
 
             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
                 print("Returning JSON success response")
@@ -737,6 +743,7 @@ def add_problem(request):
 
     # Для не-AJAX запросов или ошибок
     return redirect(reverse('to') + '#problems')
+
 
 @require_POST
 def update_problem_status(request, problem_id):
@@ -783,21 +790,20 @@ def update_problem_status(request, problem_id):
         )
 
 
-
 def edit_problem(request, problem_id):
     print(f"Edit problem called. ID: {problem_id}, Method: {request.method}")
-    
+
     User = get_user_model()  # Получаем модель пользователя
 
     try:
         problem = Problem.objects.get(id=problem_id)
-        
+
         # Проверка прав доступа
         if not request.user.is_superuser and problem.user != request.user:
             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
                 return JsonResponse({'success': False, 'error': 'У вас нет прав для редактирования этой задачи'}, status=403)
             return redirect(reverse('to') + '#problems')
-            
+
     except Problem.DoesNotExist:
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
             return JsonResponse({'success': False, 'error': 'Задача не найдена'})
@@ -809,13 +815,14 @@ def edit_problem(request, problem_id):
         created_date = request.POST.get('created_date')
         user_id = request.POST.get('user_id')
 
-        print(f"Received data - name: '{name}', date: '{created_date}', user_id: '{user_id}'")
+        print(
+            f"Received data - name: '{name}', date: '{created_date}', user_id: '{user_id}'")
 
         if name and name.strip() and created_date:
             problem.name = name.strip()
             try:
                 problem.created_date = created_date
-                
+
                 # Обновляем пользователя, если это суперпользователь
                 if request.user.is_superuser and user_id:
                     try:
@@ -824,10 +831,11 @@ def edit_problem(request, problem_id):
                         print(f"Changed user to: {new_user.username}")
                     except User.DoesNotExist:
                         print(f"User with id {user_id} not found")
-                
+
                 problem.save()
 
-                print(f"Updated problem: {problem.id} - {problem.name} - User: {problem.user.username}")
+                print(
+                    f"Updated problem: {problem.id} - {problem.name} - User: {problem.user.username}")
 
                 if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
                     return JsonResponse({'success': True})
@@ -844,10 +852,11 @@ def edit_problem(request, problem_id):
     elif request.method == 'GET':
         # Показать форму редактирования
         print(f"Returning edit form for problem {problem_id}")
-        
+
         # Получаем список пользователей для выпадающего списка (только для суперпользователей)
-        users = User.objects.all().order_by('username') if request.user.is_superuser else []
-        
+        users = User.objects.all().order_by(
+            'username') if request.user.is_superuser else []
+
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
             return render(request, 'edit_problem_form.html', {
                 'problem': problem,
@@ -872,13 +881,13 @@ def delete_problem(request, problem_id):
     if request.method == 'POST':
         try:
             problem = Problem.objects.get(id=problem_id)
-            
+
             # Проверка прав доступа
             if not request.user.is_superuser and problem.user != request.user:
                 if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
                     return JsonResponse({'success': False, 'error': 'У вас нет прав для удаления этой задачи'}, status=403)
                 return redirect(reverse('to') + '#problems')
-            
+
             problem_name = problem.name
             problem.delete()
             print(f"Deleted problem: {problem_id} - {problem_name}")
@@ -897,7 +906,6 @@ def delete_problem(request, problem_id):
         return JsonResponse({'success': False, 'error': 'Неверный метод запроса'})
 
     return redirect(reverse('to') + '#problems')
-
 
 
 # ---------- ЭТО API для FLUTTER --------------
@@ -963,7 +971,6 @@ class ApiLoginView(View):
             return self._add_cors_headers(response)
 
 
-
 # ------РАБОТА С КАРТАМИ----------
 @login_required
 def get_objects(request):
@@ -976,14 +983,16 @@ def get_objects(request):
 
         # НОВАЯ ЛОГИКА ДОСТУПА К ОБЪЕКТАМ (как в ToView)
         # Проверяем, есть ли у пользователя записи в AccessUser
-        has_access_entries = AccessUser.objects.filter(user=request.user).exists()
-        
+        has_access_entries = AccessUser.objects.filter(
+            user=request.user).exists()
+
         # Базовый запрос объектов с координатами
         if request.user.is_superuser or not has_access_entries:
             # Суперпользователь ИЛИ пользователь без записей в AccessUser видят ВСЕ объекты
             objects = Object.objects.exclude(
                 latitude__isnull=True).exclude(longitude__isnull=True)
-            print(f"Map: User {request.user.username} sees ALL objects (superuser: {request.user.is_superuser}, has_access_entries: {has_access_entries})")
+            print(
+                f"Map: User {request.user.username} sees ALL objects (superuser: {request.user.is_superuser}, has_access_entries: {has_access_entries})")
         else:
             # Пользователь с записями в AccessUser видит только свои объекты
             objects = Object.objects.filter(
@@ -993,7 +1002,8 @@ def get_objects(request):
             ).exclude(
                 longitude__isnull=True
             ).distinct()
-            print(f"Map: User {request.user.username} sees ONLY assigned objects (has_access_entries: {has_access_entries})")
+            print(
+                f"Map: User {request.user.username} sees ONLY assigned objects (has_access_entries: {has_access_entries})")
 
         # Фильтрация по типу (если нужна)
         if filter_type == 'without_marks':
@@ -1028,7 +1038,8 @@ def get_objects(request):
                 'has_access': True  # Все объекты в этом списке уже отфильтрованы по правам доступа
             })
 
-        print(f"Map: Returning {len(objects_data)} objects for user {request.user.username}")
+        print(
+            f"Map: Returning {len(objects_data)} objects for user {request.user.username}")
         return JsonResponse(objects_data, safe=False)
 
     except Exception as e:
@@ -1036,22 +1047,22 @@ def get_objects(request):
         return JsonResponse({'error': str(e)}, status=500)
 
 
-
 @login_required
 def map_view(request):
     """Представление для отображения карты с данными в шаблоне"""
-    
+
     # Передаем информацию о правах доступа в шаблон (для возможного использования)
     has_access_entries = AccessUser.objects.filter(user=request.user).exists()
-    
+
     context = {
         'objects_data': '[]',  # Данные загружаются через API
         'YANDEX_MAPS_API_KEY': settings.YANDEX_MAPS_API_KEY,
-        'has_access_entries': has_access_entries,  # Для возможного использования в шаблоне
-        'user_is_superuser': request.user.is_superuser  # Для возможного использования в шаблоне
+        # Для возможного использования в шаблоне
+        'has_access_entries': has_access_entries,
+        # Для возможного использования в шаблоне
+        'user_is_superuser': request.user.is_superuser
     }
     return render(request, 'map.html', context)
-
 
 
 # ------ API ТРЕКЕРОВ --------
@@ -1060,13 +1071,15 @@ def get_tracker_locations(request):
     """API endpoint для получения текущих координат трекеров"""
     try:
         # ПРОВЕРКА ПРАВ ДОСТУПА - как в других функциях
-        has_access_entries = AccessUser.objects.filter(user=request.user).exists()
-        
+        has_access_entries = AccessUser.objects.filter(
+            user=request.user).exists()
+
         # Если пользователь имеет ограниченные права (есть записи в AccessUser), не показываем автомобили
         if not request.user.is_superuser and has_access_entries:
-            print(f"Map: User {request.user.username} has limited access - hiding transport")
+            print(
+                f"Map: User {request.user.username} has limited access - hiding transport")
             return JsonResponse([], safe=False)  # Возвращаем пустой список
-        
+
         # Авторизация в API
         auth_url = "http://monitoring.truck-control.info/api/login"
         auth_data = {
@@ -1110,7 +1123,8 @@ def get_tracker_locations(request):
                     'mileage': round(tracker.get('milage_db', 0), 2)
                 })
 
-        print(f"Map: Returning {len(formatted_trackers)} trackers for user {request.user.username}")
+        print(
+            f"Map: Returning {len(formatted_trackers)} trackers for user {request.user.username}")
         return JsonResponse(formatted_trackers, safe=False)
 
     except Exception as e:
