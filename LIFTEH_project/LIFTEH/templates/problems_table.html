@@ -6,23 +6,26 @@
             <th style="width: 100%; text-align: left; background-color: #de4c15; color: white; padding: 0px 5px;">Задача</th>
             <th class="delete" style="width: 10%; text-align: center; background-color: #de4c15; color: white;">Создано</th>
             {% if user.is_superuser %}
-            <th class="delete" style="width: 10%; text-align: center; background-color: #de4c15; color: white;"></th>
+            <th style="width: 10%; text-align: center; background-color: #de4c15; color: white;"></th>
             {% endif %}
-            <th style="width: 10%; background-color: #de4c15; color: white;"></th>
+            <th class="delete" style="width: 10%; background-color: #de4c15; color: white;"></th>
         </tr>
     </thead>
     <tbody>
         {% for problem in problems %}
         <tr id="problem-row-{{ problem.id }}">
-            <td class="delete" style="text-align: center; align-content: center;"><strong>{{ problem.id }}</strong></td>
-            <td style="align-content: center; padding: 5px;" id="problem-name-{{ problem.id }}">{{ problem.name }}</td>
-            <td class="delete" style="text-align: center; align-content: center; padding: 5px;" id="problem-date-{{ problem.id }}">{{ problem.created_date|date:"d.m.Y" }}</td>
+            <td class="delete" style="text-align: center; align-content: center;">
+                <strong>{{ problem.id }}</strong></td>
+            <td style="align-content: center; padding: 5px;" id="problem-name-{{ problem.id }}">
+                {{ problem.name }}</td>
+            <td class="delete" style="text-align: center; align-content: center; padding: 5px;" id="problem-date-{{ problem.id }}">
+                {{ problem.created_date|date:"d.m.Y" }}</td>
             {% if user.is_superuser %}
             <td class="delete" style="text-align: center; align-content: center; padding: 5px;">
-                <small class="text-muted">{{ problem.user.username }}</small>
-            </td>
+                <small class="text-muted">{{ problem.user.username }}</small></td>
             {% endif %}
             <td class="text-end" style="width: 10%; text-wrap: nowrap; align-content: center;">
+
               <div class="btn-group" style="gap: 2px;">
                 {% if user.is_superuser or problem.user == user %}
                 <button class="btn btn-secondary edit-btn" style="padding: 5px 10px;"
@@ -31,6 +34,7 @@
                         data-date="{{ problem.created_date|date:'Y-m-d' }}">
                     &#9998;
                 </button>
+
                 <button onclick="confirmDelete('{% url 'delete_problem' problem_id=problem.id %}', {{ problem.id }})"
                         class="btn btn-danger" 
                         type="button"
@@ -39,10 +43,12 @@
                         data-name="{{ problem.name }}">
                     <strong>Х</strong>
                 </button>
+
                 {% else %}
                 {% comment %} <span class="text-muted small">для {{ problem.user.username }}</span> {% endcomment %}
                 {% endif %}
               </div>
+
             </td>
         </tr>
         {% empty %}
@@ -59,12 +65,14 @@
     </tbody>
 
     <tr style="background-color: #f0f0f0; font-weight: bold;">
-        <td colspan="{% if user.is_superuser %}2{% else %}1{% endif %}" style="text-align: right;">Итого:</td>
+        {% comment %} <td colspan="{% if user.is_superuser %}3{% else %}2{% endif %}" style="text-align: right;">Итого:</td> {% endcomment %}
+        <td class="delete"></td>
+        <td style="text-align: right;">Итого:</td>
         <td style="text-align: left; padding: 0px 10px; align-content: center;">
             {{ problems|length }}
         </td>
         {% if user.is_superuser %}
-        <td></td>
+        <td class="delete"></td>
         {% endif %}
         <td class="delete"></td>
     </tr>
@@ -108,7 +116,7 @@ function loadEditProblemForm(problemId, problemName, problemDate) {
 }
 
 
-{% comment %} // Функция для удаления проблемы
+// Функция для удаления проблемы
 function deleteProblem(problemId, problemName) {
     if (!confirm(`Вы уверены, что хотите удалить задачу "${problemName}"?`)) {
         return;
@@ -142,8 +150,7 @@ function deleteProblem(problemId, problemName) {
             const row = document.getElementById(`problem-row-${problemId}`);
             if (row) {
                 row.remove();
-                // Обновляем счетчик
-                updateProblemsCount();
+                updateProblemsCount();// Обновляем счетчик
             }
             // Показываем уведомление об успехе
             showNotification('Задача удалена', 'success');
@@ -159,7 +166,7 @@ function deleteProblem(problemId, problemName) {
         deleteBtn.innerHTML = originalHtml;
         deleteBtn.disabled = false;
     });
-} {% endcomment %}
+}
 
 
 // Функция для обновления счетчика задач
