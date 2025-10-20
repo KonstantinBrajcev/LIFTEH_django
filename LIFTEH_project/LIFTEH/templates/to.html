@@ -18,113 +18,93 @@
   padding-right: 0 !important;
 }
 </style>
+
 </head>
 <body>
 
-  <!-- FIXED HEADER -->
-  <div class="header-fixed" style="
+<!-- FIXED HEADER -->
+<div class="header-fixed" style="
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
-  {% comment %} height: 70px; {% endcomment %}
   z-index: 1000;
   background-color: #de4c15;">
-    <div class="d-flex" style="background-color: #de4c15; padding-left: 70px; justify-content: space-between;">
-      <div class="new map-header glass-button" style="width: 70px; height: 70px;">
-        <a href="{% url 'map' %}" class="logo-link" style="height: 68px; color: white;">
-          <h1 style="font-size: 50px;">LT</h1>
-        </a>
-      </div>
-
-      {% if user.is_authenticated %}
-      <div class="new" style="margin: 5px 5px 0px 20px;">
-        <span class="fw"><strong style="font-size: 20px;">{{ user.first_name }} {{ user.last_name }}</strong></span>
-      </div>
-      {% endif %}
-
-      {% if user.is_authenticated %}
-      <form action="{% url 'logout' %}" method="post">
-        {% csrf_token %}
-        <button type="submit" class="btn btn-link glass-button" style="padding: 15px 20px 15px 15px; top: 5px; right: 5px; z-index: 10;">
-          <img src="{% static 'ico/box-arrow-in-right.svg' %}" alt="Выйти"
-               style="height: 30px; width: 30px; opacity: 0.8; filter: invert(100%) brightness(2);"
-               onmouseover="this.style.opacity=1"
-               onmouseout="this.style.opacity=0.8">
-        </button>
-      </form>
-      {% endif %}
+  <div class="d-flex" style="background-color: #de4c15; padding-left: 70px; justify-content: space-between;">
+    <div class="new map-header glass-button" style="width: 70px; height: 70px;">
+      <a href="{% url 'map' %}" class="logo-link" style="height: 68px; color: white;">
+        <h1 style="font-size: 50px;">LT</h1>
+      </a>
     </div>
-  </div>
 
-  <!-- FIXED TABS -->
-  <div class="tabs-fixed" style="
+    {% if user.is_authenticated %}
+    <div class="new" style="margin: 5px 5px 0px 20px;">
+      <span class="fw"><strong style="font-size: 20px;">{{ user.first_name }} {{ user.last_name }}</strong></span>
+    </div>
+    {% endif %}
+
+    {% if user.is_authenticated %}
+    <form action="{% url 'logout' %}" method="post">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-link glass-button" style="padding: 15px 20px 15px 15px; top: 5px; right: 5px; z-index: 10;">
+        <img src="{% static 'ico/box-arrow-in-right.svg' %}" alt="Выйти"
+             style="height: 30px; width: 30px; opacity: 0.8; filter: invert(100%) brightness(2);"
+             onmouseover="this.style.opacity=1"
+             onmouseout="this.style.opacity=0.8">
+      </button>
+    </form>
+    {% endif %}
+  </div>
+</div>
+
+<!-- FIXED TABS -->
+<div class="tabs-fixed" style="
   position: fixed;
   top: 30px;
   left: 0;
   right: 0;
   z-index: 999;
   background: white;">
-    {% include 'to_tabs.html' %}
-  </div>
+  {% include 'to_tabs.html' %}
+</div>
 
-  <!-- SCROLLABLE CONTENT AREA -->
-  <div class="content-scrollable" style="
+<!-- SCROLLABLE CONTENT AREA -->
+<div class="content-scrollable" style="
   flex: 1;
   margin-top: 80px;
   margin-bottom: 50px;
   overflow-y: auto;
   height: calc(100vh - 170px);
-  {% comment %} padding: 10px; {% endcomment %}
-  z-index: 1000;
-  {% comment %} margin: 0px 0px 0px 0px; {% endcomment %}
-  ">
-    <div id="service" class="tab active">
-      {% include 'object_table.html' %}
-    </div>
-
-    <div id="acts" class="tab">
-      {% include 'avr_table.html' %}
-    </div>
-
-    <div id="diagnostic" class="tab">
-      {% include 'diagnostic.html' %}
-    </div>
-
-    <div id="problems" class="tab">
-      {% include 'problems.html' %}
-    </div>
-
-    <div id="tasks" class="tab">
-      {% include 'tasks.html' %}
-    </div>
-
-    <div id="charts" class="tab">
-      {% include 'charts.html' %}
-    </div>
-
-
-  <div>
-    {% include 'modal.html' %}
+  z-index: 1000;">
+  <div id="service" class="tab active">
+    {% include 'object_table.html' %}
   </div>
 
+  <div id="acts" class="tab">
+    {% include 'avr_table.html' %}
+  </div>
+
+  <div id="diagnostic" class="tab">
+    {% include 'diagnostic.html' %}
+  </div>
+
+  <div id="problems" class="tab">
+    {% include 'problems.html' %}
+  </div>
+
+  <div id="tasks" class="tab">
+    {% include 'tasks.html' %}
+  </div>
+
+  <div id="charts" class="tab">
+    {% include 'charts.html' %}
+  </div>
+</div>
+  <!-- MODAL WINDOWS -->
+  {% include 'modal.html' %}
+
   <!-- FIXED FOOTER -->
-  <footer>
-    <div style="display: flex; padding: 5px 10px; justify-content: space-between; background-color: #de4c15; align-items: center; height: 50px;">
-      <div class="footer-brand">
-        <span class="brand-logo">LT</span>
-        <span class="brand-text" style="color: white; font-weight: 600;">LIFTEH System</span>
-      </div>
-
-      <p style="color: white; display: contents;">
-        © 2024-2025. Все права защищены.
-      </p>
-
-      <button onclick="loadDeveloperInfo()" class="bi bi-person-badge btn-developer">
-        Developer
-      </button>
-    </div>
-  </footer>
+  {% include 'footer.html' %}
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script src="{% static 'js/to_tab.js' %}"></script>

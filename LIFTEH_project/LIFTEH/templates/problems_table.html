@@ -4,7 +4,7 @@
         <tr>
             <th class="delete" style="width: 5%; text-align: center; background-color: #de4c15; color: white;">№</th>
             <th style="width: 100%; text-align: left; background-color: #de4c15; color: white; padding: 0px 5px;">Задача</th>
-            <th style="width: 10%; text-align: center; background-color: #de4c15; color: white;">Создано</th>
+            <th class="delete" style="width: 10%; text-align: center; background-color: #de4c15; color: white;">Создано</th>
             {% if user.is_superuser %}
             <th class="delete" style="width: 10%; text-align: center; background-color: #de4c15; color: white;"></th>
             {% endif %}
@@ -16,7 +16,7 @@
         <tr id="problem-row-{{ problem.id }}">
             <td class="delete" style="text-align: center; align-content: center;"><strong>{{ problem.id }}</strong></td>
             <td style="align-content: center; padding: 5px;" id="problem-name-{{ problem.id }}">{{ problem.name }}</td>
-            <td style="text-align: center; align-content: center; padding: 5px;" id="problem-date-{{ problem.id }}">{{ problem.created_date|date:"d.m.Y" }}</td>
+            <td class="delete" style="text-align: center; align-content: center; padding: 5px;" id="problem-date-{{ problem.id }}">{{ problem.created_date|date:"d.m.Y" }}</td>
             {% if user.is_superuser %}
             <td class="delete" style="text-align: center; align-content: center; padding: 5px;">
                 <small class="text-muted">{{ problem.user.username }}</small>
