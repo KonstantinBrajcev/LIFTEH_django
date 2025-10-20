@@ -34,8 +34,8 @@
         {% csrf_token %}
         <button type="submit" class="btn btn-link glass-button" style="
         padding: 15px 20px 15px 15px;
-        top: 10px;
-        right: 10px;
+        top: 5px;
+        right: 5px;
         z-index: 10;">
             <img src="{% static 'ico/box-arrow-in-right.svg' %}" alt="Выйти"
                 style="height: 30px; width: 30px; opacity: 0.8; filter: invert(100%) brightness(2);"
@@ -75,4 +75,25 @@
     {% comment %} <script src="{% static 'js/map_test.js' %}"></script> {% endcomment %}
     <script src="{% static 'js/to.js' %}"></script>
 </body>
+<footer>
+    <div style="display: flex;
+    padding: 5px 10px;
+    justify-content: space-between;
+    background-color: #de4c15;
+    align-items: center;">
+
+      <div class="footer-brand">
+        <span class="brand-logo">LT</span>
+        <span class="brand-text" style="color: white; font-weight: 600;">LIFTEH System</span>
+      </div>
+
+      <p style="color: white; display: contents;">
+        © 2024-2025. Все права защищены.
+      </p>
+
+      <button onclick="loadDeveloperInfo()" class="bi bi-person-badge btn-developer">
+        Developer
+      </button>
+    </div>
+</footer>
 </html>

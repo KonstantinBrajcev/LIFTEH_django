@@ -58,7 +58,7 @@ function initMap() {
     map.controls.remove('trafficControl');
     map.controls.remove('routeButtonControl');
 
-    // Инициализируем кластеризатор с настройками, которые не скрывают отдельные метки
+    // Инициализируем кластеризатор с настройками
     clusterer = new ymaps.Clusterer({
         preset: 'islands#invertedOrangeClusterIcons',
         clusterDisableClickZoom: true,
@@ -149,7 +149,7 @@ function loadBuildings(filterType) {
 
 function loadCars() {
     return new Promise((resolve, reject) => {
-        if (userHasLimitedAccess) {
+        if (userHasLimitedAccess || currentTransportState !== "transport") {
             resolve();
             return;
         }
@@ -177,12 +177,15 @@ function loadCars() {
                     resolve();
                     return;
                 }
-                clearCarPlacemarks();
+
+                clearCarPlacemarks();// Очищаем СИНХРОННО
+
                 validTrackers.forEach(function (tracker) {
                     const placemark = createCarPlacemark(tracker);
                     carPlacemarks.push(placemark);
                     map.geoObjects.add(placemark);
                 });
+
                 if (currentTransportState === "transport" && !userHasLimitedAccess) {
                     startAutoUpdate();
                 }
@@ -195,23 +198,22 @@ function loadCars() {
     });
 }
 
-// Добавьте в начало файла с другими переменными
+
 let isFirstLoad = true;
 // ФУНКЦИЯ ОТРИСОВКИ ОБЪЕКТОВ
 function updateMapBounds() {
-    setTimeout(() => {
-        const allPlacemarks = [...buildingPlacemarks, ...carPlacemarks];
-        if (allPlacemarks.length > 0) {
-            if (isFirstLoad) {
-                // Только при первой загрузке устанавливаем границы
+    const allPlacemarks = [...buildingPlacemarks, ...carPlacemarks];
+    if (allPlacemarks.length > 0) {
+        if (isFirstLoad) {
+            requestAnimationFrame(() => {  // Используем rAF
                 calculateBoundsManually();
-                isFirstLoad = false;
-            }
-        } else {
-            map.setCenter([53.9, 27.5], 7);
-            isFirstLoad = true; // Сбрасываем флаг если меток нет
+            });
+            isFirstLoad = false;
         }
-    }, 500);
+    } else {
+        map.setCenter([53.9, 27.5], 7);
+        isFirstLoad = true; // Сбрасываем флаг если меток нет
+    }
 }
 
 // Ручной расчет границ
@@ -232,40 +234,59 @@ function calculateBoundsManually() {
         map.setCenter([53.9, 27.5], 7);
         return;
     }
-    // Вычисляем минимальные и максимальные координаты
-    let minLat = coordinates[0][0];
-    let maxLat = coordinates[0][0];
-    let minLon = coordinates[0][1];
-    let maxLon = coordinates[0][1];
+    // // Вычисляем минимальные и максимальные координаты
+    // let minLat = coordinates[0][0];
+    // let maxLat = coordinates[0][0];
+    // let minLon = coordinates[0][1];
+    // let maxLon = coordinates[0][1];
 
-    coordinates.forEach(coord => {
-        minLat = Math.min(minLat, coord[0]);
-        maxLat = Math.max(maxLat, coord[0]);
-        minLon = Math.min(minLon, coord[1]);
-        maxLon = Math.max(maxLon, coord[1]);
+    // coordinates.forEach(coord => {
+    //     minLat = Math.min(minLat, coord[0]);
+    //     maxLat = Math.max(maxLat, coord[0]);
+    //     minLon = Math.min(minLon, coord[1]);
+    //     maxLon = Math.max(maxLon, coord[1]);
+    // });
+
+    // // Добавляем отступы
+    // const latMargin = (maxLat - minLat) * 0.1;
+    // const lonMargin = (maxLon - minLon) * 0.1;
+
+    // const bounds = [
+    //     [minLat - latMargin, minLon - lonMargin],
+    //     [maxLat + latMargin, maxLon + lonMargin]
+    // ];
+
+    // try {
+    //     map.setBounds(bounds(), { // ПРОБЛЕМА БЫЛА ТУТ
+    //         checkZoomRange: true,
+    //         zoomMargin: 0
+    //     });
+    // } catch (error) {
+    //     // Последний резервный способ
+    //     const centerLat = (minLat + maxLat) / 2;
+    //     const centerLon = (minLon + maxLon) / 2;
+    //     map.setCenter([centerLat, centerLon], 7);
+    // }
+
+    // Создаем коллекцию для расчета правильных границ
+    // const tempCollection = new ymaps.GeoObjectCollection();
+    // allPlacemarks.forEach(pm => tempCollection.add(pm));
+
+    // Создаем правильный bounds объект
+    const bounds = map.geoObjects.getBounds();
+    // if (bounds) {
+    map.setBounds(bounds, {
+        checkZoomRange: true,
+        zoomMargin: 0  // Добавляем отступ
     });
-
-    // Добавляем отступы
-    const latMargin = (maxLat - minLat) * 0.1;
-    const lonMargin = (maxLon - minLon) * 0.1;
-
-    const bounds = [
-        [minLat - latMargin, minLon - lonMargin],
-        [maxLat + latMargin, maxLon + lonMargin]
-    ];
-
-    try {
-        map.setBounds(bounds(), { // ПРОБЛЕМА БЫЛА ТУТ
-            checkZoomRange: true,
-            zoomMargin: 0
-        });
-    } catch (error) {
-        // Последний резервный способ
-        const centerLat = (minLat + maxLat) / 2;
-        const centerLon = (minLon + maxLon) / 2;
-        map.setCenter([centerLat, centerLon], 7);
-    }
+    // } else {
+    //     // Резервный расчет
+    //     const centerLat = coordinates.reduce((sum, coord) => sum + coord[0], 0) / coordinates.length;
+    //     const centerLon = coordinates.reduce((sum, coord) => sum + coord[1], 0) / coordinates.length;
+    //     map.setCenter([centerLat, centerLon], 10);
+    // }
 }
+
 
 function clearAllPlacemarks() {
     if (clusterer && typeof clusterer.removeAll === 'function') {
@@ -275,7 +296,6 @@ function clearAllPlacemarks() {
     buildingPlacemarks = [];
 }
 
-// ИНИЦИИРОВАНИЕ ОЧИСТКИ АВТОМОБИЛЕЙ
 function clearCarPlacemarks() {
     carPlacemarks.forEach(placemark => {
         map.geoObjects.remove(placemark);
@@ -306,7 +326,7 @@ function createCarPlacemark(tracker) {
     const carIconSvg = 'data:image/svg+xml;charset=utf-8,' +
         encodeURIComponent(
             '<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24">' +
-            '<path d="M2.52 3.515A2.5 2.5 0 0 1 4.82 2h6.362c1 0 1.904.596 2.298 1.515l.792 1.848c.075.175.21.319.38.404.5.25.855.715.965 1.262l.335 1.679q.05.242.049.49v.413c0 .814-.39 1.543-1 1.997V13.5a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1-.5-.5v-1.338c-1.292.048-2.745.088-4 .088s-2.708-.04-4-.088V13.5a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1-.5-.5v-1.892c-.61-.454-1-1.183-1-1.997v-.413a2.5 2.5 0 0 1 .049-.49l.335-1.68c.11-.546.465-1.012.964-1.261a.8.8 0 0 0 .381-.404l.792-1.848ZM3 10a1 1 0 1 0 0-2 1 1 0 0 0 0 2m10 0a1 1 0 1 0 0-2 1 1 0 0 0 0 2M6 8a1 1 0 0 0 0 2h4a1 1 0 1 0 0-2zM2.906 5.189a.51.51 0 0 0 .497.731c.91-.073 3.35-.17 4.597-.17s3.688.097 4.597.17a.51.51 0 0 0 .497-.731l-.956-1.913A.5.5 0 0 0 11.691 3H4.309a.5.5 0 0 0-.447.276L2.906 5.19Z" fill="#de4c15"/>' +
+            '<path d="M2.52 3.515A2.5 2.5 0 0 1 4.82 2h6.362c1 0 1.904.596 2.298 1.515l.792 1.848c.075.175.21.319.38.404.5.25.855.715.965 1.262l.335 1.679q.05.242.049.49v.413c0 .814-.39 1.543-1 1.997V13.5a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1-.5-.5v-1.338c-1.292.048-2.745.088-4 .088s-2.708-.04-4-.088V13.5a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1-.5-.5v-1.892c-.61-.454-1-1.183-1-1.997v-.413a2.5 2.5 0 0 1 .049-.49l.335-1.68c.11-.546.465-1.012.964-1.261a.8.8 0 0 0 .381-.404l.792-1.848ZM3 10a1 1 0 1 0 0-2 1 1 0 0 0 0 2m10 0a1 1 0 1 0 0-2 1 1 0 0 0 0 2M6 8a1 1 0 0 0 0 2h4a1 1 0 1 0 0-2zM2.906 5.189a.51.51 0 0 0 .497.731c.91-.073 3.35-.17 4.597-.17s3.688.097 4.597.17a.51.51 0 0 0 .497-.731l-.956-1.913A.5.5 0 0 0 11.691 3H4.309a.5.5 0 0 0-.447.276L2.906 5.19Z" fill="#260fa9ff"/>' +
             '</svg>'
         );
 
@@ -329,35 +349,71 @@ function createCarPlacemark(tracker) {
 }
 
 
+let updateTimeout;
+let isUpdating = false;
+
+// ✅ Оптимизированная версия
 function startAutoUpdate() {
     if (updateInterval) {
         clearInterval(updateInterval);
     }
-    if (userHasLimitedAccess) {
-        return;
-    }
+    if (userHasLimitedAccess) return;
+
     updateInterval = setInterval(() => {
-        if (currentTransportState === "transport") {
+        if (currentTransportState === "transport" && !isUpdating) {
+            isUpdating = true;
+
             fetch('/api/get_tracker_locations/')
                 .then(response => response.json())
                 .then(trackersData => {
                     if (!trackersData.error) {
-                        trackersData.forEach(tracker => {
-                            const existingPlacemark = carPlacemarks.find(p =>
-                                p.properties.get('balloonContent').includes(tracker.car_id)
-                            );
-                            if (existingPlacemark && tracker.latitude && tracker.longitude) {
-                                existingPlacemark.geometry.setCoordinates([tracker.latitude, tracker.longitude]);
-                            }
-                        });
+                        updateCarPositions(trackersData);
                     }
                 })
                 .catch(error => {
                     console.error('Ошибка обновления автомобилей:', error);
+                })
+                .finally(() => {
+                    isUpdating = false;
                 });
         }
     }, 30000);
 }
+
+
+// Оптимизированное обновление позиций
+function updateCarPositions(trackersData) {
+    const updates = [];
+
+    trackersData.forEach(tracker => {
+        if (!tracker.latitude || !tracker.longitude) return;
+
+        const existingPlacemark = carPlacemarks.find(p => {
+            const content = p.properties.get('balloonContent');
+            return content && content.includes(tracker.car_id);
+        });
+
+        if (existingPlacemark) {
+            // Сравниваем координаты перед обновлением
+            const currentCoords = existingPlacemark.geometry.getCoordinates();
+            const newCoords = [tracker.latitude, tracker.longitude];
+
+            if (currentCoords[0] !== newCoords[0] || currentCoords[1] !== newCoords[1]) {
+                updates.push(() => {
+                    existingPlacemark.geometry.setCoordinates(newCoords);
+                });
+            }
+        }
+    });
+
+    // Выполняем все обновления в одном фрейме
+    if (updates.length > 0) {
+        requestAnimationFrame(() => {
+            updates.forEach(update => update());
+        });
+    }
+}
+
 
 function toggleObjectsFilter() {
     const switchElement = document.getElementById('objectsSwitch');
@@ -371,19 +427,23 @@ function toggleObjectsFilter() {
 }
 
 function toggleTransportFilter() {
-    if (userHasLimitedAccess) {
-        return;
-    }
+    if (userHasLimitedAccess) return;
     const switchElement = document.getElementById('transportSwitch');
     const isChecked = switchElement.checked;
-    if (!isChecked && updateInterval) {
-        clearInterval(updateInterval);
+
+    // Немедленно очищаем автомобили при выключении
+    if (!isChecked) {
+        clearCarPlacemarks();
+        if (updateInterval) {
+            clearInterval(updateInterval);
+            updateInterval = null;
+        }
     }
-    if (isChecked) {
-        currentTransportState = transportFilterStates.transport;
-    } else {
-        currentTransportState = transportFilterStates.no_transport;
-    }
+
+    currentTransportState = isChecked ?
+        transportFilterStates.transport :
+        transportFilterStates.no_transport;
+
     loadObjects();
 }
 

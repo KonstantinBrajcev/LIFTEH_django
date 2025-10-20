@@ -39,3 +39,25 @@ function showTab(tabName) {
     }, 200);
   }
 }
+
+// Автоматическая адаптация при изменении размера окна
+window.addEventListener('resize', function () {
+  // adjustContentHeight();
+});
+
+// function adjustContentHeight() {
+//   const sortMenu = document.getElementById('sortMenuContainer');
+//   const mainContent = document.getElementById('mainContent');
+//   const sortToggle = document.getElementById('sortToggle');
+
+//   if (sortToggle.checked && sortMenu.classList.contains('show')) {
+//     mainContent.classList.add('with-sort-menu');
+//   } else {
+//     mainContent.classList.remove('with-sort-menu');
+//   }
+// }
+
+// Инициализация при загрузке
+document.addEventListener('DOMContentLoaded', function () {
+  // adjustContentHeight();
+});

@@ -876,7 +876,7 @@ def edit_problem(request, problem_id):
 
 @require_POST
 def delete_problem(request, problem_id):
-    print(f"Delete problem called. ID: {problem_id}, Method: {request.method}")
+    # print(f"Delete problem called. ID: {problem_id}, Method: {request.method}")
 
     if request.method == 'POST':
         try:
@@ -888,9 +888,9 @@ def delete_problem(request, problem_id):
                     return JsonResponse({'success': False, 'error': 'У вас нет прав для удаления этой задачи'}, status=403)
                 return redirect(reverse('to') + '#problems')
 
-            problem_name = problem.name
+            # problem_name = problem.name
             problem.delete()
-            print(f"Deleted problem: {problem_id} - {problem_name}")
+            # print(f"Deleted problem: {problem_id} - {problem_name}")
 
             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
                 return JsonResponse({'success': True, 'message': 'Задача удалена'})
@@ -898,7 +898,7 @@ def delete_problem(request, problem_id):
                 return redirect(reverse('to') + '#problems')
 
         except Problem.DoesNotExist:
-            print(f"Problem {problem_id} not found")
+            # print(f"Problem {problem_id} not found")
             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
                 return JsonResponse({'success': False, 'error': 'Задача не найдена'})
 
@@ -909,7 +909,6 @@ def delete_problem(request, problem_id):
 
 
 # ---------- ЭТО API для FLUTTER --------------
-# Добавьте эти импорты
 class ApiLoginView(View):
     @method_decorator(csrf_exempt)
     def dispatch(self, *args, **kwargs):

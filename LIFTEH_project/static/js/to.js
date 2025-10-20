@@ -296,3 +296,95 @@ function loadProblemModalForm(url, title) {
         '<div class="alert alert-danger">Ошибка загрузки формы</div>';
     });
 }
+
+
+// // Функция для показа уведомлений
+// function showNotification(message, type = 'success') {
+//   // Создаем элемент уведомления
+//   const notification = document.createElement('div');
+//   notification.className = `alert alert-${type} alert-dismissible fade show`;
+//   notification.style.position = 'fixed';
+//   notification.style.top = '20px';
+//   notification.style.right = '20px';
+//   notification.style.zIndex = '9999';
+//   notification.style.minWidth = '300px';
+//   notification.innerHTML = `${message}
+//         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>`;
+
+//   document.body.appendChild(notification);
+
+//   // Автоматически скрываем через 3 секунды
+//   setTimeout(() => {
+//     if (notification.parentNode) {
+//       notification.remove();
+//     }
+//   }, 3000);
+// }
+
+function loadDeveloperInfo() {
+  const modal = new bootstrap.Modal(document.getElementById('objectModal'));
+
+  // Данные о разработчике
+  const developerData = {
+    name: "Konstantin Brajcev",
+    position: "CEO & Chief Engineer | FullStack Developer | Progect manager",
+    email: "kastettb@gmail.com",
+    address: "109-23, Belickaya st., Gomel, Belarus, 246042",
+    phone: "+375 (29) 158-68-50",
+    telegram: "@Constantine_al",
+    linkedin: "www.linkedin.com/in/konstantinbrajcev",
+    github: "KonstantinBrajcev",
+    technologies: ["Python", "Django", "JavaScript", "Bootstrap", "SQLite", "HTML/CSS", "API", "GitHub Actions"],
+    description: "This software solution is engineered to facilitate work progress monitoring, vehicle location tracking, task creation and assignment to personnel, and operational coordination of maintenance activities within organizations specializing in technical maintenance, emergency restoration, installation, and commissioning services."
+  };
+
+  // Формируем HTML контент
+  const htmlContent = `
+        <div class="text-center">
+            <div class="mb-3">
+                <i class="bi bi-person-badge display-4 text-info"></i>
+            </div>
+            <h4>${developerData.name}</h4>
+            <p class="text-muted">${developerData.position}</p>
+            <i>${developerData.description}</i>
+            <div class="mt-4 text-start">
+                <h6>Контакты:</h6>
+                <ul class="list-unstyled">
+                    <li>
+                      <img src="/static/ico/envelope-fill.svg" alt="E:mail" class="me-2" style="width: 16px; height: 16px;">
+                      ${developerData.email}</li>
+                    <li>
+                      <img src="/static/ico/telephone-fill.svg" alt="Phone" class="me-2" style="width: 16px; height: 16px;">
+                      ${developerData.phone}</li>
+                    <li>
+                      <img src="/static/ico/whatsapp.svg" alt="Whatsapp" class="me-2" style="width: 16px; height: 16px;">
+                      ${developerData.phone}</li>
+                    <li>
+                      <img src="/static/ico/telegram.svg" alt="Telegram" class="me-2" style="width: 16px; height: 16px;">
+                      ${developerData.telegram}</li>
+                    <li>
+                      <img src="/static/ico/github.svg" alt="GitHub" class="me-2" style="width: 16px; height: 16px;">
+                      ${developerData.github}</li>
+                    <li>
+                      <img src="/static/ico/linkedin.svg" alt="Linkedin" class="me-2" style="width: 16px; height: 16px;">
+                      ${developerData.linkedin}</li>
+                    <li>
+                      <img src="/static/ico/geo-alt-fill.svg" alt="address" class="me-2" style="width: 16px; height: 16px;">
+                      ${developerData.address}</li>
+                </ul>
+
+                <h6>Технологии проекта:</h6>
+                <div class="d-flex flex-wrap gap-2">
+                    ${developerData.technologies.map(tech => `<span class="badge bg-primary mb-1">${tech}</span>`).join('')}
+                </div>
+            </div>
+        </div>
+    `;
+
+  // Обновляем заголовок и контент модального окна
+  document.getElementById('modalTitle').textContent = 'О разработчике';
+  document.getElementById('modalFormContent').innerHTML = htmlContent;
+
+  // Показываем модальное окно
+  modal.show();
+}

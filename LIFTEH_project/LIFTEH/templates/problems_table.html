@@ -31,7 +31,10 @@
                         data-date="{{ problem.created_date|date:'Y-m-d' }}">
                     &#9998;
                 </button>
-                <button class="btn btn-danger delete-btn" style="padding: 5px 15px;"
+                <button onclick="confirmDelete('{% url 'delete_problem' problem_id=problem.id %}', {{ problem.id }})"
+                        class="btn btn-danger" 
+                        type="button"
+                        style="padding: 5px 15px;"
                         data-id="{{ problem.id }}"
                         data-name="{{ problem.name }}">
                     <strong>Х</strong>
@@ -105,7 +108,7 @@ function loadEditProblemForm(problemId, problemName, problemDate) {
 }
 
 
-// Функция для удаления проблемы
+{% comment %} // Функция для удаления проблемы
 function deleteProblem(problemId, problemName) {
     if (!confirm(`Вы уверены, что хотите удалить задачу "${problemName}"?`)) {
         return;
@@ -156,7 +159,7 @@ function deleteProblem(problemId, problemName) {
         deleteBtn.innerHTML = originalHtml;
         deleteBtn.disabled = false;
     });
-}
+} {% endcomment %}
 
 
 // Функция для обновления счетчика задач

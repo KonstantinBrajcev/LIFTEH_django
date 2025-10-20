@@ -1,18 +1,19 @@
-{% block content %}
-<div>
-
+{% comment %} 
     {% if error %}
     <div class="alert alert-danger">
         <strong>Ошибка:</strong> {{ error }}
     </div>
-    {% endif %}
+    {% endif %} 
+{% endcomment %}
 
-        <div class="card mb-4">
-            <div class="card-header">
-                <h4>Объекты без ТО ({{ objects_without_service|length }})</h4>
-            </div>
+<div class="content-wrapper">
 
-            <div class="card-body p-0">
+    <div class="card mb-4">
+        <div class="card-header">
+            <h4>Объекты без ТО ({{ objects_without_service|length }})</h4>
+        </div>
+
+        <div class="card-body p-0">
             {% if objects_without_service %}
             <table class="table-hover" style="width: 100%;">
                 <thead class="table-light">
@@ -35,7 +36,7 @@
                 </tbody>
             </table>
             {% else %}
-            <div class="alert alert-success">Все объекты обслуживаются</div>
+                <div class="alert alert-success">Все объекты обслуживаются</div>
             {% endif %}
         </div>
     </div>
@@ -45,33 +46,33 @@
             <h4>Невыполненные АВР ({{ avr_count }})</h4>
         </div>
         <div class="card-body" style="min-height: 30px;">
-        {% if unfinished_avr_data %}
+            {% if unfinished_avr_data %}
             <table class="table table-hover">
-            <thead>
-                <tr>
-                    <th style="text-align: center;">#</th>
-                    <th style="text-align: center;">Клиент</th>
-                    <th style="text-align: center;">Адрес</th>
-                    <th style="text-align: center;">Проблема</th>
-                    <th style="text-align: center;">Дата заявки</th>
-                </tr>
-            </thead>
-            <tbody>
-            {% for avr in unfinished_avr_data %}
-                <tr>
-                    <td style="text-align: center;">{{ forloop.counter }}</td>
-                    <td style="text-align: center;">{{ avr.customer }}</td>
-                    <td style="text-align: center;">{{ avr.address }}</td>
-                    <td style="text-align: center;">{{ avr.problem }}</td>
-                    <td style="text-align: center;">{{ avr.insert_date }}</td>
-                </tr>
-            {% endfor %}
-            </tbody>
-        </table>
-        {% else %}
-            <div class="alert alert-success">Нет невыполненных АВР</div>
-        {% endif %}
+                <thead>
+                    <tr>
+                        <th style="text-align: center;">#</th>
+                        <th style="text-align: center;">Клиент</th>
+                        <th style="text-align: center;">Адрес</th>
+                        <th style="text-align: center;">Проблема</th>
+                        <th style="text-align: center;">Дата заявки</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for avr in unfinished_avr_data %}
+                    <tr>
+                        <td style="text-align: center;">{{ forloop.counter }}</td>
+                        <td style="text-align: center;">{{ avr.customer }}</td>
+                        <td style="text-align: center;">{{ avr.address }}</td>
+                        <td style="text-align: center;">{{ avr.problem }}</td>
+                        <td style="text-align: center;">{{ avr.insert_date }}</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+                <div class="alert alert-success">Нет невыполненных АВР</div>
+            {% endif %}
         </div>
     </div>
+
 </div>
-{% endblock %}
