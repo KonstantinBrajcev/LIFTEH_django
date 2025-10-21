@@ -1,7 +1,7 @@
 <div class="card">
   <div class="card-header d-flex">
 
-      <h3 style="margin: 0px; align-content: center;">Диагностики</h3>
+    <h3 style="margin: 0px; align-content: center;">Диагностики</h3>
 
     {% if user.is_superuser %}
       <div class="col d-flex justify-content-end align-items-center">
@@ -38,7 +38,7 @@
             <div class="btn-group btn-group" style="gap: 2px;">
 
               <button onclick="loadModalForm('{% url 'diagnostic_edit' pk=diagnostic.id %}', 'Редактирование диагностики')" 
-                class="btn btn-secondary">✏
+                class="btn btn-secondary">&#9998;
               </button>
 
               <button onclick="loadModalForm('{% url 'avr_add' pk=diagnostic.object.id %}', 'Добавление АВР')" 

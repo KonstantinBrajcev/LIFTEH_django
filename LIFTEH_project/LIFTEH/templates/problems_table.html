@@ -28,7 +28,7 @@
 
               <div class="btn-group" style="gap: 2px;">
                 {% if user.is_superuser or problem.user == user %}
-                <button class="btn btn-secondary edit-btn" style="padding: 5px 10px;"
+                <button class="btn btn-secondary" 
                         data-id="{{ problem.id }}"
                         data-name="{{ problem.name }}"
                         data-date="{{ problem.created_date|date:'Y-m-d' }}">
