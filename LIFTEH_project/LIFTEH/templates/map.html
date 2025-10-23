@@ -66,7 +66,11 @@
     <div id="map" data-theme="dark">
     </div>
 
+    <!-- MODAL WINDOWS -->
     {% include 'modal.html' %}
+
+    <!-- FIXED FOOTER -->
+    {% include 'footer.html' %}
 
     <script src="https://api-maps.yandex.ru/2.1/?apikey={{ YANDEX_MAPS_API_KEY }}&lang=ru_RU"></script>
     <script src="{% static 'js/map.js' %}"></script>
@@ -74,26 +78,6 @@
     <script src="{% static 'js/map_modal.js' %}"></script>
     {% comment %} <script src="{% static 'js/map_test.js' %}"></script> {% endcomment %}
     <script src="{% static 'js/to.js' %}"></script>
+
 </body>
-<footer>
-    <div style="display: flex;
-    padding: 5px 10px;
-    justify-content: space-between;
-    background-color: #de4c15;
-    align-items: center;">
-
-      <div class="footer-brand">
-        <span class="brand-logo">LT</span>
-        <span class="brand-text" style="color: white; font-weight: 600;">LIFTEH System</span>
-      </div>
-
-      <p style="color: white; display: contents;">
-        © 2024-2025. Все права защищены.
-      </p>
-
-      <button onclick="loadDeveloperInfo()" class="bi bi-person-badge btn-developer">
-        Developer
-      </button>
-    </div>
-</footer>
 </html>
