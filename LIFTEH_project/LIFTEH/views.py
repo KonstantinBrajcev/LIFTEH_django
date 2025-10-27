@@ -1004,7 +1004,19 @@ def get_objects(request):
             print(
                 f"Map: User {request.user.username} sees ONLY assigned objects (has_access_entries: {has_access_entries})")
 
-        # Фильтрация по типу (если нужна)
+        # ФИЛЬТРАЦИЯ ПО ТЕКУЩЕМУ МЕСЯЦУ - объекты с NULL в текущем месяце не показываются
+        month_field_map = {
+            1: 'M1', 2: 'M2', 3: 'M3', 4: 'M4', 5: 'M5', 6: 'M6',
+            7: 'M7', 8: 'M8', 9: 'M9', 10: 'M10', 11: 'M11', 12: 'M12'
+        }
+        
+        current_month_field = month_field_map.get(current_month)
+        if current_month_field:
+            # Исключаем объекты с NULL в текущем месяце
+            objects = objects.exclude(**{f'{current_month_field}__isnull': True})
+            print(f"Map: Filtered by {current_month_field} - excluding NULL values")
+
+        # Дополнительная фильтрация по типу (если нужна)
         if filter_type == 'without_marks':
             # Объекты без записей осмотра в текущем месяце
             objects_with_service = Service.objects.filter(
@@ -1049,7 +1061,6 @@ def get_objects(request):
 @login_required
 def map_view(request):
     """Представление для отображения карты с данными в шаблоне"""
-
     # Передаем информацию о правах доступа в шаблон (для возможного использования)
     has_access_entries = AccessUser.objects.filter(user=request.user).exists()
 

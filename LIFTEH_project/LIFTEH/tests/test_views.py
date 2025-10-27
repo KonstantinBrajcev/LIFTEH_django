@@ -449,8 +449,8 @@ class TestApiLoginView(TestCase):
         response = self.client.post(
             reverse('api_login'),
             data=json.dumps({
-                'username': 'wronguser',  # Неправильный пользователь
-                'password': 'wrongpass'   # Неправильный пароль
+                'username': 'wronguser',  #- Неправильный пользователь
+                'password': 'wrongpass'   #- Неправильный пароль
             }),
             content_type='application/json'
         )

@@ -1,5 +1,6 @@
 import pytest
 import json
+from datetime import datetime
 from django.test import Client, RequestFactory
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Permission
@@ -38,16 +39,20 @@ def admin_user():
 @pytest.fixture
 @pytest.mark.django_db
 def test_object():
-    return Object.objects.create(
-        customer='Test Customer',
-        address='г. Москва, ул. Тестовая, 1',
-        model='Test Model',
-        phone='+79999999999',
-        latitude=55.7558,
-        longitude=37.6173,
-        M1=100.0,
-        M2=150.0
-    )
+    current_month = datetime.now().month
+    object_data = {
+        'customer': 'Test Customer',
+        'address': 'г. Москва, ул. Тестовая, 1',
+        'model': 'Test Model',
+        'phone': '+79999999999',
+        'latitude': 55.7558,
+        'longitude': 37.6173,
+    }
+    
+    # Добавляем данные для текущего месяца
+    object_data[f'M{current_month}'] = 150.0
+    
+    return Object.objects.create(**object_data)
 
 @pytest.fixture
 @pytest.mark.django_db
