@@ -33,8 +33,24 @@
     <table class="table-hover" style="width: 100%;">
       <tr style="background-color: #de4c15; color: white;">
           {% comment %} <th>ID</th> {% endcomment %}
-          <th class="delete" style="text-align: center;">Заказчик</th>
-          <th style="text-align: center;">Адрес</th>
+          <th class="delete" style="text-align: center;">
+            <a href="?sort=customer&order={% if current_sort == 'customer' and current_order == 'asc' %}desc{% else %}asc{% endif %}" 
+               style="color: white; text-decoration: none;">
+              Заказчик 
+              {% if current_sort == 'customer' %}
+                {% if current_order == 'asc' %}▲{% else %}▼{% endif %}
+              {% endif %}
+            </a>
+          </th>
+          <th style="text-align: center;">
+            <a href="?sort=address&order={% if current_sort == 'address' and current_order == 'asc' %}desc{% else %}asc{% endif %}" 
+               style="color: white; text-decoration: none;">
+              Адрес
+              {% if current_sort == 'address' %}
+                {% if current_order == 'asc' %}▲{% else %}▼{% endif %}
+              {% endif %}
+            </a>
+          </th>
           <th style="text-align: center;">Телефон</th>
           <th></th>
       </tr>
@@ -61,7 +77,7 @@
                 {{ object.address }}
             </a>
           </td>
-          <td style="text-align: center;">
+          <td style="text-align: center; padding: 0px 5px 0px 5px;">
             <a href="tel:{{ object.phone }}" style="text-decoration: none; color: inherit; text-wrap-mode: nowrap;">
               <img src="{% static 'ico/telephone.svg' %}" alt="phone" class="delete" style="width: 16px; height: 16px; vertical-align: middle;">
               {{ object.phone }}<br>

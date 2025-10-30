@@ -38,7 +38,7 @@ class AdminRequiredMixin(UserPassesTestMixin):
 
 
 class HomeView(TemplateView):
-    template_name = 'home.html'
+    template_name = 'login.html'
 
 
 class LoginView(View):
@@ -52,6 +52,7 @@ class LoginView(View):
 
         if user is not None:
             login(request, user)
+            print(f"User {username} authenticated successfully")  # Для отладки
             return redirect('to')  # перенаправление на страницу 'to'
         else:
             return render(request, 'login.html', {'error': 'Неверный логин или пароль'})
@@ -60,12 +61,17 @@ class LoginView(View):
 @method_decorator(login_required, name='dispatch')
 class ToView(TemplateView):
     template_name = 'to.html'
+    login_url = '/login/'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         current_month = datetime.now().month
         month = int(self.request.GET.get('month', current_month))
         year = timezone.now().year
+
+        # Получаем параметр сортировки
+        sort_by = self.request.GET.get('sort', 'customer')  # По умолчанию сортировка по customer
+        sort_order = self.request.GET.get('order', 'asc')   # По умолчанию по возрастанию
 
         # Исправляем обработку города (None → пустая строка)
         selected_city = self.request.GET.get('city', '')
@@ -100,6 +106,19 @@ class ToView(TemplateView):
         # Фильтрация по городу (только если город выбран)
         if selected_city:
             objects = objects.filter(address__icontains=selected_city)
+
+        # СОРТИРОВКА ОБЪЕКТОВ
+        if sort_by == 'customer':
+            if sort_order == 'asc':
+                objects = objects.order_by('customer')
+            else:
+                objects = objects.order_by('-customer')
+        elif sort_by == 'address':
+            if sort_order == 'asc':
+                objects = objects.order_by('address')
+            else:
+                objects = objects.order_by('-address')
+        # Можно добавить другие поля для сортировки при необходимости
 
         # Собираем информацию о цветах
         service_records = {}
@@ -148,7 +167,9 @@ class ToView(TemplateView):
             'selected_city': selected_city,
             'selected_colors': selected_colors,
             'avrs': Avr.objects.filter(Q(result__isnull=True) | Q(result__in=[0, 1, 2])),
-            'problems': problems
+            'problems': problems,
+            'current_sort': sort_by,
+            'current_order': sort_order
         })
 
         # Добавляем контекст из других представлений
@@ -1140,3 +1161,45 @@ def get_tracker_locations(request):
     except Exception as e:
         print(f"Map tracker error: {str(e)}")
         return JsonResponse({'error': str(e)}, status=500)
+
+
+# ---------- DATA SORT PAGE -----------
+class DataSortView(TemplateView):
+    template_name = 'data_sort.html'
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        
+        # Получаем всех заказчиков
+        customers = Object.objects.values_list('customer', flat=True).distinct().order_by('customer')
+        
+        # Создаем структуру данных для шаблона
+        customer_data = []
+        
+        for customer in customers:
+            # Получаем объекты для текущего заказчика
+            customer_objects = Object.objects.filter(customer=customer)
+            
+            # Получаем уникальные адреса для этого заказчика
+            addresses = customer_objects.values_list('address', flat=True).distinct().order_by('address')
+            
+            address_data = []
+            for address in addresses:
+                # Получаем объекты для текущего адреса
+                address_objects = Object.objects.filter(customer=customer, address=address)
+                
+                # Получаем уникальные модели для этого адреса
+                models = address_objects.values_list('model', flat=True).distinct().order_by('model')
+                
+                address_data.append({
+                    'address': address,
+                    'models': list(models)
+                })
+            
+            customer_data.append({
+                'customer': customer,
+                'addresses': address_data
+            })
+        
+        context['customer_data'] = customer_data
+        return context

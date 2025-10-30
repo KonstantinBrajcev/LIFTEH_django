@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/css/bootstrap.min.css">
+    <title>Сортировка данных</title>
+    <style>
+        body {
+            background-color: #f8f9fa;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+        }
+        
+        .header {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        
+        .accordion-button:not(.collapsed) {
+            background-color: #0d6efd;
+            color: white;
+        }
+        
+        .address-accordion .accordion-button {
+            background-color: #e9ecef;
+            padding-left: 40px;
+        }
+        
+        .models-list {
+            padding-left: 60px;
+            background-color: #f8f9fa;
+        }
+        
+        .model-item {
+            padding: 8px 0;
+            border-bottom: 1px solid #dee2e6;
+        }
+        
+        .model-item:last-child {
+            border-bottom: none;
+        }
+        
+        .badge {
+            font-size: 0.8em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1 class="mb-0">Сортировка данных по заказчикам</h1>
+            <p class="text-muted mb-0">Кликните на заказчика для просмотра адресов, затем на адрес для просмотра моделей</p>
+        </div>
+
+        {% if customer_data %}
+            <div class="accordion" id="customerAccordion">
+                {% for customer in customer_data %}
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" 
+                                    data-bs-toggle="collapse" 
+                                    data-bs-target="#customer{{ forloop.counter }}"
+                                    aria-expanded="false" 
+                                    aria-controls="customer{{ forloop.counter }}">
+                                <strong>{{ customer.customer }}</strong>
+                                <span class="badge bg-light text-dark ms-2">{{ customer.addresses|length }} адрес(ов)</span>
+                            </button>
+                        </h2>
+                        <div id="customer{{ forloop.counter }}" class="accordion-collapse collapse" 
+                             data-bs-parent="#customerAccordion">
+                            <div class="accordion-body p-0">
+                                <div class="accordion address-accordion" id="addressAccordion{{ forloop.counter }}">
+                                    {% for address in customer.addresses %}
+                                        <div class="accordion-item">
+                                            <h2 class="accordion-header">
+                                                <button class="accordion-button collapsed" type="button" 
+                                                        data-bs-toggle="collapse" 
+                                                        data-bs-target="#address{{ forloop.parentloop.counter }}_{{ forloop.counter }}"
+                                                        aria-expanded="false" 
+                                                        aria-controls="address{{ forloop.parentloop.counter }}_{{ forloop.counter }}">
+                                                    {{ address.address }}
+                                                    <span class="badge bg-secondary ms-2">{{ address.models|length }} модель(ей)</span>
+                                                </button>
+                                            </h2>
+                                            <div id="address{{ forloop.parentloop.counter }}_{{ forloop.counter }}" 
+                                                 class="accordion-collapse collapse" 
+                                                 data-bs-parent="#addressAccordion{{ forloop.parentloop.counter }}">
+                                                <div class="accordion-body p-3">
+                                                    <div class="models-list">
+                                                        {% for model in address.models %}
+                                                            <div class="model-item">
+                                                                {{ model|default:"Не указана" }}
+                                                            </div>
+                                                        {% empty %}
+                                                            <div class="text-muted">Модели не указаны</div>
+                                                        {% endfor %}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    {% empty %}
+                                        <div class="p-3 text-muted text-center">Адреса не найдены</div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="alert alert-info text-center">
+                Данные не найдены
+            </div>
+        {% endif %}
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -2,10 +2,12 @@
   <div class="card-header d-flex">
       <h3 style="margin: 0px; align-content: center;">Дефектные акты</h3>
     <div class="col d-flex justify-content-end align-items-center">
+      {% if user.is_superuser %}
       <button type="button" class="btn btn-primary" 
         onclick="loadModalForm('{% url 'object_avr_add' %}', 'Добавить акт')">
           Добавить
       </button>
+      {% endif %}
     </div>
   </div>
 
@@ -19,7 +21,7 @@
         <th style="text-align: center;">Адрес</th>
         <th class="delete" style="text-align: center;">Проблема</th>
         <th style="text-align: center;"></th>
-        <th style="text-align: center;"></th>
+        {% comment %} <th style="text-align: center;"></th> {% endcomment %}
       </tr>
     </thead>
 
@@ -33,7 +35,7 @@
       {% endif %};">
 
       {% comment %} <td style="text-align: center;">{{ avr.id }}</td> {% endcomment %}
-      <td class="delete" style="text-align: center;">{{ avr.insert_date|date:"d.m.Y" }}<br>{{ avr.user.username }}</td>
+      <td class="delete" style="text-align: center;  padding: 0px 5px 0px 5px;">{{ avr.insert_date|date:"d.m.Y" }}<br><p style="margin: 0px; color: dimgrey;">{{ avr.user.username }}</p></td>
       <td style="text-align: center;">{% if avr.object %}{{ avr.object.customer }}{% else %}-{% endif %}</td>
       <td style="text-align: center;">{% if avr.object %}{{ avr.object.address }}{% else %}-{% endif %}</td>
       <td class="delete" style="text-align: center;">{{ avr.problem }}</td>
@@ -42,9 +44,14 @@
           {% comment %} <button onclick="loadModalForm('{% url 'avr_edit' pk=avr.id %}', 'Редактирование АВР')" 
             class="btn btn-secondary">✏</button> {% endcomment %}
 
-          <button onclick="loadAvrEditForm({{ avr.id }})" class="btn btn-secondary">&#9998;</button>
+          <button onclick="loadAvrEditForm({{ avr.id }})" 
+            class="btn btn-secondary" 
+            style="padding: 8px 15px;">
+              &#9998;
+          </button>
           <button onclick="confirmDelete('{% url 'avr_delete' pk=avr.id %}', '{{ avr.id }}')" 
-            class="btn btn-danger">
+            class="btn btn-danger"
+            style="padding: 8px 15px;">
             <strong>X</strong>
           </button>
 
@@ -57,12 +64,10 @@
 
       <!-- Строка с суммой -->
       <tr style="background-color: #f0f0f0; font-weight: bold;">
-          <td colspan="2" style="text-align: right;">Итого:</td>
-          <td style="text-align: left; padding-left: 10px;">
-            {{ avrs|length }}
-          </td>
+          <td style="text-align: right;"></td>
           <td class="delete"></td>
           <td class="delete"></td>
+          <td  style="text-align: right; padding-right: 10px;">Итого: {{ avrs|length }}</td>
           <td></td>
       </tr>
 
