@@ -147,6 +147,9 @@ class ToView(TemplateView):
             ):
                 filtered_objects.append(obj)
 
+        # ГРУППИРОВКА ОБЪЕКТОВ ПО CUSTOMER
+        grouped_objects = self.group_objects_by_customer(filtered_objects)
+
         # НОВАЯ ЛОГИКА ДОСТУПА К ЗАДАЧАМ
         if self.request.user.is_superuser or not has_access_entries:
             # Суперпользователь ИЛИ пользователь без записей в AccessUser видят ВСЕ задачи
@@ -160,6 +163,7 @@ class ToView(TemplateView):
             'month': month,
             'current_month': current_month,
             'objects': filtered_objects,
+            'grouped_objects': grouped_objects,  # Добавляем сгруппированные объекты
             'service_records': service_records,
             'cities': sorted({re.match(r'^(г\.п\.|ж/д ст\.|г\.|п\.|д\.)\s*[^,]+', obj.address).group(0).strip()
                               for obj in Object.objects.all()
@@ -186,6 +190,58 @@ class ToView(TemplateView):
         context.update(diagnostic_view.get_context_data())
 
         return context
+    
+    def group_objects_by_customer(self, objects):
+        """Группирует объекты по customer, сворачивая последовательные дубликаты"""
+        if not objects:
+            return []
+        
+        grouped = []
+        current_group = None
+        
+        for obj in objects:
+            if current_group is None:
+                # Начинаем новую группу
+                current_group = {
+                    'customer': obj.customer,
+                    'objects': [obj],
+                    'is_collapsed': True  # По умолчанию свернуто
+                }
+            elif current_group['customer'] == obj.customer:
+                # Добавляем к текущей группе
+                current_group['objects'].append(obj)
+            else:
+                # Сохраняем текущую группу и начинаем новую
+                if len(current_group['objects']) >= 2:
+                    grouped.append(current_group)
+                else:
+                    # Если в группе только один объект, добавляем его как обычную строку
+                    for single_obj in current_group['objects']:
+                        grouped.append({
+                            'customer': single_obj.customer,
+                            'objects': [single_obj],
+                            'is_collapsed': False  # Одиночные объекты не сворачиваются
+                        })
+                
+                current_group = {
+                    'customer': obj.customer,
+                    'objects': [obj],
+                    'is_collapsed': True
+                }
+        
+        # Добавляем последнюю группу
+        if current_group:
+            if len(current_group['objects']) >= 2:
+                grouped.append(current_group)
+            else:
+                for single_obj in current_group['objects']:
+                    grouped.append({
+                        'customer': single_obj.customer,
+                        'objects': [single_obj],
+                        'is_collapsed': False
+                    })
+        
+        return grouped
 
 
 # ----------- ЗАДАЧИ -----------
