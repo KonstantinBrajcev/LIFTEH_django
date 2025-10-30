@@ -28,7 +28,7 @@
             <td class="text-end" style="width: 10%; text-wrap: nowrap; align-content: center;">
 
               <div class="btn-group" style="gap: 2px;">
-                {% if user.is_superuser or problem.user == user %}
+                {% if user.is_superuser %}
                 <button class="btn btn-secondary edit-btn"
                         style="padding: 8px 15px;"
                         data-id="{{ problem.id }}"
@@ -69,10 +69,8 @@
     <tr style="background-color: #f0f0f0; font-weight: bold;">
         {% comment %} <td colspan="{% if user.is_superuser %}3{% else %}2{% endif %}" style="text-align: right;">Итого:</td> {% endcomment %}
         <td class="delete"></td>
-        <td></td>
-        <td style="text-align: left; padding: 0px 0px;">
-            Итого: {{ problems|length }}
-        </td>
+        <td style="text-align: right; padding: 0px 10px; align-content: center;">Итого: {{ problems|length }}</td>
+        <td class="delete" style="text-align: left; padding: 0px 10px; align-content: center;"></td>
         {% if user.is_superuser %}
         <td class="delete"></td>
         {% endif %}
