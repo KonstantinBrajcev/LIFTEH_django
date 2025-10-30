@@ -1,0 +1,365 @@
+{% load static %}
+
+<style>
+.accordion-arrow {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    transition: transform 0.3s ease;
+    color: #6c757d;
+}
+
+.accordion-arrow.rotated {
+    transform: rotate(90deg);
+    color: #0d6efd;
+}
+
+.accordion-header:hover .accordion-arrow {
+    color: #495057;
+}
+
+.accordion-arrow svg {
+    width: 100%;
+    height: 100%;
+    stroke: currentColor;
+}
+
+/* Стили для плавной анимации выпадающего меню */
+.customer-group-content {
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    transition: max-height 0.4s ease, opacity 0.3s ease;
+    display: block !important;
+}
+
+.customer-group-content.expanded {
+    max-height: 5000px; /* Большое значение для плавной анимации */
+    opacity: 1;
+}
+
+/* Плавное появление строк внутри аккордеона */
+.customer-group-content tr {
+    transform: translateY(-10px);
+    opacity: 0;
+    transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+.customer-group-content.expanded tr {
+    transform: translateY(0);
+    opacity: 1;
+}
+
+/* Задержка для последовательного появления строк */
+.customer-group-content.expanded tr:nth-child(1) { transition-delay: 0.05s; }
+.customer-group-content.expanded tr:nth-child(2) { transition-delay: 0.1s; }
+.customer-group-content.expanded tr:nth-child(3) { transition-delay: 0.15s; }
+.customer-group-content.expanded tr:nth-child(4) { transition-delay: 0.2s; }
+.customer-group-content.expanded tr:nth-child(5) { transition-delay: 0.25s; }
+.customer-group-content.expanded tr:nth-child(6) { transition-delay: 0.3s; }
+.customer-group-content.expanded tr:nth-child(7) { transition-delay: 0.35s; }
+.customer-group-content.expanded tr:nth-child(8) { transition-delay: 0.4s; }
+.customer-group-content.expanded tr:nth-child(9) { transition-delay: 0.45s; }
+.customer-group-content.expanded tr:nth-child(10) { transition-delay: 0.5s; }
+</style>
+
+<div class="card">
+  <div class="card-header d-flex">
+    <h3 style="margin: 0px; align-content: center;">Объекты ТО</h3>
+    <div class="col d-flex justify-content-end align-items-center">
+
+      <!-- Переключатель для управления всеми группами -->
+      <div class="form-check form-switch me-3">
+        <input class="form-check-input" type="checkbox" id="groupToggle" 
+              onchange="toggleAllGroups(this.checked)">
+        <label class="form-check-label" for="groupToggle">
+          Группы
+        </label>
+      </div>
+
+      <div class="form-check form-switch me-3">
+        <input class="form-check-input" type="checkbox" id="sortToggle" 
+              onclick="toggleSortMenu()">
+        <label class="form-check-label" for="sortToggle">
+          Сортировка
+        </label>
+      </div>
+
+      {% if user.is_superuser %}
+      <button type="button" class="btn btn-primary"
+              onclick="loadModalForm('{% url 'object_add' %}', 'Добавить объект')">
+        Добавить
+      </button>
+      {% endif %}
+    </div>
+  </div>
+
+  {% load custom_filters %}
+
+  <!-- Контейнер для меню сортировки (изначально скрыт) -->
+  <div id="sortMenuContainer">
+    {% include 'sort_object.html' %}
+  </div>
+
+  <div class="content-wrapper" id="mainContent">
+  <div class="card-body" style="padding: 0px; min-height: 100px !important;">
+    <table class="table-hover" style="width: 100%;">
+      <tr style="background-color: #de4c15; color: white;">
+          {% comment %} <th>ID</th> {% endcomment %}
+          <th class="delete" style="text-align: center;">
+            <a href="?sort=customer&order={% if current_sort == 'customer' and current_order == 'asc' %}desc{% else %}asc{% endif %}" 
+               style="color: white; text-decoration: none;">
+              Заказчик 
+              {% if current_sort == 'customer' %}
+                {% if current_order == 'asc' %}▲{% else %}▼{% endif %}
+              {% endif %}
+            </a>
+          </th>
+          <th style="text-align: center;">
+            <a href="?sort=address&order={% if current_sort == 'address' and current_order == 'asc' %}desc{% else %}asc{% endif %}" 
+               style="color: white; text-decoration: none;">
+              Адрес
+              {% if current_sort == 'address' %}
+                {% if current_order == 'asc' %}▲{% else %}▼{% endif %}
+              {% endif %}
+            </a>
+          </th>
+          <th style="text-align: center;">Телефон</th>
+          <th></th>
+      </tr>
+
+      {% for group in grouped_objects %}
+        {% if group.is_collapsed %}
+        <!-- Свернутая группа в стиле аккордеона -->
+        <tr class="customer-group-header accordion-header" 
+            style="background-color: #e9ecef; cursor: pointer;"
+            onclick="toggleCustomerGroup({{ forloop.counter }})"
+            data-group-id="{{ forloop.counter }}">
+        <td colspan="3" style="text-align: left; font-weight: bold; padding: 5px 15px;">
+            {{ group.customer }}
+            <span class="badge bg-secondary ms-2">{{ group.objects|length }} объектов</span>
+        </td>
+        <td style="text-align: end; padding: 5px 15px;">
+            <span class="accordion-arrow">        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <path d="M6 4L10 8L6 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg></span>
+        </td>
+        </tr>
+          
+          <!-- Содержимое группы (изначально скрыто) -->
+          <tbody id="group-{{ forloop.counter }}" class="customer-group-content" >
+            {% for object in group.objects %}
+              {% with service_record=service_records|get_item:object.id %}
+              <tr style="background-color: 
+              {% if service_record %}
+                {% if service_record.result == 0 %} #00800063
+                {% elif service_record.result == 1 %} #ffff0063
+                {% elif service_record.result == 2 %} #ff000063
+                {% else %} transparent
+                {% endif %}
+              {% else %} #80808063
+              {% endif %};">
+
+                  <td class="delete" style="text-align: left; padding-left: 1vw;">
+                    <span style="opacity: 0.7;">↳</span> {{ object.customer }}
+                  </td>
+                  <td style="text-align: center;">
+                    <a href="https://yandex.ru/maps/?text={{ object.address|urlencode }}" target="_blank" style="text-decoration: none; color: inherit;">
+                      <img src="{% static 'ico/geo-alt.svg' %}" alt="phone" class="delete" style="width: 16px; height: 16px; vertical-align: middle;">
+                        {{ object.address }}
+                    </a>
+                  </td>
+                  <td style="text-align: center; padding: 0px 5px 0px 5px;">
+                    <a href="tel:{{ object.phone }}" style="text-decoration: none; color: inherit; text-wrap-mode: nowrap;">
+                      <img src="{% static 'ico/telephone.svg' %}" alt="phone" class="delete" style="width: 16px; height: 16px; vertical-align: middle;">
+                      {{ object.phone }}<br>
+                    </a>
+                  </td>
+
+                  <td style="text-align: end;">
+                    <div class="btn-group" style="gap: 2px;">
+
+                      {% if user.is_superuser %}
+                      <button onclick="loadModalForm('{% url 'object_edit' pk=object.id %}', 'Редактировать объект')" 
+                              class="btn btn-secondary delete">&#9998;</button>
+                      {% endif %}
+
+                      <button onclick="loadModalForm('{% url 'avr_add' pk=object.id %}', 'Добавление АВР')" 
+                        class="btn btn-success">АВР</button>
+
+                      <button class="btn btn-primary" 
+                        onclick="loadModalForm('{% url 'service_add' object_id=object.id %}', 'Добавление обслуживания', this)" 
+                        data-last-color="
+                        {% if service_record %}
+                          {% if service_record.result == 0 %}#d4edda
+                          {% elif service_record.result == 1 %}#fff3cd
+                          {% elif service_record.result == 2 %}#f8d7da
+                          {% else %}#ffffff{% endif %}
+                        {% else %}#808080{% endif %}">
+                        ТО
+                      </button>
+
+                      {% if user.is_superuser %}
+                      <button onclick="confirmDelete('{% url 'object_delete' pk=object.id %}', '{{ object.id }}')" 
+                              class="btn btn-danger delete" style="padding: 5px 15px;">
+                        <strong>Х</strong>
+                      </button>
+                      {% endif %}
+
+                    </div>
+                  </td>
+              </tr>
+              {% endwith %}
+            {% endfor %}
+          </tbody>
+        {% else %}
+          <!-- Одиночный объект (без группировки) -->
+          {% for object in group.objects %}
+            {% with service_record=service_records|get_item:object.id %}
+            <tr style="background-color: 
+            {% if service_record %}
+              {% if service_record.result == 0 %} #00800063
+              {% elif service_record.result == 1 %} #ffff0063
+              {% elif service_record.result == 2 %} #ff000063
+              {% else %} transparent
+              {% endif %}
+            {% else %} #80808063
+            {% endif %};">
+
+                <td class="delete" style="text-align: left; padding-left: 1vw;">{{ object.customer }}</td>
+                <td style="text-align: center;">
+                  <a href="https://yandex.ru/maps/?text={{ object.address|urlencode }}" target="_blank" style="text-decoration: none; color: inherit;">
+                    <img src="{% static 'ico/geo-alt.svg' %}" alt="phone" class="delete" style="width: 16px; height: 16px; vertical-align: middle;">
+                      {{ object.address }}
+                  </a>
+                </td>
+                <td style="text-align: center; padding: 0px 5px 0px 5px;">
+                  <a href="tel:{{ object.phone }}" style="text-decoration: none; color: inherit; text-wrap-mode: nowrap;">
+                    <img src="{% static 'ico/telephone.svg' %}" alt="phone" class="delete" style="width: 16px; height: 16px; vertical-align: middle;">
+                    {{ object.phone }}<br>
+                  </a>
+                </td>
+
+                <td style="text-align: end;">
+                  <div class="btn-group" style="gap: 2px;">
+
+                    {% if user.is_superuser %}
+                    <button onclick="loadModalForm('{% url 'object_edit' pk=object.id %}', 'Редактировать объект')" 
+                            class="btn btn-secondary delete">&#9998;</button>
+                    {% endif %}
+
+                    <button onclick="loadModalForm('{% url 'avr_add' pk=object.id %}', 'Добавление АВР')" 
+                      class="btn btn-success">АВР</button>
+
+                    <button class="btn btn-primary" 
+                      onclick="loadModalForm('{% url 'service_add' object_id=object.id %}', 'Добавление обслуживания', this)" 
+                      data-last-color="
+                      {% if service_record %}
+                        {% if service_record.result == 0 %}#d4edda
+                        {% elif service_record.result == 1 %}#fff3cd
+                        {% elif service_record.result == 2 %}#f8d7da
+                        {% else %}#ffffff{% endif %}
+                      {% else %}#808080{% endif %}">
+                      ТО
+                    </button>
+
+                    {% if user.is_superuser %}
+                    <button onclick="confirmDelete('{% url 'object_delete' pk=object.id %}', '{{ object.id }}')" 
+                            class="btn btn-danger delete" style="padding: 5px 15px;">
+                      <strong>Х</strong>
+                    </button>
+                    {% endif %}
+
+                  </div>
+                </td>
+            </tr>
+            {% endwith %}
+          {% endfor %}
+        {% endif %}
+      {% empty %}
+          <tr>
+          <td colspan="4" style="text-align: center; padding: 20px;">
+              {% if user.is_superuser %}
+                  Нет объектов для отображения
+              {% else %}
+                  У вас нет доступа к объектам или объекты не назначены
+              {% endif %}
+          </td>
+        </tr>
+      {% endfor %}
+
+      <!-- Строка с суммой -->
+      <tr style="background-color: #f0f0f0; font-weight: bold;">
+        <td colspan="2"></td>
+        <td style="text-align: right; padding: 0px 10px;">
+          Итого: {{ objects|length }}
+        </td>
+        <td class="delete"></td>
+      </tr>
+    </table>
+  </div>
+  </div>
+</div>
+
+<script>
+// Функция для переключения состояния группы с анимацией
+function toggleCustomerGroup(groupId) {
+    const groupContent = document.getElementById(`group-${groupId}`);
+    const groupHeader = document.querySelector(`[data-group-id="${groupId}"]`);
+    const arrow = groupHeader.querySelector('.accordion-arrow');
+    
+    if (!groupContent.classList.contains('expanded')) {
+        // Разворачиваем группу
+        expandGroup(groupContent, arrow);
+    } else {
+        // Сворачиваем группу
+        collapseGroup(groupContent, arrow);
+    }
+}
+
+// Функция разворачивания группы
+function expandGroup(groupContent, arrow) {
+    groupContent.classList.add('expanded');
+    arrow.classList.add('rotated');
+}
+
+// Функция сворачивания группы
+function collapseGroup(groupContent, arrow) {
+    groupContent.classList.remove('expanded');
+    arrow.classList.remove('rotated');
+}
+
+// Функция для управления всеми группами через переключатель
+function toggleAllGroups(isChecked) {
+    if (isChecked) {
+        // Развернуть все группы
+        document.querySelectorAll('.customer-group-content').forEach(content => {
+            const arrow = content.previousElementSibling.querySelector('.accordion-arrow');
+            expandGroup(content, arrow);
+        });
+    } else {
+        // Свернуть все группы
+        document.querySelectorAll('.customer-group-content').forEach(content => {
+            const arrow = content.previousElementSibling.querySelector('.accordion-arrow');
+            collapseGroup(content, arrow);
+        });
+    }
+}
+
+// Инициализация состояния при загрузке страницы
+document.addEventListener('DOMContentLoaded', function() {
+    const groupToggle = document.getElementById('groupToggle');
+    if (groupToggle) {
+        groupToggle.checked = false;
+    }
+    
+    // Убедимся, что все группы изначально свернуты
+    document.querySelectorAll('.customer-group-content').forEach(content => {
+        content.classList.remove('expanded');
+    });
+});
+</script>
+
+<script src={% static 'js/object.js' %}></script>

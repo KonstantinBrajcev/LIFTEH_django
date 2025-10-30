@@ -38,7 +38,7 @@ class AdminRequiredMixin(UserPassesTestMixin):
 
 
 class HomeView(TemplateView):
-    template_name = 'home.html'
+    template_name = 'login.html'
 
 
 class LoginView(View):
@@ -52,6 +52,7 @@ class LoginView(View):
 
         if user is not None:
             login(request, user)
+            print(f"User {username} authenticated successfully")  # Для отладки
             return redirect('to')  # перенаправление на страницу 'to'
         else:
             return render(request, 'login.html', {'error': 'Неверный логин или пароль'})
@@ -60,12 +61,17 @@ class LoginView(View):
 @method_decorator(login_required, name='dispatch')
 class ToView(TemplateView):
     template_name = 'to.html'
+    login_url = '/login/'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         current_month = datetime.now().month
         month = int(self.request.GET.get('month', current_month))
         year = timezone.now().year
+
+        # Получаем параметр сортировки
+        sort_by = self.request.GET.get('sort', 'customer')  # По умолчанию сортировка по customer
+        sort_order = self.request.GET.get('order', 'asc')   # По умолчанию по возрастанию
 
         # Исправляем обработку города (None → пустая строка)
         selected_city = self.request.GET.get('city', '')
@@ -101,6 +107,19 @@ class ToView(TemplateView):
         if selected_city:
             objects = objects.filter(address__icontains=selected_city)
 
+        # СОРТИРОВКА ОБЪЕКТОВ
+        if sort_by == 'customer':
+            if sort_order == 'asc':
+                objects = objects.order_by('customer')
+            else:
+                objects = objects.order_by('-customer')
+        elif sort_by == 'address':
+            if sort_order == 'asc':
+                objects = objects.order_by('address')
+            else:
+                objects = objects.order_by('-address')
+        # Можно добавить другие поля для сортировки при необходимости
+
         # Собираем информацию о цветах
         service_records = {}
         color_mapping = {'green': 0, 'yellow': 1, 'red': 2, 'gray': None}
@@ -128,6 +147,9 @@ class ToView(TemplateView):
             ):
                 filtered_objects.append(obj)
 
+        # ГРУППИРОВКА ОБЪЕКТОВ ПО CUSTOMER
+        grouped_objects = self.group_objects_by_customer(filtered_objects)
+
         # НОВАЯ ЛОГИКА ДОСТУПА К ЗАДАЧАМ
         if self.request.user.is_superuser or not has_access_entries:
             # Суперпользователь ИЛИ пользователь без записей в AccessUser видят ВСЕ задачи
@@ -141,6 +163,7 @@ class ToView(TemplateView):
             'month': month,
             'current_month': current_month,
             'objects': filtered_objects,
+            'grouped_objects': grouped_objects,  # Добавляем сгруппированные объекты
             'service_records': service_records,
             'cities': sorted({re.match(r'^(г\.п\.|ж/д ст\.|г\.|п\.|д\.)\s*[^,]+', obj.address).group(0).strip()
                               for obj in Object.objects.all()
@@ -148,7 +171,9 @@ class ToView(TemplateView):
             'selected_city': selected_city,
             'selected_colors': selected_colors,
             'avrs': Avr.objects.filter(Q(result__isnull=True) | Q(result__in=[0, 1, 2])),
-            'problems': problems
+            'problems': problems,
+            'current_sort': sort_by,
+            'current_order': sort_order
         })
 
         # Добавляем контекст из других представлений
@@ -165,6 +190,58 @@ class ToView(TemplateView):
         context.update(diagnostic_view.get_context_data())
 
         return context
+    
+    def group_objects_by_customer(self, objects):
+        """Группирует объекты по customer, сворачивая последовательные дубликаты"""
+        if not objects:
+            return []
+        
+        grouped = []
+        current_group = None
+        
+        for obj in objects:
+            if current_group is None:
+                # Начинаем новую группу
+                current_group = {
+                    'customer': obj.customer,
+                    'objects': [obj],
+                    'is_collapsed': True  # По умолчанию свернуто
+                }
+            elif current_group['customer'] == obj.customer:
+                # Добавляем к текущей группе
+                current_group['objects'].append(obj)
+            else:
+                # Сохраняем текущую группу и начинаем новую
+                if len(current_group['objects']) >= 2:
+                    grouped.append(current_group)
+                else:
+                    # Если в группе только один объект, добавляем его как обычную строку
+                    for single_obj in current_group['objects']:
+                        grouped.append({
+                            'customer': single_obj.customer,
+                            'objects': [single_obj],
+                            'is_collapsed': False  # Одиночные объекты не сворачиваются
+                        })
+                
+                current_group = {
+                    'customer': obj.customer,
+                    'objects': [obj],
+                    'is_collapsed': True
+                }
+        
+        # Добавляем последнюю группу
+        if current_group:
+            if len(current_group['objects']) >= 2:
+                grouped.append(current_group)
+            else:
+                for single_obj in current_group['objects']:
+                    grouped.append({
+                        'customer': single_obj.customer,
+                        'objects': [single_obj],
+                        'is_collapsed': False
+                    })
+        
+        return grouped
 
 
 # ----------- ЗАДАЧИ -----------
@@ -1004,7 +1081,19 @@ def get_objects(request):
             print(
                 f"Map: User {request.user.username} sees ONLY assigned objects (has_access_entries: {has_access_entries})")
 
-        # Фильтрация по типу (если нужна)
+        # ФИЛЬТРАЦИЯ ПО ТЕКУЩЕМУ МЕСЯЦУ - объекты с NULL в текущем месяце не показываются
+        month_field_map = {
+            1: 'M1', 2: 'M2', 3: 'M3', 4: 'M4', 5: 'M5', 6: 'M6',
+            7: 'M7', 8: 'M8', 9: 'M9', 10: 'M10', 11: 'M11', 12: 'M12'
+        }
+        
+        current_month_field = month_field_map.get(current_month)
+        if current_month_field:
+            # Исключаем объекты с NULL в текущем месяце
+            objects = objects.exclude(**{f'{current_month_field}__isnull': True})
+            print(f"Map: Filtered by {current_month_field} - excluding NULL values")
+
+        # Дополнительная фильтрация по типу (если нужна)
         if filter_type == 'without_marks':
             # Объекты без записей осмотра в текущем месяце
             objects_with_service = Service.objects.filter(
@@ -1049,7 +1138,6 @@ def get_objects(request):
 @login_required
 def map_view(request):
     """Представление для отображения карты с данными в шаблоне"""
-
     # Передаем информацию о правах доступа в шаблон (для возможного использования)
     has_access_entries = AccessUser.objects.filter(user=request.user).exists()
 
@@ -1129,3 +1217,45 @@ def get_tracker_locations(request):
     except Exception as e:
         print(f"Map tracker error: {str(e)}")
         return JsonResponse({'error': str(e)}, status=500)
+
+
+# ---------- DATA SORT PAGE -----------
+class DataSortView(TemplateView):
+    template_name = 'data_sort.html'
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        
+        # Получаем всех заказчиков
+        customers = Object.objects.values_list('customer', flat=True).distinct().order_by('customer')
+        
+        # Создаем структуру данных для шаблона
+        customer_data = []
+        
+        for customer in customers:
+            # Получаем объекты для текущего заказчика
+            customer_objects = Object.objects.filter(customer=customer)
+            
+            # Получаем уникальные адреса для этого заказчика
+            addresses = customer_objects.values_list('address', flat=True).distinct().order_by('address')
+            
+            address_data = []
+            for address in addresses:
+                # Получаем объекты для текущего адреса
+                address_objects = Object.objects.filter(customer=customer, address=address)
+                
+                # Получаем уникальные модели для этого адреса
+                models = address_objects.values_list('model', flat=True).distinct().order_by('model')
+                
+                address_data.append({
+                    'address': address,
+                    'models': list(models)
+                })
+            
+            customer_data.append({
+                'customer': customer,
+                'addresses': address_data
+            })
+        
+        context['customer_data'] = customer_data
+        return context

@@ -6,6 +6,7 @@ from django.contrib.auth import get_user_model
 
 User = get_user_model()
 
+@pytest.mark.django_db
 class TestProblems:
     def test_add_problem_get(self, client, regular_user):
         """Тест получения формы добавления проблемы"""

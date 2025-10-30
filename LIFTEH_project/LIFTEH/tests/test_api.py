@@ -5,6 +5,7 @@ from django.contrib.auth import get_user_model
 
 User = get_user_model()
 
+@pytest.mark.django_db
 class TestApiLogin:
     def test_api_login_success(self, client, regular_user):
         """Тест успешного API логина"""
@@ -43,6 +44,7 @@ class TestApiLogin:
         assert response.status_code == 200
         assert 'Access-Control-Allow-Origin' in response
 
+@pytest.mark.django_db
 class TestMapAPI:
     def test_get_objects_api(self, client, regular_user, test_object):
         """Тест API получения объектов для карты"""

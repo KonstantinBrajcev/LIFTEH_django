@@ -4,6 +4,7 @@ from django.contrib.auth import get_user_model
 
 User = get_user_model()
 
+@pytest.mark.django_db
 class TestLoginView:
     def test_login_get(self, client):
         response = client.get(reverse('login'))
@@ -26,12 +27,14 @@ class TestLoginView:
         assert response.status_code == 200
         assert 'error' in response.context
 
+@pytest.mark.django_db
 class TestHomeView:
     def test_home_view(self, client):
         response = client.get(reverse('home'))
         assert response.status_code == 200
         assert 'home.html' in [t.name for t in response.templates]
 
+@pytest.mark.django_db
 class TestToView:
     def test_to_view_requires_login(self, client):
         response = client.get(reverse('to'))

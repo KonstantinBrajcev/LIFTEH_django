@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.contrib.auth import views as auth_views
 from django.contrib.auth.decorators import login_required
 from django.urls import path
-from LIFTEH.views import LoginView, ToView, HomeView, ChartsView, TasksView, DiagnosticView
+from LIFTEH.views import LoginView, ToView, HomeView, ChartsView, TasksView, DiagnosticView, DataSortView
 from LIFTEH.views import ApiLoginView
 from LIFTEH import views
 from django.conf import settings
@@ -55,6 +55,7 @@ urlpatterns = [
          (TasksView.as_view()), name='tasks'),
 
     path('map/', login_required(views.map_view), name='map'),
+    path('data-sort/', DataSortView.as_view(), name='data_sort'),
 
     path('api/get_objects/', login_required(views.get_objects), name='get_objects'),
     path('api/get_tracker_locations/',
