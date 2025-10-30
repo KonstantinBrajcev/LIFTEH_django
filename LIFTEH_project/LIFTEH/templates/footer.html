@@ -12,8 +12,12 @@
       </p>
     </div>
 
+    {% if user.is_superuser %}
     <button onclick="loadDeveloperInfo()" class="bi bi-person-badge btn-developer">
       Developer
     </button>
+    {% endif %}
+
   </div>
+
 </footer>

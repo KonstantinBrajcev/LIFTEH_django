@@ -15,7 +15,7 @@ const transportFilterStates = {
 };
 
 let currentObjectsState = objectsFilterStates.without_marks;
-let currentTransportState = transportFilterStates.transport;
+let currentTransportState = transportFilterStates.no_transport;
 let userHasLimitedAccess = false;
 let isLoading = false;
 
@@ -77,10 +77,16 @@ function loadObjects() {
     isLoading = true;
     clearAllPlacemarks();
     const showTransport = currentTransportState === "transport" && !userHasLimitedAccess;
+
     loadBuildings(currentObjectsState).then(() => {
         if (showTransport && !userHasLimitedAccess) {
             return loadCars();
         } else {
+            clearCarPlacemarks();
+            if (updateInterval) {
+                clearInterval(updateInterval);
+                updateInterval = null;
+            }
             return Promise.resolve();
         }
     }).then(() => {
