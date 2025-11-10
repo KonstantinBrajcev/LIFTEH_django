@@ -151,13 +151,19 @@ class ToView(TemplateView):
         grouped_objects = self.group_objects_by_customer(filtered_objects)
 
         # НОВАЯ ЛОГИКА ДОСТУПА К ЗАДАЧАМ
-        if self.request.user.is_superuser or not has_access_entries:
-            # Суперпользователь ИЛИ пользователь без записей в AccessUser видят ВСЕ задачи
+        if self.request.user.is_superuser:
             problems = Problem.objects.all().order_by('-created_date')
-        else:
-            # Пользователь с записями в AccessUser видит только свои задачи
+            print(f"Superuser {self.request.user.username} sees ALL problems")
+        elif has_access_entries:
             problems = Problem.objects.filter(
                 user=self.request.user).order_by('-created_date')
+            print(
+                f"User {self.request.user.username} sees ONLY assigned problems")
+        else:
+            problems = Problem.objects.filter(
+                user_id=1).order_by('-created_date')
+            print(
+                f"Regular user {self.request.user.username} sees problems with user_id=1")
 
         context.update({
             'month': month,
@@ -753,20 +759,29 @@ def problems_view(request):
     from django.contrib.auth import get_user_model
     User = get_user_model()
 
-    # НОВАЯ ЛОГИКА ДОСТУПА К ЗАДАЧАМ
     # Проверяем, есть ли у пользователя записи в AccessUser
     has_access_entries = AccessUser.objects.filter(user=request.user).exists()
 
-    if request.user.is_superuser or not has_access_entries:
-        # Суперпользователь ИЛИ пользователь без записей в AccessUser видят ВСЕ задачи
+    print(
+        f"DEBUG: User {request.user.username}, superuser: {request.user.is_superuser}, has_access_entries: {has_access_entries}")
+
+    if request.user.is_superuser:
+        # Суперпользователь видит ВСЕ задачи
         problems = Problem.objects.all().order_by('-created_date')
-        print(f"User {request.user.username} sees ALL problems (superuser: {request.user.is_superuser}, has_access_entries: {has_access_entries})")
-    else:
+        print(f"DEBUG: Superuser sees ALL {problems.count()} problems")
+
+    elif has_access_entries:
         # Пользователь с записями в AccessUser видит только свои задачи
         problems = Problem.objects.filter(
             user=request.user).order_by('-created_date')
         print(
-            f"User {request.user.username} sees ONLY assigned problems (has_access_entries: {has_access_entries})")
+            f"DEBUG: User with access entries sees {problems.count()} OWN problems")
+
+    else:
+        # Обычные пользователи (без AccessUser) видят задачи только с user_id = 1
+        problems = Problem.objects.filter(user_id=1).order_by('-created_date')
+        print(
+            f"DEBUG: Regular user sees {problems.count()} problems with user_id=1")
 
     today = timezone.now().date()
 
