@@ -1229,33 +1229,21 @@ class DataSortView(TemplateView):
         # Получаем всех заказчиков
         customers = Object.objects.values_list('customer', flat=True).distinct().order_by('customer')
         
-        # Создаем структуру данных для шаблона
-        customer_data = []
+        # Создаем структуру данных для шаблона - ВСЕ объекты группируем
+        grouped_objects = []
         
         for customer in customers:
             # Получаем объекты для текущего заказчика
             customer_objects = Object.objects.filter(customer=customer)
             
-            # Получаем уникальные адреса для этого заказчика
-            addresses = customer_objects.values_list('address', flat=True).distinct().order_by('address')
-            
-            address_data = []
-            for address in addresses:
-                # Получаем объекты для текущего адреса
-                address_objects = Object.objects.filter(customer=customer, address=address)
-                
-                # Получаем уникальные модели для этого адреса
-                models = address_objects.values_list('model', flat=True).distinct().order_by('model')
-                
-                address_data.append({
-                    'address': address,
-                    'models': list(models)
-                })
-            
-            customer_data.append({
+            # Добавляем заказчика как группу
+            grouped_objects.append({
                 'customer': customer,
-                'addresses': address_data
+                'is_collapsed': True,  # Все группы свернуты по умолчанию
+                'objects': list(customer_objects),
+                'objects_count': customer_objects.count()
             })
         
-        context['customer_data'] = customer_data
+        context['grouped_objects'] = grouped_objects
+        context['total_objects'] = Object.objects.count()
         return context
