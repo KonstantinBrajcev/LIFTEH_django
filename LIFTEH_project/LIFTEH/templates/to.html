@@ -84,17 +84,17 @@
     {% include 'avr_table.html' %}
   </div>
 
-  <div id="diagnostic" class="tab">
-    {% include 'diagnostic.html' %}
-  </div>
-
   <div id="problems" class="tab">
     {% include 'problems.html' %}
   </div>
 
-  <div id="tasks" class="tab">
+  {% comment %} <div id="diagnostic" class="tab">
+    {% include 'diagnostic.html' %}
+  </div> {% endcomment %}
+
+  {% comment %} <div id="tasks" class="tab">
     {% include 'tasks.html' %}
-  </div>
+  </div> {% endcomment %}
 
   <div id="charts" class="tab">
     {% include 'charts.html' %}
