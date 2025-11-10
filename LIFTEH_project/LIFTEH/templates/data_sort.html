@@ -1,4 +1,6 @@
 {% load static %}
+{% load object_plural %}
+{% load custom_filters %}
 
 <style>
 .accordion-arrow {
@@ -104,7 +106,7 @@
           <td colspan="4" style="display: flex; justify-content: space-between; text-align: left; font-weight: bold; padding: 5px 15px;">
             <div>{{ group.customer }}</div>
             <div style="justify-content: right;">
-            <span class="badge bg-secondary ms-2">{{ group.objects|length }} объектов</span>
+            <span class="badge bg-secondary ms-2">{{ group.objects|length }} {{ group.objects|length|object_plural }}</span>
             <span class="accordion-arrow">
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
                 <path d="M6 4L10 8L6 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -118,7 +120,16 @@
         <!-- Содержимое группы (изначально скрыто) -->
         <tbody id="group-{{ forloop.counter }}" class="customer-group-content">
           {% for object in group.objects %}
-          <tr style="background-color: #ffffff;">
+          {% with service_record=service_records|get_item:object.id %}
+          <tr style="background-color: 
+          {% if service_record %}
+            {% if service_record.result == 0 %} #00800063
+            {% elif service_record.result == 1 %} #ffff0063
+            {% elif service_record.result == 2 %} #ff000063
+            {% else %} transparent
+            {% endif %}
+          {% else %} #80808063
+          {% endif %};">
 
               <td style="text-align: left; padding: 0px 5px 0px 5px; width: 40%">
                 <a href="https://yandex.ru/maps/?text={{ object.address|urlencode }}" target="_blank" style="text-decoration: none; color: inherit;">
@@ -150,7 +161,14 @@
                     class="btn btn-success">АВР</button>
 
                   <button class="btn btn-primary" 
-                    onclick="loadModalForm('{% url 'service_add' object_id=object.id %}', 'Добавление обслуживания', this)">
+                    onclick="loadModalForm('{% url 'service_add' object_id=object.id %}', 'Добавление обслуживания', this)" 
+                    data-last-color="
+                    {% if service_record %}
+                      {% if service_record.result == 0 %}#d4edda
+                      {% elif service_record.result == 1 %}#fff3cd
+                      {% elif service_record.result == 2 %}#f8d7da
+                      {% else %}#ffffff{% endif %}
+                    {% else %}#808080{% endif %}">
                     ТО
                   </button>
 
@@ -165,7 +183,7 @@
               </td>
 
           </tr>
-
+          {% endwith %}
           {% endfor %}
         </tbody>
 

@@ -150,6 +150,12 @@ class ToView(TemplateView):
         # ГРУППИРОВКА ОБЪЕКТОВ ПО CUSTOMER
         grouped_objects = self.group_objects_by_customer(filtered_objects)
 
+        # СОЗДАЕМ service_records ДЛЯ ГРУППИРОВАННЫХ ОБЪЕКТОВ
+        grouped_service_records = {}
+        for group in grouped_objects:
+            for obj in group['objects']:
+                grouped_service_records[obj.id] = service_records.get(obj.id)
+
         # НОВАЯ ЛОГИКА ДОСТУПА К ЗАДАЧАМ
         if self.request.user.is_superuser:
             problems = Problem.objects.all().order_by('-created_date')
@@ -170,7 +176,8 @@ class ToView(TemplateView):
             'current_month': current_month,
             'objects': filtered_objects,
             'grouped_objects': grouped_objects,  # Добавляем сгруппированные объекты
-            'service_records': service_records,
+            # 'service_records': service_records,
+            'service_records': grouped_service_records,
             'cities': sorted({re.match(r'^(г\.п\.|ж/д ст\.|г\.|п\.|д\.)\s*[^,]+', obj.address).group(0).strip()
                               for obj in Object.objects.all()
                               if re.match(r'^(г\.п\.|ж/д ст\.|г\.|п\.|д\.)\s*[^,]+', obj.address)}),
