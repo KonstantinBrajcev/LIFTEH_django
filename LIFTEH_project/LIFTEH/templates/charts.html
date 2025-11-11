@@ -44,11 +44,34 @@
 
         <div class="card mb-4">
           <div class="card-header">
-            <h3 style="margin: 0px; align-content: center;">Итого за год</h3>
+            <h3 style="margin: 0px; align-content: center;">Показатели за год</h3>
           </div>
-          <div>
-            <h3 class="text-center">{{ total_sum_all }} руб.</h3>
-          </div>
+          <div style="display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: space-evenly;">
+            <div class="card m-2 p-1">
+              <p class="card-text mb-1" style="text-align: center;">Всего за год</p>
+              <h3 class="text-center">{{ total_sum_all }} руб.</h3>
+            </div>
+            <div class="card m-2  p-1">
+              <p class="card-text mb-1" style="text-align: center;">Среднее за месяц</p>
+              <h3 class="text-center"> {{ month_avg }} руб.</h3>
+            </div>
+            <div class="card m-2 p-1">
+              <p class="card-text mb-1" style="text-align: center;">Среднее за ТО</p>
+              <h3 class="text-center"> {{ global_avg }} руб.</h3>
+            </div>
+            <div class="card m-2 p-1">
+              <p class="card-text mb-1" style="text-align: center;">Всего заказчиков</p>
+              <h3 class="text-center"> {{ customers_count }} шт.</h3>
+            </div>
+            <div class="card m-2 p-1">
+              <p class="card-text mb-1" style="text-align: center;">Всего подъемников</p>
+              <h3 class="text-center"> {{ total_objects_count }} шт.</h3>
+            </div>
+        </div>
+
         </div>
     </div>
 </div>

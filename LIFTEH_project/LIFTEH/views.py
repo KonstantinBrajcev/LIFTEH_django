@@ -747,6 +747,9 @@ class ChartsView(AdminRequiredMixin, TemplateView):
         context['global_avg'] = round(
             sum(avg_values) / len(avg_values), 2) if avg_values else 0
 
+        # Получаем общее количество записей в таблице Object
+        total_objects_count = Object.objects.count()
+
         context.update({
             'month_names': month_names,
             'month_sums': month_sums,
@@ -754,7 +757,8 @@ class ChartsView(AdminRequiredMixin, TemplateView):
             'customer_totals': [c['total'] for c in customers_data],
             'customers_avg': customers_avg,
             'customers_count': len(customers_data),
-            'total_sum_all': round(total_sum_all, 2)
+            'total_sum_all': round(total_sum_all, 2),
+            'total_objects_count': total_objects_count 
         })
         # context['canvas_width'] = len(context['customers']) * 30
         return context
