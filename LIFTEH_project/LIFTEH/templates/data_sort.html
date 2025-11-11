@@ -192,6 +192,7 @@
         </div>
         
       </div>
+
       {% empty %}
       <div style="text-align: center; padding: 20px;">
         {% if user.is_superuser %}
@@ -203,6 +204,26 @@
       {% endfor %}
       
     </div>
+
+      <div style="justify-self: end; padding: 0 10px 0px 10px">
+          В 
+          {% if current_month == 1 %}январе
+          {% elif current_month == 2 %}феврале
+          {% elif current_month == 3 %}марте
+          {% elif current_month == 4 %}апреле
+          {% elif current_month == 5 %}мае
+          {% elif current_month == 6 %}июне
+          {% elif current_month == 7 %}июле
+          {% elif current_month == 8 %}августе
+          {% elif current_month == 9 %}сентябре
+          {% elif current_month == 10 %}октябре
+          {% elif current_month == 11 %}ноябре
+          {% elif current_month == 12 %}декабре
+          {% endif %}: 
+          Заказчиков: {{ grouped_objects|length }}, 
+          Обьектов: {{ objects|length }} 
+    </div>
+
   </div>
 </div>
 <script>

@@ -1,5 +1,14 @@
 <div style="display:flex; margin: 5px; justify-content: space-around; flex-wrap: wrap; gap: 5px;">
 
+<style>
+.dropdown-menu.color-dropdown-fixed {
+    position: fixed !important;
+    transform: none !important;
+    inset: auto !important;
+    z-index: 1060 !important;
+}
+</style>
+
   <div style="justify-items: center;">
     <form method="GET" action="{% url 'to' %}#service">
       <div class="input-group" style="display: flex; align-items: center; width: 200px;">
@@ -50,12 +59,16 @@
       <label class="input-group-text">Цвета:</label>
       <div class="dropdown">
         <button class="btn btn-outline-secondary dropdown-toggle" type="button" 
-                id="colorDropdown" data-bs-toggle="dropdown" aria-expanded="false" 
+                id="colorDropdown" data-bs-toggle="dropdown"
+                data-bs-display="static" 
+                aria-expanded="false" 
                 style="width: 155px; color: black; border-radius: 0px 5px 5px 0px; border: var(--bs-border-width) solid var(--bs-border-color);">
           {% if selected_colors %}Выбрано: {{ selected_colors|length }}{% else %}Выберите цвета{% endif %}
         </button>
         {% comment %} <div class="dropdown-menu p-2" aria-labelledby="colorDropdown"> {% endcomment %}
-        <div class="dropdown-menu p-2" aria-labelledby="colorDropdown" style="z-index: 1060;">
+        <div class="dropdown-menu p-2" 
+             aria-labelledby="colorDropdown" 
+             style="z-index: 1060 !important; position: fixed !important; transform: none !important; inset: auto !important;">
           <div class="form-check">
             <input class="form-check-input color-checkbox" type="checkbox" id="color-green" 
                    name="colors" value="green" 

@@ -1,4 +1,6 @@
 {% load static %}
+{% load custom_filters %}
+{% load object_plural %}
 
 <div class="card">
   <div class="card-header d-flex">
@@ -137,19 +139,28 @@
           </td>
         </tr>
       {% endfor %}
-
-      <!-- Строка с суммой -->
-      <tr style="background-color: #f0f0f0; font-weight: bold;">
-        <td colspan="2"></td>
-        <td style="text-align: right; padding: 0px 10px;">
-          Итого: {{ objects|length }}
-        </td>
-        <td class="delete"></td>
-      </tr>
   </table>
+
+  <!-- Строка с суммой -->
+  <div style="justify-self: end; padding: 0 10px 0px 10px">
+          В 
+          {% if current_month == 1 %}январе
+          {% elif current_month == 2 %}феврале
+          {% elif current_month == 3 %}марте
+          {% elif current_month == 4 %}апреле
+          {% elif current_month == 5 %}мае
+          {% elif current_month == 6 %}июне
+          {% elif current_month == 7 %}июле
+          {% elif current_month == 8 %}августе
+          {% elif current_month == 9 %}сентябре
+          {% elif current_month == 10 %}октябре
+          {% elif current_month == 11 %}ноябре
+          {% elif current_month == 12 %}декабре
+          {% endif %} 
+          {{ current_year }}: {{ objects|length }} {{ objects|length|object_plural }}
+    </div>
 </div>
 </div>
 </div>
 
-<script src={% static 'js/object.js' %}>
-</script>
+<script src={% static 'js/object.js' %}></script>
