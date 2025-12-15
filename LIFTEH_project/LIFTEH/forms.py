@@ -7,7 +7,19 @@ class ObjectForm(forms.ModelForm):
     class Meta:
         model = Object
         fields = ['customer', 'address', 'model', 'work', 'phone', 'name', 'M1',
-                  'M2', 'M3', 'M4', 'M5', 'M6', 'M7', 'M8', 'M9', 'M10', 'M11', 'M12']
+                  'M2', 'M3', 'M4', 'M5', 'M6', 'M7', 'M8', 'M9', 'M10', 'M11', 'M12', 'latitude', 'longitude']
+        widgets = {
+            'latitude': forms.NumberInput(attrs={
+                'step': '0.000001', 
+                # 'min': '-90',
+                # 'max': '90'
+            }),
+            'longitude': forms.NumberInput(attrs={
+                'step': '0.000001',
+                # 'min': '-180',
+                # 'max': '180'
+            }),
+        }
     M1 = forms.DecimalField(required=False, decimal_places=2,
                             max_digits=12, widget=forms.NumberInput(attrs={'step': 'any'}))
     M2 = forms.DecimalField(required=False, decimal_places=2,

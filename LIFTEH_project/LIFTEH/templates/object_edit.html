@@ -68,6 +68,25 @@
     </div>
     {% endfor %}
 </div>
+
+    <div class="row g-2 mb-2">
+      <div class="form-floating col-md-6 mb-2">
+        <input type="text" class="form-control" 
+        name="latitude" id="id_latitude" placeholder=''
+        pattern="^-?\d+(\.\d+)?$"
+        value="{{ form.instance.latitude|stringformat:'f'|default_if_none:'' }}">
+        <label for="id_latitude" class="form-label">Широта:</label>
+      </div>
+
+      <div class="form-floating col-md-6 mb-2">
+        <input type="text" class="form-control" 
+        name="longitude" id="id_longitude" placeholder='' 
+        pattern="^-?\d+(\.\d+)?$"
+        value="{{ form.instance.longitude|stringformat:'f'|default_if_none:'' }}">
+        <label for="id_longitude" class="form-label">Долгота:</label>
+      </div>
+    </div>
+
     <button type="submit" class="btn btn-success">Сохранить</button>
     <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Отмена</button>
 </form>

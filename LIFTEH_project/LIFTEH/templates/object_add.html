@@ -126,11 +126,27 @@
 
         <div class="col-md-3">
       <div class="form-floating mb-2">
-        <input type="number" class="form-control" name="M12" step="any" id="id_M12" placeholder=''>
+        <input type="number" class="form-control" name="M12" step="any" id="id_M12" placeholder='' pattern="^-?\d+(\.\d+)?$">
         <label for="id_M12" class="form-label">Декабрь:</label>
       </div>
     </div>
   </div>
+
+    <div class="row g-2 mb-2">
+      <div class="form-floating col-md-6 mb-2">
+        <input type="text" class="form-control" 
+        name="latitude" step="any" id="id_latitude" placeholder=''
+        pattern="^-?\d+(\.\d+)?$">
+        <label for="id_latitude" class="form-label">Широта:</label>
+      </div>
+
+      <div class="form-floating col-md-6 mb-2">
+        <input type="text" class="form-control" 
+        name="longitude" step="any" id="id_longitude" placeholder=''
+        pattern="^-?\d+(\.\d+)?$">
+        <label for="id_longitude" class="form-label">Долгота:</label>
+      </div>
+    </div>
 
   <button type="submit" class="btn btn-success">Сохранить</button>
   <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Отмена</button>
