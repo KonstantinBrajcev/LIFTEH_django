@@ -56,7 +56,7 @@ jobs:
             pip install -r requirements-server.txt -q
             python manage.py migrate --no-input
             python manage.py collectstatic --noinput -v 0
-            
+
             echo "✅ Сервер подготовлен"
             echo "📁 Статика: $(du -sh staticfiles/ | cut -f1)"
 
@@ -70,8 +70,8 @@ jobs:
             source ~/myenv/bin/activate
             cd ${{ secrets.PROJECT_PATH }}/LIFTEH_project || exit 1
             export DJANGO_PRODUCTION=true
-            export DJANGO_SETTINGS_MODULE=LIFTEH_project.settings
-            
+            export DJANGO_SETTINGS_MODULE=settings
+
             # Ваша существующая логика остановки
             PIDS=$(pgrep -f gunicorn)
             MY_PID=$$
@@ -85,12 +85,12 @@ jobs:
               done
               sleep 2
             fi
-            
+
             # Запускаем в подпроцессе с полным отключением
             (nohup gunicorn --bind 0.0.0.0:8001 --workers 3 --timeout 120 LIFTEH_project.wsgi:application > gunicorn.log 2>&1 &)
-            
+
             sleep 5  # ⬅️ УВЕЛИЧЬТЕ ТАЙМАУТ ДО 5 СЕКУНД
-            
+
             # Более надежная проверка
             echo "Проверка запуска Gunicorn:"
             if pgrep -f "gunicorn.*LIFTEH_project" > /dev/null; then
