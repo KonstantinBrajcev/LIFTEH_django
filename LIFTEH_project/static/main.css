@@ -532,3 +532,47 @@ select[multiple] option:checked {
     display: none;
   }
 }
+
+
+@media print {
+  body * {
+    visibility: hidden;
+  }
+
+  .card,
+  .card * {
+    visibility: visible;
+  }
+
+  .card {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100% !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
+
+  /* Скрываем ненужные элементы */
+  .btn,
+  button,
+  .form-check,
+  #sortMenuContainer,
+  .name-page,
+  .btn-group,
+  .card-header>.col:last-child,
+  img {
+    display: none !important;
+  }
+
+  /* Настраиваем таблицу */
+  .table-hover {
+    width: 100% !important;
+    border: 1px solid #000 !important;
+  }
+
+  .table-hover th,
+  a {
+    color: #000 !important;
+  }
+}
