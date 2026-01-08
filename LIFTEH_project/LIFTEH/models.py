@@ -8,6 +8,12 @@ class Object(models.Model):
     customer = models.CharField(max_length=255, default='')
     address = models.CharField(max_length=255, default='')
     model = models.CharField(max_length=255, default='')
+    serial_number = models.CharField(
+        max_length=50,
+        default='',
+        blank=True,
+        verbose_name='Заводской номер'
+    )
     work = models.CharField(max_length=20, default='')
     phone = models.CharField(max_length=20, default='')
     name = models.CharField(max_length=255, default='')
@@ -49,7 +55,7 @@ class Avr(models.Model):
         (2, 'Выполнено'),
         (3, 'Отправлен АКТ'),
     ]
-        
+
     insert_date = models.DateTimeField(default=timezone.now)
     object = models.ForeignKey(Object, on_delete=models.CASCADE)
     problem = models.CharField(max_length=500, default='')
@@ -57,7 +63,8 @@ class Avr(models.Model):
     # Разрешить NULL и добавить default
     work_id = models.IntegerField(null=True, blank=True, default=0)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    result = models.IntegerField(null=True, blank=True, choices=RESULT_CHOICES, default=None)
+    result = models.IntegerField(
+        null=True, blank=True, choices=RESULT_CHOICES, default=None)
     # result = models.CharField(max_length=3, null=True, blank=True)
 
     def __str__(self):
@@ -66,6 +73,7 @@ class Avr(models.Model):
     class Meta:
         verbose_name = 'Акт ВР'
         verbose_name_plural = 'Акты ВР'
+
 
 class Work(models.Model):
     UNIT_CHOICES = [
@@ -99,33 +107,39 @@ class Switch(models.Model):
     def __str__(self):
         return "Включено" if self.power else "Выключено"
 
+
 class Problem(models.Model):
     name = models.CharField(max_length=255, verbose_name="Наименование задачи")
-    created_date = models.DateField(auto_now_add=True, verbose_name="Дата создания")
+    created_date = models.DateField(
+        auto_now_add=True, verbose_name="Дата создания")
     is_completed = models.BooleanField(default=False, verbose_name="Выполнено")
     user = models.ForeignKey(
-        User, 
-        on_delete=models.CASCADE, 
+        User,
+        on_delete=models.CASCADE,
         verbose_name="Пользователь",
         related_name='problems',
         default=1
     )
-    
+
     def __str__(self):
         return self.name
-    
+
     class Meta:
         verbose_name = "Задача"
         verbose_name_plural = "Задачи"
 
+
 class AccessUser(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="Пользователь")
-    object = models.ForeignKey('Object', on_delete=models.CASCADE, verbose_name="Объект")
-    
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, verbose_name="Пользователь")
+    object = models.ForeignKey(
+        'Object', on_delete=models.CASCADE, verbose_name="Объект")
+
     class Meta:
         verbose_name = "Доступ пользователя"
         verbose_name_plural = "Доступы пользователей"
-        unique_together = ('user', 'object')  # Уникальная связь пользователь-объект
-    
+        # Уникальная связь пользователь-объект
+        unique_together = ('user', 'object')
+
     def __str__(self):
         return f"{self.user.username} - {self.object.customer}"

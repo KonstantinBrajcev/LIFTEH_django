@@ -18,14 +18,21 @@
         </div>
 
         <div class="row g-2">
-          <div class="col-md-6">
+          <div class="col-md-4">
             <div class="form-floating mb-2">
               <input type="text" class="form-control" name="model" value="{{ form.model.value }}" maxlength="255" id="id_model" placeholder='' required>
               <label for="id_model" class="form-label">Модель:</label>
             </div>
           </div>
 
-          <div class="col-md-6">
+          <div class="col-md-4">
+            <div class="form-floating mb-2">
+              <input type="text" class="form-control" name="serial_number" value="{{ form.serial_number.value }}" maxlength="255" id="id_serial_number" placeholder=''>
+              <label for="id_serial_number" class="form-label">Модель:</label>
+            </div>
+          </div>
+
+          <div class="col-md-4">
             <div class="form-floating mb-2">
               <input type="text" class="form-control" name="work" value="{{ form.work.value }}" maxlength="20" id="id_work" placeholder='' required>
               <label for="id_work" class="form-label">Работы:</label>
