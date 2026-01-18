@@ -70,8 +70,8 @@ jobs:
           target: "${{ secrets.PROJECT_PATH }}"
           overwrite: true
           strip_components: 0
-          debug: true # Включаем отладку SCP
-          timeout: 60s # Увеличиваем таймаут
+          debug: true
+          timeout: 60s
 
       - name: Verify copied files
         uses: appleboy/ssh-action@v1
