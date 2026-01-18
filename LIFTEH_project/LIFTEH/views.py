@@ -28,8 +28,8 @@ from django.views.generic import TemplateView
 from datetime import datetime
 from django.shortcuts import render
 from django.http import JsonResponse
-from LIFTEH.models import Object, Avr, Service, Work, Diagnostic, Problem, Object, AccessUser
-from LIFTEH.forms import ObjectForm, ServiceForm, AvrForm, ObjectAvrForm, DiagnosticForm
+from LIFTEH.models import Object, Avr, Service, Work, Diagnostic, Problem, Object, AccessUser, Dogovor
+from LIFTEH.forms import ObjectForm, ServiceForm, AvrForm, ObjectAvrForm, DiagnosticForm, DogovorForm
 
 
 class AdminRequiredMixin(UserPassesTestMixin):
@@ -70,8 +70,10 @@ class ToView(TemplateView):
         year = timezone.now().year
 
         # Получаем параметр сортировки
-        sort_by = self.request.GET.get('sort', 'customer')  # По умолчанию сортировка по customer
-        sort_order = self.request.GET.get('order', 'asc')   # По умолчанию по возрастанию
+        # По умолчанию сортировка по customer
+        sort_by = self.request.GET.get('sort', 'customer')
+        sort_order = self.request.GET.get(
+            'order', 'asc')   # По умолчанию по возрастанию
 
         # Исправляем обработку города (None → пустая строка)
         selected_city = self.request.GET.get('city', '')
@@ -171,6 +173,8 @@ class ToView(TemplateView):
             print(
                 f"Regular user {self.request.user.username} sees problems with user_id=1")
 
+        dogovors = Dogovor.objects.all().order_by('-date')
+
         context.update({
             'month': month,
             'current_month': current_month,
@@ -186,7 +190,9 @@ class ToView(TemplateView):
             'avrs': Avr.objects.filter(Q(result__isnull=True) | Q(result__in=[0, 1, 2])),
             'problems': problems,
             'current_sort': sort_by,
-            'current_order': sort_order
+            'current_order': sort_order,
+            'dogovors': dogovors,  # ← ОБЯЗАТЕЛЬНО передать!
+            'dogovors_count': dogovors.count(),
         })
 
         # Добавляем контекст из других представлений
@@ -203,15 +209,15 @@ class ToView(TemplateView):
         context.update(diagnostic_view.get_context_data())
 
         return context
-    
+
     def group_objects_by_customer(self, objects):
         """Группирует объекты по customer, сворачивая последовательные дубликаты"""
         if not objects:
             return []
-        
+
         grouped = []
         current_group = None
-        
+
         for obj in objects:
             if current_group is None:
                 # Начинаем новую группу
@@ -235,13 +241,13 @@ class ToView(TemplateView):
                             'objects': [single_obj],
                             'is_collapsed': False  # Одиночные объекты не сворачиваются
                         })
-                
+
                 current_group = {
                     'customer': obj.customer,
                     'objects': [obj],
                     'is_collapsed': True
                 }
-        
+
         # Добавляем последнюю группу
         if current_group:
             if len(current_group['objects']) >= 2:
@@ -253,7 +259,7 @@ class ToView(TemplateView):
                         'objects': [single_obj],
                         'is_collapsed': False
                     })
-        
+
         return grouped
 
 
@@ -758,7 +764,7 @@ class ChartsView(AdminRequiredMixin, TemplateView):
             'customers_avg': customers_avg,
             'customers_count': len(customers_data),
             'total_sum_all': round(total_sum_all, 2),
-            'total_objects_count': total_objects_count 
+            'total_objects_count': total_objects_count
         })
         # context['canvas_width'] = len(context['customers']) * 30
         return context
@@ -1112,12 +1118,14 @@ def get_objects(request):
             1: 'M1', 2: 'M2', 3: 'M3', 4: 'M4', 5: 'M5', 6: 'M6',
             7: 'M7', 8: 'M8', 9: 'M9', 10: 'M10', 11: 'M11', 12: 'M12'
         }
-        
+
         current_month_field = month_field_map.get(current_month)
         if current_month_field:
             # Исключаем объекты с NULL в текущем месяце
-            objects = objects.exclude(**{f'{current_month_field}__isnull': True})
-            print(f"Map: Filtered by {current_month_field} - excluding NULL values")
+            objects = objects.exclude(
+                **{f'{current_month_field}__isnull': True})
+            print(
+                f"Map: Filtered by {current_month_field} - excluding NULL values")
 
         # Дополнительная фильтрация по типу (если нужна)
         if filter_type == 'without_marks':
@@ -1248,28 +1256,109 @@ def get_tracker_locations(request):
 # ---------- DATA SORT PAGE -----------
 class DataSortView(TemplateView):
     template_name = 'data_sort.html'
-    
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        
+
         # Получаем всех заказчиков
-        customers = Object.objects.values_list('customer', flat=True).distinct().order_by('customer')
-        
-        # Создаем структуру данных для шаблона - ВСЕ объекты группируем
+        customers = Object.objects.values_list(
+            'customer', flat=True
+        ).distinct().order_by('customer')
+
         grouped_objects = []
-        
+
         for customer in customers:
-            # Получаем объекты для текущего заказчика
-            customer_objects = Object.objects.filter(customer=customer)
-            
-            # Добавляем заказчика как группу
+            # Все объекты заказчика
+            customer_objects = Object.objects.filter(
+                customer=customer).order_by('address')
+
             grouped_objects.append({
                 'customer': customer,
-                'is_collapsed': True,  # Все группы свернуты по умолчанию
+                'is_collapsed': True,
                 'objects': list(customer_objects),
-                'objects_count': customer_objects.count()
+                'objects_count': customer_objects.count(),
             })
-        
-        context['grouped_objects'] = grouped_objects
-        context['total_objects'] = Object.objects.count()
+
+        # Все объекты
+        all_objects = Object.objects.all()
+
+        context.update({
+            'grouped_objects': grouped_objects,
+            'total_objects': all_objects.count(),
+            'objects': all_objects,
+            'service_records': {},
+            'current_month': datetime.now().month,
+        })
+
         return context
+
+
+# ---------- ДОГОВОРЫ -----------
+@method_decorator(login_required, name='dispatch')
+class DogovorListView(View):
+    def get(self, request):
+        template_name = 'dogovors.html'  # по умолчанию
+        dogovors = Dogovor.objects.all().order_by('-date')
+        context = {
+            'dogovors': dogovors,
+            'dogovors_count': dogovors.count(),
+        }
+
+        return render(request, template_name, context)
+
+
+@login_required
+@user_passes_test(lambda u: u.is_superuser)
+def dogovor_add(request):
+    if request.method == 'POST':
+        form = DogovorForm(request.POST)
+        if form.is_valid():
+            dogovor = form.save()
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({'success': True})
+            return redirect(reverse('to') + '#dogovors')
+    else:
+        form = DogovorForm()
+
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return render(request, 'dogovor_add.html', {'form': form})
+    return render(request, 'dogovor_add.html', {'form': form})
+
+
+@login_required
+@user_passes_test(lambda u: u.is_superuser)
+def dogovor_edit(request, pk):
+    dogovor = get_object_or_404(Dogovor, pk=pk)
+    if request.method == 'POST':
+        form = DogovorForm(request.POST, instance=dogovor)
+        if form.is_valid():
+            form.save()
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({'success': True})
+            return redirect(reverse('to') + '#dogovors')
+        else:
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return render(request, 'dogovor_edit.html', {
+                    'form': form,
+                    'dogovor': dogovor
+                }, status=400)
+    else:
+        form = DogovorForm(instance=dogovor)
+
+    return render(request, 'dogovor_edit.html', {
+        'form': form,
+        'dogovor': dogovor
+    })
+
+
+@login_required
+@user_passes_test(lambda u: u.is_superuser)
+def dogovor_delete(request, pk):
+    dogovor = get_object_or_404(Dogovor, pk=pk)
+    if request.method == 'POST':
+        dogovor.delete()
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'success': True})
+        messages.success(request, 'Договор успешно удален')
+        return redirect(reverse('to') + '#dogovors')
+    return redirect(reverse('to') + '#dogovors')

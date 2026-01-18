@@ -30,6 +30,36 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements-server.txt
 
+      # - name: Copy project to server
+      #   uses: appleboy/scp-action@v1
+      #   with:
+      #     host: ${{ secrets.SSH_HOST }}
+      #     username: ${{ secrets.SSH_USERNAME }}
+      #     key: ${{ secrets.SSH_PRIVATE_KEY }}
+      #     source: "LIFTEH_project/"
+      #     target: "${{ secrets.PROJECT_PATH }}"
+      #     overwrite: true
+
+      # ДОБАВЬТЕ ЭТОТ ШАГ ДЛЯ ОТЛАДКИ ПОДКЛЮЧЕНИЯ SSH
+      - name: Test SSH connection
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            echo "✅ SSH подключение успешно"
+            echo "Текущая директория: $(pwd)"
+            echo "Целевой путь: ${{ secrets.PROJECT_PATH }}"
+            echo "Проверяем существование пути:"
+            if [ -d "${{ secrets.PROJECT_PATH }}" ]; then
+              echo "✅ Целевой путь существует"
+              ls -la "${{ secrets.PROJECT_PATH }}"
+            else
+              echo "⚠️ Целевой путь не существует, будет создан"
+            fi
+
+      # ОБНОВЛЕННЫЙ ШАГ КОПИРОВАНИЯ С ОТЛАДКОЙ
       - name: Copy project to server
         uses: appleboy/scp-action@v1
         with:
@@ -39,6 +69,24 @@ jobs:
           source: "LIFTEH_project/"
           target: "${{ secrets.PROJECT_PATH }}"
           overwrite: true
+          strip_components: 0
+          debug: true # Включаем отладку SCP
+          timeout: 60s # Увеличиваем таймаут
+
+      - name: Verify copied files
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            echo "Проверка скопированных файлов:"
+            cd "${{ secrets.PROJECT_PATH }}"
+            echo "Текущая директория: $(pwd)"
+            echo "Содержимое LIFTEH_project:"
+            ls -la LIFTEH_project/ 2>/dev/null || echo "Папка не найдена"
+            echo "Наличие settings.py:"
+            find . -name "settings.py" -type f | head -5
 
       - name: Prepare server (migrations + static)
         uses: appleboy/ssh-action@v1

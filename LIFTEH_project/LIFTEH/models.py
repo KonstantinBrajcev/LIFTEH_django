@@ -8,12 +8,9 @@ class Object(models.Model):
     customer = models.CharField(max_length=255, default='')
     address = models.CharField(max_length=255, default='')
     model = models.CharField(max_length=255, default='')
-    serial_number = models.CharField(
-        max_length=50,
-        default='',
-        blank=True,
-        verbose_name='Заводской номер'
-    )
+    serial_number = models.CharField(max_length=50,
+                                     default='', blank=True,
+                                     verbose_name='Заводской номер')
     work = models.CharField(max_length=20, default='')
     phone = models.CharField(max_length=20, default='')
     name = models.CharField(max_length=255, default='')
@@ -32,6 +29,13 @@ class Object(models.Model):
     latitude = models.FloatField(null=True, blank=True)
     longitude = models.FloatField(null=True, blank=True)
     folder_id = models.CharField(max_length=50, default='', blank=True)
+    dogovor = models.ForeignKey(  # Новое поле для договора
+        'Dogovor',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        verbose_name='Договор'
+    )
 
 
 class Service(models.Model):
@@ -143,3 +147,61 @@ class AccessUser(models.Model):
 
     def __str__(self):
         return f"{self.user.username} - {self.object.customer}"
+
+
+class Dogovor(models.Model):
+    """Модель для хранения договоров"""
+    # Выбор для финансирования
+    FINANCING_CHOICES = [('own', 'Собственные'), ('budget', 'Бюджетные'),]
+    # Выбор для лонгирования
+    LONGTIME_CHOICES = [(True, 'Да'), (False, 'Нет'),]
+
+    # 0. Заказчик - буквы и символы
+    customer = models.CharField(max_length=300)
+    # 1. № договора - цифры/буквы и символы
+    number = models.CharField(max_length=100)
+    # 2. Дата договора - дата в формате ДД.ММ.ГГГГ
+    date = models.DateField(null=True, blank=True)
+    # 3. Финансирование - Собственные или Бюджетные
+    financing = models.CharField(
+        max_length=20, choices=FINANCING_CHOICES, default='own')
+    # 4. Лонгирование - да или нет
+    longtime = models.BooleanField(choices=LONGTIME_CHOICES, default=False)
+    # Дополнительные поля для удобства
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    # Статус договора (активный/завершенный)
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        verbose_name = "Договор"
+        verbose_name_plural = "Договоры"
+        ordering = ['-date', '-created_at']
+
+    # def __str__(self):
+    #     return f"Договор №{self.number} от {self.date.strftime('%d.%m.%Y')}"
+
+    # Метод для форматирования даты в нужный формат
+    # def get_formatted_date(self):
+    #     return self.date.strftime('%d.%m.%Y')
+    def get_formatted_date(self):
+        """Возвращает дату в формате ДД.ММ.ГГГГ"""
+        if self.date:
+            try:
+                return self.date.strftime('%d.%m.%Y')
+            except (AttributeError, ValueError):
+                return 'Дата не указана'
+        return 'Дата не указана'
+
+    def __str__(self):
+        if self.date:
+            return f"Договор №{self.number} от {self.get_formatted_date()}"
+        return f"Договор №{self.number} (дата не указана)"
+
+    # Метод для отображения финансирования
+    def get_financing_display_name(self):
+        return dict(self.FINANCING_CHOICES).get(self.financing, self.financing)
+
+    # Метод для отображения лонгирования
+    def get_longtime_display_name(self):
+        return "Да" if self.longtime else "Нет"

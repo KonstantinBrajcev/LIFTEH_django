@@ -1,0 +1,62 @@
+{% load static %}
+        <form id="dogovorForm" method="post" action="{% url 'dogovor_edit' pk=dogovor.id %}">
+            {% csrf_token %}
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="id_number" class="form-label">Номер договора *</label>
+                        {{ form.number }}
+                        {% if form.number.errors %}
+                            <div class="text-danger">{{ form.number.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="id_date" class="form-label">Дата договора *</label>
+                        {{ form.date }}
+                        {% if form.date.errors %}
+                            <div class="text-danger">{{ form.date.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="id_customer" class="form-label">Заказчик *</label>
+                    {{ form.customer }}
+                    {% if form.customer.errors %}
+                        <div class="text-danger">{{ form.customer.errors.0 }}</div>
+                    {% endif %}
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="id_financing" class="form-label">Тип финансирования</label>
+                        {{ form.financing }}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <div class="form-check mt-4">
+                            {{ form.longtime }}
+                            <label class="form-check-label" for="id_longtime">
+                                Долгосрочный договор
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-check mb-3">
+                    {{ form.is_active }}
+                    <label class="form-check-label" for="id_is_active">
+                        Активный договор
+                    </label>
+                </div>
+                
+                <div class="alert alert-info">
+                    <small>
+                        <strong>*</strong> - обязательные для заполнения поля
+                    </small>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                <button type="submit" class="btn btn-success">Сохранить</button>
+            </div>
+        </form>

@@ -576,3 +576,25 @@ select[multiple] option:checked {
     color: #000 !important;
   }
 }
+
+/* Уменьшаем отступы */
+.form-floating>.form-control {
+  padding: 1rem .3rem;
+}
+
+/* Убираем стрелочки на окнах INPUT */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type="number"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+/* Для IE10+ */
+input[type="number"]::-ms-clear {
+  display: none;
+}

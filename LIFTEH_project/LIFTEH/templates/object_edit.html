@@ -63,7 +63,7 @@
             {% with field_name="M"|add:month %}
             <input type="number" class="form-control" 
                    name="{{ field_name }}" 
-                   step="any" 
+                   step="any" style="-moz-appearance: textfield;"
                    {% comment %} value="{{ form|get_field_value:field_name|default_if_none:'' }}"  {% endcomment %}
                    value="{{ form|get_field_value:field_name|format_decimal|default_if_none:'' }}"
                    id="id_{{ field_name }}">
