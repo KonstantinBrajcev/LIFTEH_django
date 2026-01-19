@@ -16,7 +16,7 @@ TRACKER_API_LOGIN = 'NOVASTARTEH'
 TRACKER_API_PASSWORD = 'NSTbelNST'
 
 # ПОЛНОЕ ОТКЛЮЧЕНИЕ CORS - РАЗРЕШАЕМ ВСЁ
-CORS_ALLOW_ALL_ORIGINS = True  # ГЛАВНАЯ НАСТРОЙКА - разрешить ВСЕ origin'ы
+CORS_ALLOW_ALL_ORIGINS = True  # ГЛАВНАЯ НАСТРОЙКА - разрешить ВСЕ origin
 CORS_ALLOW_CREDENTIALS = True  # Разрешить куки и авторизацию
 
 # Разрешить ВСЕ HTTP методы
