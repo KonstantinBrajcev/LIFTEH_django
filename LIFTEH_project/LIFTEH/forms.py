@@ -1,16 +1,17 @@
+from datetime import datetime
 from .models import Diagnostic
 from django import forms
-from LIFTEH.models import Object, Avr, Service
+from LIFTEH.models import Object, Avr, Service, Dogovor
 
 
 class ObjectForm(forms.ModelForm):
     class Meta:
         model = Object
-        fields = ['customer', 'address', 'model', 'work', 'phone', 'name', 'M1',
+        fields = ['customer', 'address', 'model', 'serial_number', 'work', 'phone', 'name', 'M1',
                   'M2', 'M3', 'M4', 'M5', 'M6', 'M7', 'M8', 'M9', 'M10', 'M11', 'M12', 'latitude', 'longitude']
         widgets = {
             'latitude': forms.NumberInput(attrs={
-                'step': '0.000001', 
+                'step': '0.000001',
                 # 'min': '-90',
                 # 'max': '90'
             }),
@@ -150,3 +151,45 @@ class DiagnosticForm(forms.ModelForm):
         if commit:
             diagnostic.save()
         return diagnostic
+
+
+class DogovorForm(forms.ModelForm):
+    class Meta:
+        model = Dogovor
+        fields = ['number', 'customer', 'date',
+                  'financing', 'longtime', 'is_active']
+        widgets = {
+            'date': forms.DateInput(
+                format='%Y-%m-%d',  # Важно: формат для HTML5 date input
+                attrs={
+                    'type': 'date',
+                    'class': 'form-control'
+                }
+            ),
+            'number': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Пример: ДГ-2024-001'
+            }),
+            'customer': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Полное наименование заказчика'
+            }),
+            'financing': forms.Select(attrs={'class': 'form-select'}),
+        }
+        labels = {
+            'number': 'Номер договора',
+            'customer': 'Заказчик',
+            'date': 'Дата договора',
+            'financing': 'Тип финансирования',
+            'longtime': 'Долгосрочный договор',
+            'is_active': 'Активный договор',
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if not self.instance.pk:  # Если это создание нового
+            from datetime import datetime
+            self.fields['date'].initial = datetime.now().date()
+            self.fields['number'].initial = f"{datetime.now().strftime('%Y%m%d')}"
+            self.fields['is_active'].initial = True
+            self.fields['longtime'].initial = False

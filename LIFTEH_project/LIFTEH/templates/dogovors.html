@@ -1,0 +1,457 @@
+{% load static %}
+
+{% comment %} <style>
+.table th {
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.table td {
+    vertical-align: middle;
+    font-size: 14px;
+}
+
+.badge {
+    font-size: 12px;
+    padding: 4px 8px;
+}
+
+.btn-group-sm .btn {
+    padding: 2px 8px;
+    font-size: 14px;
+}
+
+.card-title {
+    font-size: 14px;
+    margin-bottom: 5px;
+}
+
+.card-text {
+    font-size: 24px;
+    font-weight: bold;
+}
+</style>
+ {% endcomment %}
+
+<div class="card">
+  <div class="card-header d-flex">
+    <h3 style="margin: 0px; align-content: center;">Договоры</h3>
+
+    {% if user.is_superuser %}
+      <div class="col d-flex justify-content-end align-items-center">
+        <button type="button" class="btn btn-primary" 
+          onclick="loadModalForm('{% url 'dogovor_add' %}', 'Добавить договор')">
+            Добавить
+        </button>
+      </div>
+    {% endif %}
+  </div>
+
+  <div class="card-body" style="padding: 0px; min-height: 50px;">
+    <table class="table-hover" style="width: 100%;">
+      <thead class="table-light">
+        <tr style="background-color: #de4c15; color: white;">
+          <th style="text-align: center;">№</th>
+          <th style="text-align: center;">Заказчик</th>
+          <th style="text-align: center;">Дата</th>
+          <th style="text-align: center;">Финансирование</th>
+          <th style="text-align: center;">Лонгирование</th>
+          <th style="text-align: center;">Статус</th>
+          <th style="text-align: center;">Объектов</th>
+          <th style="text-align: center;">Действия</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for dogovor in dogovors %}
+
+        <!-- Добавьте временно для отладки -->
+        <div style="display: none;">ID договора: {{ dogovor.id }}, Number: {{ dogovor.number }}</div>
+        <!-- КОнец отладки-->
+
+        <tr {% if not dogovor.is_active %}class="table-secondary"{% endif %}>
+          <td style="text-align: center;">
+            <span class="badge bg-info text-dark">№{{ dogovor.number }}</span>
+          </td>
+          <td style="text-align: center;">
+            <strong>{{ dogovor.customer }}</strong>
+            {% if dogovor.customer|length > 30 %}
+            <br><small class="text-muted">{{ dogovor.customer|truncatechars:50 }}</small>
+            {% endif %}
+          </td>
+          <td style="text-align: center;">
+            {% if dogovor.date %}
+              {{ dogovor.get_formatted_date }}
+            {% else %}
+              <span class="text-muted">Дата не указана</span>
+            {% endif %}
+          </td>
+          <td style="text-align: center;">
+            <span class="badge {% if dogovor.financing == 'own' %}bg-success{% else %}bg-warning{% endif %}">
+              {{ dogovor.get_financing_display_name }}
+            </span>
+          </td>
+          <td style="text-align: center;">
+            <span class="badge {% if dogovor.longtime %}bg-primary{% else %}bg-secondary{% endif %}">
+              {{ dogovor.get_longtime_display_name }}
+            </span>
+          </td>
+          <td style="text-align: center;">
+            {% if dogovor.is_active %}
+              <span class="badge bg-success">Активный</span>
+            {% else %}
+              <span class="badge bg-danger">Завершен</span>
+            {% endif %}
+          </td>
+          <td style="text-align: center;">
+            {% with objects_count=dogovor.object_set.count %}
+              {% if objects_count > 0 %}
+                <span class="badge bg-info">{{ objects_count }}</span>
+              {% else %}
+                <span class="badge bg-secondary">0</span>
+              {% endif %}
+            {% endwith %}
+          </td>
+          <td style="text-align: end;">
+            <div class="btn-group btn-group" style="gap: 2px;">
+            <!-- Используем data-атрибуты для хранения информации -->
+            <button onclick="showDogovorDetailsInline(this)" 
+                    class="btn btn-info" 
+                    title="Просмотр"
+                    data-id="{{ dogovor.id }}"
+                    data-number="{{ dogovor.number }}"
+                    data-customer="{{ dogovor.customer }}"
+                    data-date="{{ dogovor.date|date:'d.m.Y' }}"
+                    data-financing="{{ dogovor.get_financing_display_name }}"
+                    data-longtime="{{ dogovor.get_longtime_display_name }}"
+                    data-active="{{ dogovor.is_active }}"
+                    data-created="{{ dogovor.created_at|date:'d.m.Y H:i' }}"
+                    data-updated="{{ dogovor.updated_at|date:'d.m.Y H:i' }}">
+                👁️
+            </button>
+
+              {% if user.is_superuser %}
+              <button onclick="loadModalForm('{% url 'dogovor_edit' pk=dogovor.id %}', 'Редактировать договор №{{ dogovor.number }}')" 
+                class="btn btn-secondary" title="Редактировать">
+                ✏️
+              </button>
+
+              <button onclick="confirmDelete('{% url 'dogovor_delete' pk=dogovor.id %}', '№{{ dogovor.number }}')" 
+                class="btn btn-danger delete" title="Удалить">
+                <strong>X</strong>
+              </button>
+              {% endif %}
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="8" style="text-align: center;">Нет данных о договорах</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+
+      <!-- Строка с суммой -->
+      <tr style="background-color: #f0f0f0; font-weight: bold;">
+        <td colspan="6"></td>
+        <td style="text-align: right; padding: 0px 10px;">
+          Итого: {{ dogovors|length }}
+        </td>
+        <td></td>
+      </tr>
+    </table>
+  </div>
+</div>
+
+
+{% comment %} <!-- Модальное окно для деталей договора (если нужно) -->
+<div class="modal fade" id="dogovorDetailsModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Детали договора</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body" id="dogovorDetailsContent">
+        <!-- Содержимое будет загружено через AJAX -->
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+      </div>
+    </div>
+  </div>
+</div> {% endcomment %}
+
+
+<script>
+// Упрощенная функция для просмотра деталей
+function showDogovorDetailsInline(button) {
+    const id = button.getAttribute('data-id');
+    const number = button.getAttribute('data-number');
+    const customer = button.getAttribute('data-customer');
+    const date = button.getAttribute('data-date');
+    const financing = button.getAttribute('data-financing');
+    const longtime = button.getAttribute('data-longtime');
+    const isActive = button.getAttribute('data-active') === 'True';
+    
+    // Обновляем заголовок
+    const modalTitle = document.getElementById('modalTitle');
+    if (modalTitle) {
+        modalTitle.textContent = `Договор №${number}`;
+    }
+    
+    // Обновляем содержимое
+    const modalFormContent = document.getElementById('modalFormContent');
+    if (modalFormContent) {
+        modalFormContent.innerHTML = `
+            <div class="dogovor-details">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label"><strong>Номер договора:</strong></label>
+                            <div class="form-control-plaintext border rounded p-2 bg-light">${number}</div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label"><strong>Заказчик:</strong></label>
+                            <div class="form-control-plaintext border rounded p-2 bg-light">${customer}</div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label"><strong>Дата договора:</strong></label>
+                            <div class="form-control-plaintext border rounded p-2 bg-light">${date || 'Не указана'}</div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label"><strong>Финансирование:</strong></label>
+                            <div class="form-control-plaintext border rounded p-2 bg-light">${financing}</div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label"><strong>Лонгирование:</strong></label>
+                            <div class="form-control-plaintext border rounded p-2 bg-light">${longtime}</div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label"><strong>Статус:</strong></label>
+                            <div class="form-control-plaintext border rounded p-2">
+                                <span class="badge ${isActive ? 'bg-success' : 'bg-danger'}">
+                                    ${isActive ? 'Активный' : 'Завершен'}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="text-center mt-4">
+                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">
+                        Закрыть
+                    </button>
+                </div>
+            </div>
+        `;
+    }
+    
+    // Показываем модальное окно
+    const modal = bootstrap.Modal.getInstance(document.getElementById('objectModal')) || 
+                  new bootstrap.Modal(document.getElementById('objectModal'));
+    modal.show();
+}
+
+
+// Функция подтверждения удаления (должна быть в основном JS)
+function confirmDelete(url, name) {
+    if (confirm(`Вы уверены, что хотите удалить договор ${name}?`)) {
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken'),
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Ошибка при удалении: ' + (data.error || 'Неизвестная ошибка'));
+            }
+        })
+        .catch(error => {
+            alert('Ошибка сети: ' + error);
+        });
+    }
+}
+
+// Функция для загрузки CSRF токена
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+// Функция для загрузки формы в модальное окно (должна быть в основном JS)
+function loadModalForm(url, title) {
+    fetch(url)
+        .then(response => response.text())
+        .then(html => {
+            const modalContainer = document.getElementById('modalContainer');
+            if (modalContainer) {
+                modalContainer.innerHTML = html;
+                const modal = new bootstrap.Modal(document.getElementById('modalContainer').firstChild);
+                modal.show();
+                
+                // Обработка формы после загрузки
+                const form = document.getElementById('dogovorForm');
+                if (form) {
+                    form.addEventListener('submit', function(e) {
+                        e.preventDefault();
+                        const formData = new FormData(this);
+                        
+                        fetch(this.action, {
+                            method: 'POST',
+                            body: formData,
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest'
+                            }
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                modal.hide();
+                                location.reload();
+                            } else {
+                                // Показываем ошибки
+                                alert('Ошибка при сохранении');
+                            }
+                        });
+                    });
+                }
+            }
+        })
+        .catch(error => {
+            alert('Ошибка загрузки формы: ' + error);
+        });
+}
+
+
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Страница договоров загружена');
+    console.log('Всего договоров: {{ dogovors_count }}');
+    
+    // Обработка формы добавления договора
+    const addForm = document.getElementById('addDogovorForm');
+    if (addForm) {
+        addForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Показываем индикатор загрузки
+            const submitBtn = this.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Сохранение...';
+            submitBtn.disabled = true;
+            
+            const formData = new FormData(this);
+            
+            fetch(this.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                // Восстанавливаем кнопку
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+                
+                if (data.success) {
+                    // Закрываем модальное окно
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('addDogovorModal'));
+                    if (modal) modal.hide();
+                    
+                    // Показываем уведомление об успехе
+                    showNotification('success', data.message || 'Договор успешно добавлен');
+                    
+                    // Очищаем форму
+                    addForm.reset();
+                    
+                    // Обновляем список договоров (перезагрузка страницы)
+                    setTimeout(() => {
+                        location.reload();
+                    }, 1500);
+                    
+                } else {
+                    // Показываем ошибки
+                    if (data.errors) {
+                        let errorMessages = [];
+                        for (const [field, error] of Object.entries(data.errors)) {
+                            // Преобразуем название поля в читаемый формат
+                            const fieldNames = {
+                                'number': 'Номер договора',
+                                'customer': 'Заказчик',
+                                'date': 'Дата договора',
+                                'financing': 'Тип финансирования'
+                            };
+                            const fieldName = fieldNames[field] || field;
+                            errorMessages.push(`${fieldName}: ${error}`);
+                        }
+                        showNotification('error', 'Ошибки при заполнении формы:<br>' + errorMessages.join('<br>'));
+                    } else {
+                        showNotification('error', data.error || 'Ошибка при добавлении договора');
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+                showNotification('error', 'Ошибка сети. Проверьте подключение к интернету.');
+            });
+        });
+    }
+    
+    // Функция для показа уведомлений
+    function showNotification(type, message) {
+        // Создаем элемент уведомления
+        const notification = document.createElement('div');
+        notification.className = `alert alert-${type} alert-dismissible fade show`;
+        notification.style.position = 'fixed';
+        notification.style.top = '20px';
+        notification.style.right = '20px';
+        notification.style.zIndex = '9999';
+        notification.style.minWidth = '300px';
+        notification.innerHTML = `
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        
+        document.body.appendChild(notification);
+        
+        // Автоматически скрываем через 5 секунд
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.remove();
+            }
+        }, 5000);
+    }
+    
+    // Инициализация tooltips
+    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+});
+
+</script>
+{% comment %} {% endblock %} {% endcomment %}

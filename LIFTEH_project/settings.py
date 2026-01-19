@@ -33,7 +33,7 @@ X_FRAME_OPTIONS = 'ALLOWALL'
 # Настройки для продакшена
 if PRODUCTION:
     DEBUG = False
-    ALLOWED_HOSTS = ['jelezo.by', '178.159.242.118', 'www.jelezo.by']
+    ALLOWED_HOSTS = ['jelezo.by', '178.159.242.118', 'www.jelezo.by', '127.0.0.1', 'localhost']
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',

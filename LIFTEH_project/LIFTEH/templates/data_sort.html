@@ -1,6 +1,7 @@
 {% load static %}
 {% load object_plural %}
 {% load custom_filters %}
+{% block content %}
 
 <style>
 .accordion-arrow {
@@ -34,7 +35,10 @@
     overflow: hidden;
     opacity: 0;
     transition: max-height 0.4s ease, opacity 0.3s ease;
-    display: block !important;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: space-around;
 }
 
 .customer-group-content.expanded {
@@ -42,33 +46,153 @@
     opacity: 1;
 }
 
-/* Плавное появление строк внутри аккордеона */
-.customer-group-content tr {
+/* Стили для блоков с объектами */
+.object-item {
+    max-width: 500px;
+    display: grid;
+    align-items: center;
+    padding: 10px 15px;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    gap: 10px;
+    width: 100%;
+    transition: transform 0.3s ease, opacity 0.3s ease;
     transform: translateY(-10px);
     opacity: 0;
-    transition: transform 0.3s ease, opacity 0.3s ease;
 }
 
-.customer-group-content.expanded tr {
+.customer-group-content.expanded .object-item {
     transform: translateY(0);
     opacity: 1;
 }
+
+.object-item:last-child {
+    border-bottom: none;
+}
+
+/* Стили для ячеек с данными */
+.object-cell {
+    flex: 1;
+    min-width: 0; /* Для корректного обрезания текста */
+}
+
+.object-cell.address {
+    flex: 2;
+    min-width: 200px;
+}
+
+.object-cell.model {
+    flex: 1.5;
+    min-width: 150px;
+}
+
+.object-cell.phone {
+    flex: 1;
+    min-width: 120px;
+}
+
+.object-cell.actions {
+    flex: 1;
+    min-width: 200px;
+    display: flex;
+    justify-content: center; /* Центрируем содержимое */
+    align-items: center; /* Выравниваем по вертикали */
+    width: 100%;
+}
+
+/* Стили для полей ввода/отображения */
+.object-field {
+    width: 100%;
+    padding: 6px 8px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    background-color: #fff;
+    font-size: 14px;
+    color: #495057;
+    box-sizing: border-box;
+    display: block;
+}
+
+/* Ссылка на карты */
+.address-link {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    text-decoration: none;
+    color: inherit;
+    width: 100%;
+}
+
+.address-link:hover {
+    color: #0d6efd;
+}
+
+/* Ссылка на телефон */
+.phone-link {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    text-decoration: none;
+    color: inherit;
+    width: 100%;
+    justify-content: center;
+}
+
+.phone-link:hover {
+    color: #0d6efd;
+}
+
+/* Группа кнопок */
+.btn-group-horizontal {
+    display: flex;
+    gap: 5px;
+    flex-wrap: nowrap;
+    width: 100%; /* Кнопки занимают всю ширину */
+    justify-content: center; /* Центрируем кнопки */
+}
+
+.btn-group-horizontal .btn {
+    white-space: nowrap;
+    padding: 5px 10px;
+    font-size: 14px;
+    flex: 1; /* Кнопки растягиваются равномерно */
+    max-width: 120px; /* Максимальная ширина кнопки */
+}
+
+/* Цветовые статусы */
+.object-item.status-0 { background-color: #d4edda; } /* Успешно */
+.object-item.status-1 { background-color: #fff3cd; } /* Предупреждение */
+.object-item.status-2 { background-color: #f8d7da; } /* Ошибка */
+.object-item.status-none { background-color: #f8f9fa; } /* Нет данных */
 
 .table-hover {
     width: 100% !important;
     table-layout: auto; 
 }
 
-.customer-group-content {
+.content-wrapper {
     width: 100%;
 }
 
-.customer-group-content tr {
-    display: table;
-    width: 100%;
+/* Адаптивность */
+@media (max-width: 768px) {
+    .object-item {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .object-cell {
+        width: 100%;
+    }
+    
+    .object-cell.actions {
+        justify-content: flex-start;
+    }
 }
 </style>
+
 <div class="card">
+
   <div class="card-header d-flex">
     <h3 style="margin: 0px; align-content: center;">Объекты ТО</h3>
     <div class="col d-flex justify-content-end align-items-center">
@@ -97,98 +221,139 @@
       {% for group in grouped_objects %}
       <div class="customer-group">
         
-        <!-- Заголовок группы -->
-        <div class="customer-group-header accordion-header" 
-             style="background-color: #e9ecef; cursor: pointer; padding: 5px 15px;"
-             onclick="toggleCustomerGroup({{ forloop.counter }})"
-             data-group-id="{{ forloop.counter }}">
-          
-          <div style="display: flex; justify-content: space-between; align-items: center; font-weight: bold;">
-            <div>{{ group.customer }}</div>
-            <div style="display: flex; align-items: center; gap: 8px;">
-              <span class="badge bg-secondary">{{ group.objects|length }} {{ group.objects|length|object_plural }}</span>
-              <span class="accordion-arrow">
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                  <path d="M6 4L10 8L6 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-              </span>
-            </div>
-          </div>
-          
-        </div>
+
+
+<!-- Заголовок группы (компактная версия) -->
+<div class="customer-group-header accordion-header" 
+    style="background-color: #e9ecef; cursor: pointer; padding: 5px 15px;"
+    onclick="toggleCustomerGroup({{ forloop.counter }})"
+    data-group-id="{{ forloop.counter }}">
+  
+  <div style="display: flex; justify-content: space-between; align-items: center; font-weight: bold;">
+    <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+      <!-- Заказчик -->
+      <div style="min-width: 150px;">{{ group.customer }}</div>
+    </div>
+
+    <!-- Количество объектов и стрелка -->
+    <div style="display: flex; align-items: center; gap: 8px;">
+      <span class="badge bg-secondary">{{ group.objects|length }} {{ group.objects|length|object_plural }}</span>
+      <span class="accordion-arrow">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <path d="M6 4L10 8L6 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </span>
+    </div>
+  </div>
+</div>
+
         
         <!-- Содержимое группы (изначально скрыто) -->
-        <div id="group-{{ forloop.counter }}" class="customer-group-content">
-          <table style="width: 100%;">
-            <tbody>
-            {% for object in group.objects %}
-            {% with service_record=service_records|get_item:object.id %}
-            <tr style="background-color: 
+        <div id="group-{{ forloop.counter }}" class="customer-group-content mb-1">
+          <!-- Блоки с объектами вместо таблицы -->
+          {% for object in group.objects %}
+          {% with service_record=service_records|get_item:object.id %}
+          <div class="object-item m-2
               {% if service_record %}
-                {% if service_record.result == 0 %} #00800063
-                {% elif service_record.result == 1 %} #ffff0063
-                {% elif service_record.result == 2 %} #ff000063
-                {% else %} transparent
+                {% if service_record.result == 0 %}status-0
+                {% elif service_record.result == 1 %}status-1
+                {% elif service_record.result == 2 %}status-2
                 {% endif %}
-              {% else %} #80808063
-              {% endif %};">
+              {% else %}status-none
+              {% endif %}">
 
-                <td style="text-align: left; padding: 0px 5px 0px 5px; width: 40%">
-                  <a href="https://yandex.ru/maps/?text={{ object.address|urlencode }}" target="_blank" style="text-decoration: none; color: inherit;">
-                    <img src="{% static 'ico/geo-alt.svg' %}" alt="phone" class="delete" style="width: 16px; height: 16px; vertical-align: middle;">
-                    {{ object.address }}
-                  </a>
-                </td>
+            <!-- Ячейка с адресом -->
+            <div class="object-cell address" style="display: flex; align-items: center; gap: 10px;">
+              {% comment %} <a href="https://yandex.ru/maps/?text={{ object.address|urlencode }}" 
+                 target="_blank" 
+                 class="address-link"> {% endcomment %}
+                <img src="{% static 'ico/geo-alt.svg' %}" 
+                     alt="Местоположение" 
+                     style="width: 16px; height: 16px; vertical-align: middle;">
+                <input type="text" 
+                       class="object-field" 
+                       value="{{ object.address }}" 
+                       readonly
+                       title="{{ object.address }}">
+              {% comment %} </a> {% endcomment %}
+            </div>
 
-                <td class="delete" style="text-align: center; padding-left: 1vw; width: 30%;">
-                  {{ object.model }}
-                </td>
+            <!-- Ячейка с моделью -->
+            <div class="object-cell model" style="display: flex; align-items: center; gap: 10px;">
+              <img src="{% static 'ico/gear.svg' %}" 
+                     alt="Модель" 
+                     style="width: 16px; height: 16px; vertical-align: middle;">
+              <input type="text" 
+                     class="object-field" 
+                     value="{{ object.model }}" 
+                     readonly
+                     title="{{ object.model }}">
+              <input type="text" 
+                     class="object-field" 
+                     value="{{ object.serial_number }}" 
+                     readonly
+                     title="{{ object.serial_number }}">
+            </div>
 
-                <td style="text-align: center; padding: 0px 5px 0px 5px; width: 20%;">
-                  <a href="tel:{{ object.phone }}" style="text-decoration: none; color: inherit; text-wrap-mode: nowrap;">
-                    <img src="{% static 'ico/telephone.svg' %}" alt="phone" class="delete" style="width: 16px; height: 16px; vertical-align: middle;">
-                    {{ object.phone }}<br>
-                  </a>
-                </td>
+            <!-- Ячейка с телефоном -->
+            <div class="object-cell phone" style="display: flex; align-items: center; gap: 10px;">
+              {% comment %} <a href="tel:{{ object.phone }}" class="phone-link"> {% endcomment %}
+                <img src="{% static 'ico/telephone.svg' %}" 
+                     alt="Телефон" 
+                     style="width: 16px; height: 16px; vertical-align: middle;">
+                <input type="text" 
+                       class="object-field" 
+                       value="{{ object.phone }}" 
+                       readonly
+                       title="{{ object.phone }}">
+                <input type="text" 
+                       class="object-field" 
+                       value="{{ object.name }}" 
+                       readonly
+                       title="{{ object.name }}">
+              {% comment %} </a> {% endcomment %}
+            </div>
 
-                <td style="text-align: end;">
-                  <div class="btn-group" style="gap: 2px;">
+            <!-- Ячейка с действиями -->
+            <div class="object-cell actions">
+              <div class="btn-group-horizontal">
 
-                    {% if user.is_superuser %}
-                    <button onclick="loadModalForm('{% url 'object_edit' pk=object.id %}', 'Редактировать объект')" 
-                            class="btn btn-secondary delete">&#9998;</button>
-                    {% endif %}
+                {% if user.is_superuser %}
+                <button onclick="loadModalForm('{% url 'object_edit' pk=object.id %}', 'Редактировать объект')" 
+                        class="btn btn-secondary" title="Редактировать">&#9998;</button>
+                {% endif %}
 
-                    <button onclick="loadModalForm('{% url 'avr_add' pk=object.id %}', 'Добавление АВР')" 
-                      class="btn btn-success">АВР</button>
+                <button onclick="loadModalForm('{% url 'avr_add' pk=object.id %}', 'Добавление АВР')" 
+                        class="btn btn-success" title="Добавить АВР">АВР</button>
 
-                    <button class="btn btn-primary" 
-                      onclick="loadModalForm('{% url 'service_add' object_id=object.id %}', 'Добавление обслуживания', this)" 
-                      data-last-color="
-                      {% if service_record %}
-                        {% if service_record.result == 0 %}#d4edda
-                        {% elif service_record.result == 1 %}#fff3cd
-                        {% elif service_record.result == 2 %}#f8d7da
-                        {% else %}#ffffff{% endif %}
-                      {% else %}#808080{% endif %}">
-                      ТО
-                    </button>
+                <button class="btn btn-primary" 
+                        onclick="loadModalForm('{% url 'service_add' object_id=object.id %}', 'Добавление обслуживания', this)"
+                        title="Добавить ТО"
+                        data-last-color="
+                        {% if service_record %}
+                          {% if service_record.result == 0 %}#d4edda
+                          {% elif service_record.result == 1 %}#fff3cd
+                          {% elif service_record.result == 2 %}#f8d7da
+                          {% else %}#ffffff{% endif %}
+                        {% else %}#808080{% endif %}">
+                  ТО
+                </button>
 
-                    {% if user.is_superuser %}
-                    <button onclick="confirmDelete('{% url 'object_delete' pk=object.id %}', '{{ object.id }}')" 
-                            class="btn btn-danger delete" style="padding: 5px 15px;">
-                      <strong>Х</strong>
-                    </button>
-                    {% endif %}
-
-                  </div>
-                </td>
-
-            </tr>
-            {% endwith %}
-            {% endfor %}
-            </tbody>
-          </table>
+                {% if user.is_superuser %}
+                <button onclick="confirmDelete('{% url 'object_delete' pk=object.id %}', '{{ object.id }}')" 
+                        class="btn btn-danger" 
+                        style="padding: 5px 10px;"
+                        title="Удалить">
+                  <strong>X</strong>
+                </button>
+                {% endif %}
+                
+              </div>
+            </div>
+            
+          </div>
+          {% endwith %}
+          {% endfor %}
         </div>
         
       </div>
@@ -205,27 +370,15 @@
       
     </div>
 
-      <div style="justify-self: end; padding: 0 10px 0px 10px">
-          В 
-          {% if current_month == 1 %}январе
-          {% elif current_month == 2 %}феврале
-          {% elif current_month == 3 %}марте
-          {% elif current_month == 4 %}апреле
-          {% elif current_month == 5 %}мае
-          {% elif current_month == 6 %}июне
-          {% elif current_month == 7 %}июле
-          {% elif current_month == 8 %}августе
-          {% elif current_month == 9 %}сентябре
-          {% elif current_month == 10 %}октябре
-          {% elif current_month == 11 %}ноябре
-          {% elif current_month == 12 %}декабре
-          {% endif %}: 
-          Заказчиков: {{ grouped_objects|length }}, 
-          Обьектов: {{ objects|length }} 
+    <div style="justify-self: end; padding: 10px">
+        Заказчиков: {{ grouped_objects|length }}, 
+        Объектов: {{ objects|length }} 
     </div>
 
   </div>
 </div>
+
+
 <script>
 // Функция для переключения состояния группы с анимацией
 function toggleCustomerGroup(groupId) {
@@ -246,12 +399,30 @@ function toggleCustomerGroup(groupId) {
 function expandGroup(groupContent, arrow) {
     groupContent.classList.add('expanded');
     arrow.classList.add('rotated');
+    
+    // Анимация появления каждого объекта
+    const objectItems = groupContent.querySelectorAll('.object-item');
+    objectItems.forEach((item, index) => {
+        setTimeout(() => {
+            item.style.transitionDelay = `${index * 50}ms`;
+            item.style.opacity = '1';
+            item.style.transform = 'translateY(0)';
+        }, 10);
+    });
 }
 
 // Функция сворачивания группы
 function collapseGroup(groupContent, arrow) {
     groupContent.classList.remove('expanded');
     arrow.classList.remove('rotated');
+    
+    // Сброс анимации объектов
+    const objectItems = groupContent.querySelectorAll('.object-item');
+    objectItems.forEach(item => {
+        item.style.transitionDelay = '0ms';
+        item.style.opacity = '0';
+        item.style.transform = 'translateY(-10px)';
+    });
 }
 
 // Функция для управления всеми группами через переключатель
@@ -260,13 +431,17 @@ function toggleAllGroups(isChecked) {
         // Развернуть все группы
         document.querySelectorAll('.customer-group-content').forEach(content => {
             const arrow = content.previousElementSibling.querySelector('.accordion-arrow');
-            expandGroup(content, arrow);
+            if (!content.classList.contains('expanded')) {
+                expandGroup(content, arrow);
+            }
         });
     } else {
         // Свернуть все группы
         document.querySelectorAll('.customer-group-content').forEach(content => {
             const arrow = content.previousElementSibling.querySelector('.accordion-arrow');
-            collapseGroup(content, arrow);
+            if (content.classList.contains('expanded')) {
+                collapseGroup(content, arrow);
+            }
         });
     }
 }
@@ -280,9 +455,39 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Убедимся, что все группы изначально свернуты
     document.querySelectorAll('.customer-group-content').forEach(content => {
-        content.classList.remove('expanded');
+        const objectItems = content.querySelectorAll('.object-item');
+        objectItems.forEach(item => {
+            item.style.opacity = '0';
+            item.style.transform = 'translateY(-10px)';
+        });
+    });
+});
+
+// Добавляем ховер-эффект для элементов
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.object-item').forEach(item => {
+        item.addEventListener('mouseenter', function() {
+            this.style.backgroundColor = this.style.backgroundColor 
+                ? this.style.backgroundColor.replace(')', ', 0.9)').replace('rgb', 'rgba')
+                : 'rgba(248, 249, 250, 0.9)';
+        });
+        
+        item.addEventListener('mouseleave', function() {
+            // Возвращаем исходный цвет
+            const statusClass = Array.from(this.classList).find(cls => cls.startsWith('status-'));
+            if (statusClass === 'status-0') {
+                this.style.backgroundColor = 'rgba(212, 237, 218, 0.7)';
+            } else if (statusClass === 'status-1') {
+                this.style.backgroundColor = 'rgba(255, 243, 205, 0.7)';
+            } else if (statusClass === 'status-2') {
+                this.style.backgroundColor = 'rgba(248, 215, 218, 0.7)';
+            } else {
+                this.style.backgroundColor = 'rgba(248, 249, 250, 0.7)';
+            }
+        });
     });
 });
 </script>
 
 <script src={% static 'js/object.js' %}></script>
+{% endblock %}

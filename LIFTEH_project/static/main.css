@@ -532,3 +532,69 @@ select[multiple] option:checked {
     display: none;
   }
 }
+
+
+@media print {
+  body * {
+    visibility: hidden;
+  }
+
+  .card,
+  .card * {
+    visibility: visible;
+  }
+
+  .card {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100% !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
+
+  /* Скрываем ненужные элементы */
+  .btn,
+  button,
+  .form-check,
+  #sortMenuContainer,
+  .name-page,
+  .btn-group,
+  .card-header>.col:last-child,
+  img {
+    display: none !important;
+  }
+
+  /* Настраиваем таблицу */
+  .table-hover {
+    width: 100% !important;
+    border: 1px solid #000 !important;
+  }
+
+  .table-hover th,
+  a {
+    color: #000 !important;
+  }
+}
+
+/* Уменьшаем отступы */
+.form-floating>.form-control {
+  padding: 1rem .3rem;
+}
+
+/* Убираем стрелочки на окнах INPUT */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type="number"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+/* Для IE10+ */
+input[type="number"]::-ms-clear {
+  display: none;
+}

@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.contrib.auth import views as auth_views
 from django.contrib.auth.decorators import login_required
 from django.urls import path
-from LIFTEH.views import LoginView, ToView, HomeView, ChartsView, TasksView, DiagnosticView, DataSortView
+from LIFTEH.views import LoginView, ToView, HomeView, ChartsView, TasksView, DiagnosticView, DataSortView, DogovorListView
 from LIFTEH.views import ApiLoginView
 from LIFTEH import views
 from django.conf import settings
@@ -50,6 +50,11 @@ urlpatterns = [
     path('problems/<int:problem_id>/delete/',
          views.delete_problem, name='delete_problem'),
 
+    path('dogovors/', DogovorListView.as_view(), name='dogovors'),
+    path('dogovor/add/', views.dogovor_add, name='dogovor_add'),
+    path('dogovor/edit/<int:pk>/', views.dogovor_edit, name='dogovor_edit'),
+    path('dogovor/delete/<int:pk>/', views.dogovor_delete, name='dogovor_delete'),
+
     path('charts/', ChartsView.as_view(), name='charts'),
     path('tasks/', user_passes_test(lambda u: u.is_superuser)
          (TasksView.as_view()), name='tasks'),
@@ -62,6 +67,6 @@ urlpatterns = [
          login_required(views.get_tracker_locations), name='get_tracker_locations'),
 
     # API endpoint для Flutter приложения
-    path('api/auth/login/', ApiLoginView.as_view(), name='api_login'),
+    # path('api/auth/login/', ApiLoginView.as_view(), name='api_login'),
 
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Charts</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <h1>Тестовые графики</h1>
+    <canvas id="testChart" width="400" height="200"></canvas>
+
+    <script>
+        const ctx = document.getElementById('testChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['Январь', 'Февраль', 'Март'],
+                datasets: [{
+                    label: 'Тест',
+                    data: [10, 20, 30],
+                    backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                    borderColor: 'rgba(255, 99, 132, 1)',
+                    borderWidth: 1
+                }]
+            }
+        });
+        console.log('Тестовый график создан!');
+    </script>
+</body>
+</html>

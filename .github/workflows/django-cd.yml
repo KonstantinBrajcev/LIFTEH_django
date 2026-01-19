@@ -30,6 +30,36 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements-server.txt
 
+      # - name: Copy project to server
+      #   uses: appleboy/scp-action@v1
+      #   with:
+      #     host: ${{ secrets.SSH_HOST }}
+      #     username: ${{ secrets.SSH_USERNAME }}
+      #     key: ${{ secrets.SSH_PRIVATE_KEY }}
+      #     source: "LIFTEH_project/"
+      #     target: "${{ secrets.PROJECT_PATH }}"
+      #     overwrite: true
+
+      # ДОБАВЬТЕ ЭТОТ ШАГ ДЛЯ ОТЛАДКИ ПОДКЛЮЧЕНИЯ SSH
+      - name: Test SSH connection
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            echo "✅ SSH подключение успешно"
+            echo "Текущая директория: $(pwd)"
+            echo "Целевой путь: ${{ secrets.PROJECT_PATH }}"
+            echo "Проверяем существование пути:"
+            if [ -d "${{ secrets.PROJECT_PATH }}" ]; then
+              echo "✅ Целевой путь существует"
+              ls -la "${{ secrets.PROJECT_PATH }}"
+            else
+              echo "⚠️ Целевой путь не существует, будет создан"
+            fi
+
+      # ОБНОВЛЕННЫЙ ШАГ КОПИРОВАНИЯ С ОТЛАДКОЙ
       - name: Copy project to server
         uses: appleboy/scp-action@v1
         with:
@@ -39,6 +69,24 @@ jobs:
           source: "LIFTEH_project/"
           target: "${{ secrets.PROJECT_PATH }}"
           overwrite: true
+          strip_components: 0
+          debug: true
+          timeout: 60s
+
+      - name: Verify copied files
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            echo "Проверка скопированных файлов:"
+            cd "${{ secrets.PROJECT_PATH }}"
+            echo "Текущая директория: $(pwd)"
+            echo "Содержимое LIFTEH_project:"
+            ls -la LIFTEH_project/ 2>/dev/null || echo "Папка не найдена"
+            echo "Наличие settings.py:"
+            find . -name "settings.py" -type f | head -5
 
       - name: Prepare server (migrations + static)
         uses: appleboy/ssh-action@v1
@@ -56,7 +104,7 @@ jobs:
             pip install -r requirements-server.txt -q
             python manage.py migrate --no-input
             python manage.py collectstatic --noinput -v 0
-            
+
             echo "✅ Сервер подготовлен"
             echo "📁 Статика: $(du -sh staticfiles/ | cut -f1)"
 
@@ -70,8 +118,8 @@ jobs:
             source ~/myenv/bin/activate
             cd ${{ secrets.PROJECT_PATH }}/LIFTEH_project || exit 1
             export DJANGO_PRODUCTION=true
-            export DJANGO_SETTINGS_MODULE=LIFTEH_project.settings
-            
+            export DJANGO_SETTINGS_MODULE=settings
+
             # Ваша существующая логика остановки
             PIDS=$(pgrep -f gunicorn)
             MY_PID=$$
@@ -85,12 +133,12 @@ jobs:
               done
               sleep 2
             fi
-            
+
             # Запускаем в подпроцессе с полным отключением
             (nohup gunicorn --bind 0.0.0.0:8001 --workers 3 --timeout 120 LIFTEH_project.wsgi:application > gunicorn.log 2>&1 &)
-            
+
             sleep 5  # ⬅️ УВЕЛИЧЬТЕ ТАЙМАУТ ДО 5 СЕКУНД
-            
+
             # Более надежная проверка
             echo "Проверка запуска Gunicorn:"
             if pgrep -f "gunicorn.*LIFTEH_project" > /dev/null; then

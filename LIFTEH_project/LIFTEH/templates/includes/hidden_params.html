@@ -1,0 +1,6 @@
+<!-- Сохраняем все текущие параметры кроме тех, которые управляются формой -->
+{% for key, value in request.GET.items %}
+    {% if key != 'month' and key != 'city' and key != 'colors' %}
+        <input type="hidden" name="{{ key }}" value="{{ value }}">
+    {% endif %}
+{% endfor %}

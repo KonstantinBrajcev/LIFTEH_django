@@ -4,7 +4,7 @@
 
 <div class="card">
   <div class="card-header d-flex">
-    <h3 style="margin: 0px; align-content: center;">Объекты ТО</h3>
+    <h3 class="name-page" style="margin: 0px; align-content: center;">Объекты ТО</h3>
     <div class="col d-flex justify-content-end align-items-center">
       <div class="form-check form-switch me-3">
         <input class="form-check-input" type="checkbox" id="sortToggle" 
@@ -15,9 +15,13 @@
       </div>
 
       {% if user.is_superuser %}
-      <button type="button" class="btn btn-primary"
+      <button type="button" class="btn btn-primary" style="margin-right: 5px;"
               onclick="loadModalForm('{% url 'object_add' %}', 'Добавить объект')">
         Добавить
+      </button>
+
+      <button type="button" class="btn btn-secondary" onclick="printTable()">
+        Печать
       </button>
       {% endif %}
     </div>
@@ -33,14 +37,7 @@
   <div class="content-wrapper" id="mainContent">
   <div class="card-body" style="padding: 0px; min-height: 100px !important;">
     <table class="table-hover" style="width: 100%;">
-      <!-- <tr style="background-color: #de4c15; color: white;">
-          {% comment %} <th>ID</th> {% endcomment %}
-          <th class="delete" style="text-align: center;">Заказчик</th>
-          <th style="text-align: center;">Адрес</th>
-          <th style="text-align: center;">Телефон</th>
-          <th></th>
-      </tr> -->
-            <tr style="background-color: #de4c15; color: white;">
+        <tr style="background-color: #de4c15; color: white;">
           {% comment %} <th>ID</th> {% endcomment %}
           <th class="delete" style="text-align: center;">
             <a href="?sort=customer&order={% if current_sort == 'customer' and current_order == 'asc' %}desc{% else %}asc{% endif %}" 
@@ -164,3 +161,4 @@
 </div>
 
 <script src={% static 'js/object.js' %}></script>
+<script src={% static 'js/print.js' %}></script>
