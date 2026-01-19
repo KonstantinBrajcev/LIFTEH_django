@@ -100,7 +100,7 @@ jobs:
             export DJANGO_PRODUCTION=true
             export DJANGO_SETTINGS_MODULE=settings
 
-            # Быстрое обновление
+            # Быстрое обновлений
             pip install -r requirements-server.txt -q
             python manage.py migrate --no-input
             python manage.py collectstatic --noinput -v 0
