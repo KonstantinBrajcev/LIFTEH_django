@@ -6,6 +6,8 @@ BASE_DIR = Path(__file__).resolve().parent
 # Определяем среду выполнения
 PRODUCTION = os.getenv('DJANGO_PRODUCTION', 'False').lower() == 'true'
 
+ALLOWED_HOSTS = ['*']
+
 # Яндекс Карты API ключ
 YANDEX_MAPS_API_KEY = os.getenv(
     'YANDEX_MAPS_API_KEY', 'b0a03b93-14f2-4e5a-b38a-25ee1d5296e0')
@@ -33,7 +35,7 @@ X_FRAME_OPTIONS = 'ALLOWALL'
 # Настройки для продакшена
 if PRODUCTION:
     DEBUG = False
-    ALLOWED_HOSTS = ['jelezo.by', '178.159.242.118', 'www.jelezo.by', '127.0.0.1', 'localhost']
+    # ALLOWED_HOSTS = ['jelezo.by', '178.159.242.118', 'www.jelezo.by', '127.0.0.1', 'localhost']
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
@@ -44,7 +46,7 @@ if PRODUCTION:
 # Настройки для разработки
 else:
     DEBUG = True
-    ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
+    # ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
