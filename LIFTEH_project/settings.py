@@ -6,6 +6,8 @@ BASE_DIR = Path(__file__).resolve().parent
 # Определяем среду выполнения
 PRODUCTION = os.getenv('DJANGO_PRODUCTION', 'False').lower() == 'true'
 
+ALLOWED_HOSTS = ['*']
+
 # Яндекс Карты API ключ
 YANDEX_MAPS_API_KEY = os.getenv(
     'YANDEX_MAPS_API_KEY', 'b0a03b93-14f2-4e5a-b38a-25ee1d5296e0')
