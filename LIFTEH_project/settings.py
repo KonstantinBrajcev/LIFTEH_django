@@ -32,8 +32,13 @@ X_FRAME_OPTIONS = 'ALLOWALL'
 
 # Настройки для продакшена
 if PRODUCTION:
-    DEBUG = False
-    ALLOWED_HOSTS = ['jelezo.by', '178.159.242.118', 'www.jelezo.by', '127.0.0.1', 'localhost']
+    DEBUG = True
+    ALLOWED_HOSTS = ['jelezo.by',
+                    '178.159.242.118',
+                    '.jelezo.by',
+                    '127.0.0.1',
+                    'localhost',
+                    '0.0.0.0',]
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
@@ -44,7 +49,7 @@ if PRODUCTION:
 # Настройки для разработки
 else:
     DEBUG = True
-    ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
+    ALLOWED_HOSTS = ['127.0.0.1', 'localhost',]
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
